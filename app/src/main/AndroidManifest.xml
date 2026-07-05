@@ -30,11 +30,6 @@
             android:theme="@style/Theme.Songshushoupai" />
 
         <activity
-            android:name=".start.TetrisActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Songshushoupai" />
-
-        <activity
             android:name=".start.VideoPlayerActivity"
             android:exported="false"
             android:theme="@style/Theme.Songshushoupai" />
