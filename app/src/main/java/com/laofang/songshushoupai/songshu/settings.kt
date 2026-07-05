@@ -731,6 +731,41 @@ fun SettingsPage(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             )
+
+            Spacer(modifier = Modifier.height(5.dp))
+
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, "https://qun.qq.com/universal-share/share?ac=1&authKey=EHQoZ%2BHU4s8taqGbkhUKrWY4FAq2vLB2LoPRNMO7jLkxGyyNLrnWCNmaZ7DuJTOx&busi_data=eyJncm91cENvZGUiOiI0NjUxNzQ2MTMiLCJ0b2tlbiI6IjlHTnZHTlhwMWVlN2VEYXJzTitoWkZxSlV1VUhadnNsYzJNVkE5b0tIcGZvQW00TGxOK0lQRGFMaEZjeU5GZWEiLCJ1aW4iOiIyOTA4ODA3NzYwIn0%3D&data=LITJR0_gfVVBcvQQSGd-RQZ7xQ39dz8b0w_wJzZ69Z-mCigq-1uJsrRMOstu12BG7-aKJJu0EhSDGJprd-kbKQ&svctype=4&tempid=h5_group_info".toUri()))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("QQ群")
+                }
+                OutlinedButton(
+                    onClick = {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, "https://github.com/LaoFang114514/songshu-phone-badge".toUri()))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("GitHub")
+                }
+                OutlinedButton(
+                    onClick = {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, "https://songshushoupai.mysxl.cn/".toUri()))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("官网")
+                }
+            }
         }
     }
 
