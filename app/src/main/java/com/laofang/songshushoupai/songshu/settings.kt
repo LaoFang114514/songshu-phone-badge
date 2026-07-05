@@ -838,7 +838,7 @@ fun SettingsPage(
                             scope.launch {
                                 val config = WebDavConfig(dialogUrl, dialogUser, dialogPass)
                                 val error = BackupManager.webdavTestConnection(config)
-                                statusMessage = if (error == null) "连接成功！" else "连接失败: $error"
+                                statusMessage = if (error == null) "连接成功!" else "连接失败: $error"
                                 dialogTesting = false
                             }
                         },
