@@ -145,6 +145,7 @@ fun SongshushoupaiApp(
     var backupExpanded by remember { mutableStateOf(false) }
     var aboutExpanded by remember { mutableStateOf(false) }
     var themeExpanded by remember { mutableStateOf(false) }
+    var qrExpanded by remember { mutableStateOf(false) }
 
     val settingsScrollState = remember { ScrollState(0) }
     val homeListState = remember { LazyListState() }
@@ -311,6 +312,8 @@ fun SongshushoupaiApp(
                     onAboutExpandedChange = { aboutExpanded = it },
                     themeExpanded = themeExpanded,
                     onThemeExpandedChange = { themeExpanded = it },
+                    qrExpanded = qrExpanded,
+                    onQrExpandedChange = { qrExpanded = it },
                     onThemeChanged = onThemeChanged,
                     onDarkModeChanged = onDarkModeChanged
                 )

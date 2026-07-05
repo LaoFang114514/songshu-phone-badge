@@ -53,6 +53,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -173,11 +174,15 @@ fun SettingsPage(
     onAboutExpandedChange: (Boolean) -> Unit = {},
     themeExpanded: Boolean = false,
     onThemeExpandedChange: (Boolean) -> Unit = {},
+    qrExpanded: Boolean = false,
+    onQrExpandedChange: (Boolean) -> Unit = {},
     onThemeChanged: (Int) -> Unit = {},
     onDarkModeChanged: (Int) -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    val saved = remember { SettingsManager.loadSettings(context) }
 
     var webdavUrl by remember { mutableStateOf("") }
     var webdavUser by remember { mutableStateOf("") }
@@ -188,19 +193,29 @@ fun SettingsPage(
     var backupConfirmAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     var showWebDavConfigDialog by remember { mutableStateOf(false) }
     var updateInfo by remember { mutableStateOf(UpdateChecker.getCachedResult(context)) }
-    var defaultOrientation by remember { mutableStateOf(false) }
-    var keepScreenOn by remember { mutableStateOf(false) }
-    var showBattery by remember { mutableStateOf(false) }
-    var lockOrientation by remember { mutableStateOf(false) }
-    var antiBurnIn by remember { mutableStateOf(false) }
-    var muteVideo by remember { mutableStateOf(false) }
-    var currentDarkMode by remember { mutableIntStateOf(0) }
-    var currentThemeColorIndex by remember { mutableIntStateOf(0) }
-    var customThemeColor by remember { mutableLongStateOf(0xFF1E88E5) }
-    var showQrCode by remember { mutableStateOf(false) }
-    var qrCodePath by remember { mutableStateOf("") }
+    var defaultOrientation by remember { mutableStateOf(saved.defaultOrientation) }
+    var keepScreenOn by remember { mutableStateOf(saved.keepScreenOn) }
+    var showBattery by remember { mutableStateOf(saved.showBattery) }
+    var lockOrientation by remember { mutableStateOf(saved.lockOrientation) }
+    var antiBurnIn by remember { mutableStateOf(saved.antiBurnIn) }
+    var muteVideo by remember { mutableStateOf(saved.muteVideo) }
+    var currentDarkMode by remember { mutableIntStateOf(saved.darkMode) }
+    var currentThemeColorIndex by remember { mutableIntStateOf(saved.themeColorIndex) }
+    var customThemeColor by remember { mutableLongStateOf(saved.customThemeColor) }
+    var showQrCode by remember { mutableStateOf(saved.showQrCode) }
+    var qrCodePath by remember { mutableStateOf(saved.qrCodePath) }
+    var qrPreviewBmp by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
 
     val saveJob = remember { mutableListOf<Job?>(null) }
+
+    LaunchedEffect(qrCodePath) {
+        qrPreviewBmp = withContext(Dispatchers.IO) {
+            val path = qrCodePath
+            if (path.isNotEmpty() && File(path).exists()) {
+                try { android.graphics.BitmapFactory.decodeFile(path) } catch (_: Throwable) { null }
+            } else null
+        }
+    }
 
     fun saveAllSettings() {
         saveJob[0]?.cancel()
@@ -265,7 +280,11 @@ fun SettingsPage(
                         val file = File(dir, "custom_qr.png")
                         FileOutputStream(file).use { out -> inputStream.copyTo(out) }
                         inputStream.close()
-                        qrCodePath = file.absolutePath
+                        val path = file.absolutePath
+                        qrCodePath = path
+                        qrPreviewBmp = try {
+                            android.graphics.BitmapFactory.decodeFile(path)
+                        } catch (_: Throwable) { null }
                         saveAllSettings()
                     } catch (_: Exception) {}
                 }
@@ -416,8 +435,7 @@ fun SettingsPage(
         }
 
         // ===== 二维码设置 =====
-        var qrExpanded by remember { mutableStateOf(false) }
-        FoldableCard("二维码设置", qrExpanded, { qrExpanded = it }) {
+        FoldableCard("二维码设置", qrExpanded, onQrExpandedChange) {
             SettingsSwitchRow("上划展示二维码", "打开上划屏幕展示二维码", showQrCode) {
                 showQrCode = it; saveAllSettings()
             }
@@ -431,9 +449,9 @@ fun SettingsPage(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "导入二维码", style = MaterialTheme.typography.bodyLarge)
+                    Text(text = "自定义二维码", style = MaterialTheme.typography.bodyLarge)
                     Text(
-                        text = if (qrCodePath.isNotEmpty()) "已导入自定义二维码" else "默认使用示例二维码",
+                        text = if (qrCodePath.isNotEmpty()) "已导入自定义二维码" else "未导入，将使用默认示例图",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -444,34 +462,37 @@ fun SettingsPage(
                     shape = RoundedCornerShape(12.dp)
                 ) { Text("导入") }
             }
-            val previewBmp = remember(qrCodePath) {
-                val path = qrCodePath
-                if (path.isNotEmpty() && File(path).exists()) {
-                    try { android.graphics.BitmapFactory.decodeFile(path) } catch (_: Throwable) { null }
-                } else null
-            }
-            if (previewBmp != null) {
-                Image(
-                    painter = BitmapPainter(previewBmp.asImageBitmap()),
-                    contentDescription = "二维码预览",
-                    modifier = Modifier
-                        .fillMaxWidth(0.5f)
-                        .heightIn(max = 200.dp)
-                        .align(Alignment.CenterHorizontally)
-                        .graphicsLayer { alpha = qrAlpha },
-                    contentScale = ContentScale.Fit
-                )
-            } else {
-                Image(
-                    painter = painterResource(R.drawable.qr_zanzhu),
-                    contentDescription = "默认二维码",
-                    modifier = Modifier
-                        .fillMaxWidth(0.5f)
-                        .heightIn(max = 200.dp)
-                        .align(Alignment.CenterHorizontally)
-                        .graphicsLayer { alpha = qrAlpha },
-                    contentScale = ContentScale.Fit
-                )
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer { alpha = qrAlpha },
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (qrPreviewBmp != null) {
+                        Image(
+                            painter = BitmapPainter(qrPreviewBmp!!.asImageBitmap()),
+                            contentDescription = "二维码预览",
+                            modifier = Modifier
+                                .fillMaxWidth(0.6f)
+                                .heightIn(max = 200.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(R.drawable.qr_zanzhu),
+                            contentDescription = "默认二维码",
+                            modifier = Modifier
+                                .fillMaxWidth(0.6f)
+                                .heightIn(max = 200.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                }
             }
         }
 
