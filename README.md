@@ -2,7 +2,7 @@
 
 [![官方网站](https://img.shields.io/badge/官网-访问-blue.svg)](https://songshushoupai.mysxl.cn/)
 [![爱发电赞助](https://img.shields.io/badge/赞助-爱发电-orange.svg)](https://www.ifdian.net/a/laofang)
-[![Ko-fi赞助](https://img.shields.io/badge/赞助-Ko-fi-red.svg)](https://ko-fi.com/laofang)
+[![Ko-fi赞助](https://img.shields.io/badge/赞助-Ko-fi-yellow.svg)](https://ko-fi.com/laofang)
 [![开源协议](https://img.shields.io/badge/协议-AGPL--3.0-green.svg)](https://choosealicense.com/licenses/agpl-3.0/)
 
 一款简单易用的手机端兽牌制作工具，帮助你使用旧手机快速创建和展示专属兽牌图片，适合需要兽牌但经费不足的兽圈小伙伴使用。
