@@ -42,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -318,10 +319,30 @@ fun SettingsPage(
 
     if (showAboutPopup) {
         var iconClickCount by remember { mutableIntStateOf(0) }
-        AlertDialog(
-            onDismissRequest = { showAboutPopup = false },
-            title = {
-                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .clickable { showAboutPopup = false }
+            )
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .border(cardBorder(), CardShape)
+                    .clip(CardShape),
+                shape = CardShape,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Box(
                         modifier = Modifier
                             .size(96.dp)
@@ -361,33 +382,34 @@ fun SettingsPage(
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
-                }
-            },
-            text = {
-                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         "一款简单易用的旧手机变兽牌工具，帮助你使用旧手机快速创建和展示自己的兽牌图片，适合需要兽牌但经费不足的小伙伴。",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.fillMaxWidth()
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    OutlinedButton(
-                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://qun.qq.com/universal-pop/pop.html?ucid=JxRTxJmIQfa8p4d0_U_TyZyEn&gc=&sign=dc86ae0ca4700c5dbc23894f0fdb82fccfd937cd0fe5edec4afa9472c7300d07&external=&_type=gp&o&_client=yqq&hash=-".toUri())) },
-                        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
-                    ) { Text("QQ群") }
-                    OutlinedButton(
-                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://github.com/LaoFang114514/songshu-phone-badge".toUri())) },
-                        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
-                    ) { Text("GitHub") }
-                    OutlinedButton(
-                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://songshushoupai.mysxl.cn/".toUri())) },
-                        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
-                    ) { Text("官网") }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://qun.qq.com/universal-pop/pop.html?ucid=JxRTxJmIQfa8p4d0_U_TyZyEn&gc=&sign=dc86ae0ca4700c5dbc23894f0fdb82fccfd937cd0fe5edec4afa9472c7300d07&external=&_type=gp&o&_client=yqq&hash=-".toUri())) },
+                            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
+                        ) { Text("QQ群") }
+                        OutlinedButton(
+                            onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://github.com/LaoFang114514/songshu-phone-badge".toUri())) },
+                            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
+                        ) { Text("GitHub") }
+                        OutlinedButton(
+                            onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://songshushoupai.mysxl.cn/".toUri())) },
+                            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
+                        ) { Text("官网") }
+                    }
                 }
-            },
-            confirmButton = {},
-            dismissButton = {}
-        )
+            }
+        }
     }
 }
 
