@@ -1,7 +1,5 @@
 package com.laofang.songshushoupai.songshu.start
 
-//noinspection SuspiciousImport
-import android.R
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
@@ -364,10 +362,6 @@ fun FullScreenImageScreen() {
                                                     activity?.let {
                                                         if (!it.isFinishing && !it.isDestroyed) {
                                                             it.finish()
-                                                            it.overridePendingTransition(
-                                                                R.anim.fade_in,
-                                                                R.anim.fade_out
-                                                            )
                                                         }
                                                     }
                                                 } catch (e: Exception) {

@@ -30,6 +30,11 @@
             android:theme="@style/Theme.Songshushoupai" />
 
         <activity
+            android:name=".start.egg.ColorSudokuActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Songshushoupai" />
+
+        <activity
             android:name=".start.VideoPlayerActivity"
             android:exported="false"
             android:theme="@style/Theme.Songshushoupai" />

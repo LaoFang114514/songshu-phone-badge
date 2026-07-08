@@ -1,6 +1,5 @@
-package com.laofang.songshushoupai.songshu
+package com.laofang.songshushoupai.songshu.start.egg
 
-import android.R
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,16 +8,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,14 +33,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.laofang.songshushoupai.songshu.SettingsManager
 import com.laofang.songshushoupai.songshu.ui.theme.SongshushoupaiTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
@@ -53,7 +52,7 @@ class ColorSudokuActivity : ComponentActivity() {
             val s = remember { SettingsManager.loadSettings(ctx) }
             val dark = when (s.darkMode) { 1 -> false; 2 -> true; else -> isSystemInDarkTheme() }
             SongshushoupaiTheme(darkTheme = dark, themeColorIndex = s.themeColorIndex) {
-                ColorSudokuScreen { finish() }
+                ColorSudokuScreen()
             }
         }
     }
@@ -78,7 +77,7 @@ private val targetPattern = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ColorSudokuScreen(onBack: () -> Unit) {
+fun ColorSudokuScreen() {
     var userGrid by remember {
         mutableStateOf(List(14) { List(14) { false } })
     }
@@ -105,27 +104,33 @@ fun ColorSudokuScreen(onBack: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            contentAlignment = Alignment.Center
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.95f)
+                    .fillMaxWidth(0.9f)
                     .aspectRatio(1f)
                     .onGloballyPositioned { coordinates ->
                         gridSize = coordinates.size.width.toFloat()
                     }
             ) {
+                val cellSizePx = gridSize / 14f
+                val spacingPx = 2f * density.density
+                val adjustedCellSizePx = cellSizePx - spacingPx
+
                 for (row in 0 until 14) {
                     for (col in 0 until 14) {
                         val isFilled = userGrid[row][col]
                         val cellColor = when {
-                            showHint -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
+                            showHint -> when {
+                                targetPattern[row][col] -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f)
+                                else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                            }
                             flashPhase == 1 -> MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
                             flashPhase == 2 -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.45f)
                             isFilled -> MaterialTheme.colorScheme.primary
@@ -134,13 +139,11 @@ fun ColorSudokuScreen(onBack: () -> Unit) {
 
                         Box(
                             modifier = Modifier
-                                .offset {
-                                    IntOffset(
-                                        (col * gridSize / 14f + gridSize / 28f).toInt(),
-                                        (row * gridSize / 14f + gridSize / 28f).toInt()
-                                    )
-                                }
-                                .size(with(density) { (gridSize / 14f - 2f * density.density).toDp() })
+                                .offset(
+                                    x = with(density) { (col * cellSizePx + spacingPx / 2f).toDp() },
+                                    y = with(density) { (row * cellSizePx + spacingPx / 2f).toDp() }
+                                )
+                                .size(with(density) { adjustedCellSizePx.toDp() })
                                 .clip(RoundedCornerShape(3.dp))
                                 .background(cellColor)
                                 .border(
@@ -162,30 +165,17 @@ fun ColorSudokuScreen(onBack: () -> Unit) {
                     }
                 }
             }
-        }
 
-        if (showHint) {
+            Spacer(modifier = Modifier.height(16.dp))
+
             Text(
-                text = "老方-LaoFang",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
-
-        IconButton(
-            onClick = onBack,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(16.dp)
-        ) {
-            Icon(
-                painter = painterResource(android.R.drawable.ic_menu_close_clear_cancel),
-                contentDescription = "返回",
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(28.dp)
+                text = if (showHint) "老方-LaoFang" else " ",
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (showHint) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = if (showHint) FontWeight.Bold else FontWeight.Normal,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
     }
 }
+
