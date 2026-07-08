@@ -1,6 +1,8 @@
 package com.laofang.songshushoupai.songshu
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -47,10 +49,11 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -91,8 +94,10 @@ import java.io.File
 import java.io.FileOutputStream
 
 class MainActivity : ComponentActivity() {
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         enableEdgeToEdge()
         setContent {
             val context = LocalContext.current
@@ -101,6 +106,19 @@ class MainActivity : ComponentActivity() {
             }
             var darkMode by remember {
                 mutableIntStateOf(SettingsManager.loadSettings(context).darkMode)
+            }
+
+            val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+            DisposableEffect(lifecycleOwner) {
+                val observer = LifecycleEventObserver { _, event ->
+                    if (event == Lifecycle.Event.ON_RESUME) {
+                        val s = SettingsManager.loadSettings(context)
+                        themeColorIndex = s.themeColorIndex
+                        darkMode = s.darkMode
+                    }
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
             }
 
             val useDarkTheme = when (darkMode) {
@@ -244,7 +262,9 @@ fun SongshushoupaiApp(
             )
         },
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+            ) {
                 AppDestinations.entries.forEach { destination ->
                     NavigationBarItem(
                         icon = {
@@ -275,7 +295,10 @@ fun SongshushoupaiApp(
                             } else {
                                 currentDestination = destination.ordinal
                             }
-                        }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                        )
                     )
                 }
             }
@@ -429,13 +452,13 @@ fun HomePage(
             title = { Text("确认删除") },
             text = { Text("确定要删除「${imageList[deleteIndex].name}」吗？") },
             confirmButton = {
-                TextButton(onClick = {
+                Button(onClick = {
                     onDelete(deleteIndex)
                     deleteIndex = -1
-                }) { Text("删除") }
+                }, shape = RoundedCornerShape(12.dp)) { Text("删除") }
             },
             dismissButton = {
-                TextButton(onClick = { deleteIndex = -1 }) { Text("取消") }
+                OutlinedButton(onClick = { deleteIndex = -1 }, shape = RoundedCornerShape(12.dp)) { Text("取消") }
             }
         )
     }
@@ -454,15 +477,15 @@ fun HomePage(
                 )
             },
             confirmButton = {
-                TextButton(onClick = {
+                Button(onClick = {
                     if (text.isNotBlank()) {
                         onRename(renameIndex, text.trim())
                     }
                     renameIndex = -1
-                }) { Text("确认") }
+                }, shape = RoundedCornerShape(12.dp)) { Text("确认") }
             },
             dismissButton = {
-                TextButton(onClick = { renameIndex = -1 }) { Text("取消") }
+                OutlinedButton(onClick = { renameIndex = -1 }, shape = RoundedCornerShape(12.dp)) { Text("取消") }
             }
         )
     }

@@ -8,6 +8,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ActivityInfo
 import android.content.BroadcastReceiver
 import android.graphics.SurfaceTexture
 import android.os.BatteryManager
@@ -96,6 +97,7 @@ private class AspectRatioTextureView(context: Context) : TextureView(context) {
 class VideoPlayerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         enableEdgeToEdge()
 
         val settings = SettingsManager.loadSettings(this)
@@ -112,7 +114,10 @@ class VideoPlayerActivity : ComponentActivity() {
 
         setContent {
             val ctx = LocalContext.current
-            val currentSettings = remember { SettingsManager.loadSettings(ctx) }
+            var currentSettings by remember { mutableStateOf(SettingsManager.loadSettings(ctx)) }
+            LaunchedEffect(Unit) {
+                currentSettings = SettingsManager.loadSettings(ctx)
+            }
             val useDarkTheme = when (currentSettings.darkMode) {
                 1 -> false
                 2 -> true

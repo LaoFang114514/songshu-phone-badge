@@ -1,5 +1,7 @@
 package com.laofang.songshushoupai.songshu.start.egg
 
+import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -43,13 +45,18 @@ import com.laofang.songshushoupai.songshu.ui.theme.SongshushoupaiTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
+@SuppressLint("SourceLockedOrientationActivity")
 class ColorSudokuActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         enableEdgeToEdge()
         setContent {
             val ctx = LocalContext.current
-            val s = remember { SettingsManager.loadSettings(ctx) }
+            var s by remember { mutableStateOf(SettingsManager.loadSettings(ctx)) }
+            LaunchedEffect(Unit) {
+                s = SettingsManager.loadSettings(ctx)
+            }
             val dark = when (s.darkMode) { 1 -> false; 2 -> true; else -> isSystemInDarkTheme() }
             SongshushoupaiTheme(darkTheme = dark, themeColorIndex = s.themeColorIndex) {
                 ColorSudokuScreen()
