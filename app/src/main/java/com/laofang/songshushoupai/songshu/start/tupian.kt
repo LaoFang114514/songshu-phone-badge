@@ -62,7 +62,6 @@ import java.io.File
 class StartActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         enableEdgeToEdge()
 
         val settings = SettingsManager.loadSettings(this)
@@ -89,7 +88,10 @@ class StartActivity : ComponentActivity() {
 
         setContent {
             val context = LocalContext.current
-            val currentSettings = remember { SettingsManager.loadSettings(context) }
+            var currentSettings by remember { mutableStateOf(SettingsManager.loadSettings(context)) }
+            LaunchedEffect(Unit) {
+                currentSettings = SettingsManager.loadSettings(context)
+            }
             val useDarkTheme = when (currentSettings.darkMode) {
                 1 -> false
                 2 -> true
@@ -139,6 +141,8 @@ fun FullScreenImageScreen() {
     val qrBgAlpha = remember { Animatable(0f) }
     val qrContentScale = remember { Animatable(0.6f) }
     val qrContentAlpha = remember { Animatable(0f) }
+    val exitAlpha = remember { Animatable(1f) }
+    var isExiting by remember { mutableStateOf(false) }
 
     LaunchedEffect(showQrOverlay) {
         if (showQrOverlay) {
@@ -259,6 +263,7 @@ fun FullScreenImageScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
+            .graphicsLayer { alpha = exitAlpha.value }
     ) {
         val bitmap = loadedBitmap
         if (bitmap != null) {
@@ -354,20 +359,20 @@ fun FullScreenImageScreen() {
                                 } else {
                                     val zoomDelta = if (lastZoom > 0f) currentDist / lastZoom else 1f
                                     val newScale = (scale * zoomDelta).coerceIn(0.3f, 3f)
-                                    if (newScale < 0.5f && scale >= 0.5f) {
-                                        coroutineScope.launch {
-                                            delay(100.milliseconds)
-                                            if (isActive) {
-                                                try {
-                                                    activity?.let {
-                                                        if (!it.isFinishing && !it.isDestroyed) {
-                                                            it.finish()
-                                                        }
-                                                    }
-                                                } catch (e: Exception) {
-                                                    e.printStackTrace()
+                                    if (newScale < 0.5f && scale >= 0.5f && !isExiting) {
+                                        isExiting = true
+                                        try {
+                                            activity?.let {
+                                                if (!it.isFinishing && !it.isDestroyed) {
+                                                    it.finish()
+                                                    it.overridePendingTransition(
+                                                        android.R.anim.fade_in,
+                                                        android.R.anim.fade_out
+                                                    )
                                                 }
                                             }
+                                        } catch (e: Exception) {
+                                            e.printStackTrace()
                                         }
                                     }
                                     scale = newScale

@@ -31,7 +31,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -71,8 +70,8 @@ private fun SettingsPageScaffold(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(17.dp),
+        verticalArrangement = Arrangement.spacedBy(11.dp)
     ) { content() }
 }
 
@@ -111,7 +110,7 @@ private fun StatusDialog(message: String, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { Text("提示") },
         text = { Text(message) },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("确定") } }
+        confirmButton = { Button(onClick = onDismiss, shape = RoundedCornerShape(12.dp)) { Text("确定") } }
     )
 }
 
@@ -208,7 +207,7 @@ private fun WebDavConfigDialog(
                 ) { Text("保存") }
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } }
+        dismissButton = { OutlinedButton(onClick = onDismiss, shape = RoundedCornerShape(12.dp)) { Text("取消") } }
     )
 }
 
@@ -444,9 +443,11 @@ fun QrCodeSettingsPage() {
     var showQrCode by remember { mutableStateOf(false) }
     var qrCodePath by remember { mutableStateOf("") }
     var qrPreviewBmp by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    var baseSettings by remember { mutableStateOf<AppSettings?>(null) }
 
     LaunchedEffect(Unit) {
         val s = SettingsManager.loadSettings(context)
+        baseSettings = s
         showQrCode = s.showQrCode
         qrCodePath = s.qrCodePath
     }
@@ -460,9 +461,13 @@ fun QrCodeSettingsPage() {
     }
 
     fun save() {
+        val base = baseSettings ?: return
         scope.launch {
             withContext(Dispatchers.IO) {
-                SettingsManager.saveSettings(context, AppSettings(showQrCode = showQrCode, qrCodePath = qrCodePath))
+                SettingsManager.saveSettings(context, base.copy(
+                    showQrCode = showQrCode,
+                    qrCodePath = qrCodePath
+                ))
             }
         }
     }
@@ -470,7 +475,7 @@ fun QrCodeSettingsPage() {
     SettingsPageScaffold {
         QrCodeSettingsCard(
             showQrCode = showQrCode, onShowQrCodeChange = { showQrCode = it; save() },
-            qrCodePath = qrCodePath, onQrCodePathChange = { qrCodePath = it },
+            qrCodePath = qrCodePath, onQrCodePathChange = { qrCodePath = it; save() },
             qrPreviewBmp = qrPreviewBmp, onQrPreviewBmpChange = { qrPreviewBmp = it }
         )
     }
@@ -530,6 +535,7 @@ fun BackupSettingsPage() {
 
     SettingsPageScaffold {
         BackupSettingsCard(
+            context = context,
             isLoading = isLoading,
             onShowBackupConfirmDialogChange = { show, action ->
                 showBackupConfirmDialog = show

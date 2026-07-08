@@ -41,12 +41,11 @@ fun ThemeSettingsCard(
     currentThemeColorIndex: Int,
     onThemeColorIndexChange: (Int) -> Unit
 ) {
-    Column {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = "深色模式",
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 8.dp)
+            color = MaterialTheme.colorScheme.onSurface
         )
         val darkModeOptions = remember {
             listOf(0 to "跟随系统", 1 to "浅色模式", 2 to "深色模式")
@@ -79,13 +78,12 @@ fun ThemeSettingsCard(
             }
         }
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
         Text(
             text = "主题色彩",
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 6.dp)
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         val themeOptions = remember {
@@ -114,7 +112,7 @@ fun ThemeSettingsCard(
                         if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
                         else Color.Transparent
                     )
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(

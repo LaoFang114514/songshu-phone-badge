@@ -68,7 +68,7 @@ fun QrCodeSettingsCard(
         SettingsSwitchRow("上划展示二维码", "打开上划屏幕展示二维码", showQrCode) {
             onShowQrCodeChange(it)
         }
-        HorizontalDivider()
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
         val qrAlpha = if (showQrCode) 1f else 0.4f
         Row(
             modifier = Modifier

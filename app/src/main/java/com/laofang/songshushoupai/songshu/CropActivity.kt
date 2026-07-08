@@ -1,6 +1,7 @@
 package com.laofang.songshushoupai.songshu
 
 import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -69,12 +70,16 @@ import com.laofang.songshushoupai.songshu.ui.theme.SongshushoupaiTheme
 class CropActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         try {
             enableEdgeToEdge()
             val idx = intent.getIntExtra("index", -1)
             setContent {
                 val ctx = LocalContext.current
-                val s = remember { SettingsManager.loadSettings(ctx) }
+                var s by remember { mutableStateOf(SettingsManager.loadSettings(ctx)) }
+                LaunchedEffect(Unit) {
+                    s = SettingsManager.loadSettings(ctx)
+                }
                 val dark = when (s.darkMode) { 1 -> false; 2 -> true; else -> isSystemInDarkTheme() }
                 SongshushoupaiTheme(darkTheme = dark, themeColorIndex = s.themeColorIndex) {
                     CropScreen(editIndex = idx, onFinish = { finish() })

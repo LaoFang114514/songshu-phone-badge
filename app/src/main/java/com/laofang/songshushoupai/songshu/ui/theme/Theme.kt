@@ -15,7 +15,18 @@ private val DefaultLight = lightColorScheme(primary = Purple40, secondary = Purp
 private val DefaultDark = darkColorScheme(primary = Purple80, secondary = PurpleGrey80, tertiary = Pink80)
 
 private fun scheme(l: Color, ld: Color, s: Color, sd: Color, t: Color, td: Color) =
-    Pair(lightColorScheme(primary = l, secondary = s, tertiary = t), darkColorScheme(primary = ld, secondary = sd, tertiary = td))
+    Pair(
+        lightColorScheme(
+            primary = l, secondary = s, tertiary = t,
+            primaryContainer = l.copy(alpha = 0.15f),
+            onPrimaryContainer = l
+        ),
+        darkColorScheme(
+            primary = ld, secondary = sd, tertiary = td,
+            primaryContainer = ld.copy(alpha = 0.15f),
+            onPrimaryContainer = ld
+        )
+    )
 
 private val schemes = listOf(
     scheme(BluePrimaryLight, BluePrimaryDark, BlueSecondaryLight, BlueSecondaryDark, BlueTertiaryLight, BlueTertiaryDark),
