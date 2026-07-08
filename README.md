@@ -6,6 +6,8 @@
 [![开源协议](https://img.shields.io/badge/协议-GPL--3.0-green.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![QQ交流群](https://img.shields.io/badge/QQ交流群-465174613-blue)](https://qun.qq.com/universal-share/share?ac=1&authKey=EHQoZ%2BHU4s8taqGbkhUKrWY4FAq2vLB2LoPRNMO7jLkxGyyNLrnWCNmaZ7DuJTOx&busi_data=eyJncm91cENvZGUiOiI0NjUxNzQ2MTMiLCJ0b2tlbiI6IjlHTnZHTlhwMWVlN2VEYXJzTitoWkZxSlV1VUhadnNsYzJNVkE5b0tIcGZvQW00TGxOK0lQRGFMaEZjeU5GZWEiLCJ1aW4iOiIyOTA4ODA3NzYwIn0%3D&data=LITJR0_gfVVBcvQQSGd-RQZ7xQ39dz8b0w_wJzZ69Z-mCigq-1uJsrRMOstu12BG7-aKJJu0EhSDGJprd-kbKQ&svctype=4&tempid=h5_group_info)
 
+>前排提醒：仅适合备用机顶替使用，如果正经用的话建议购买别人的兽牌或电子兽牌（嗯）
+
 一款简单易用的手机端兽牌制作工具，帮你把闲置旧手机变成专属兽牌展示牌，适合需要兽牌但经费不足的兽圈小伙伴。
 
 ---
