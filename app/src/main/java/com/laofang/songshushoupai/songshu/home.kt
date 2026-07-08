@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,7 +29,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -57,6 +60,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -76,9 +80,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import android.net.Uri
 import android.media.MediaMetadataRetriever
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.ui.tooling.preview.Preview
 import com.laofang.songshushoupai.songshu.start.StartActivity
 import java.io.File
 import java.io.FileOutputStream
@@ -127,6 +134,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @PreviewScreenSizes
 @Composable
@@ -140,16 +148,24 @@ fun SongshushoupaiApp(
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val imageList = remember { mutableStateOf<List<ImageItem>>(emptyList()) }
     var selectedIndex by remember { mutableIntStateOf(0) }
-
-    var basicConfigExpanded by remember { mutableStateOf(false) }
-    var backupExpanded by remember { mutableStateOf(false) }
-    var aboutExpanded by remember { mutableStateOf(false) }
-    var themeExpanded by remember { mutableStateOf(false) }
-    var qrExpanded by remember { mutableStateOf(false) }
-
-    val settingsScrollState = remember { ScrollState(0) }
+    var settingsSubPage by remember { mutableStateOf<String?>(null) }
     val homeListState = remember { LazyListState() }
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
+    var lastBackPressTime by remember { mutableLongStateOf(0L) }
+
+    BackHandler(enabled = currentDestination == 2 && settingsSubPage != null) {
+        settingsSubPage = null
+    }
+
+    BackHandler(enabled = !(currentDestination == 2 && settingsSubPage != null)) {
+        val now = System.currentTimeMillis()
+        if (now - lastBackPressTime < 2000) {
+            (context as? android.app.Activity)?.finish()
+        } else {
+            lastBackPressTime = now
+            android.widget.Toast.makeText(context, "再按一次退出应用", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
 
     fun refreshData() {
         imageList.value = ImageDataManager.getImageList(context)
@@ -213,7 +229,19 @@ fun SongshushoupaiApp(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(title = { Text("松鼠兽牌") })
+            val topTitle = when {
+                currentDestination == 2 && settingsSubPage != null -> when (settingsSubPage) {
+                    "basic" -> "基本设置"
+                    "qrcode" -> "二维码设置"
+                    "theme" -> "主题设置"
+                    "backup" -> "数据备份"
+                    else -> "松鼠兽牌"
+                }
+                else -> "松鼠兽牌"
+            }
+            TopAppBar(
+                title = { Text(topTitle) }
+            )
         },
         bottomBar = {
             NavigationBar {
@@ -301,22 +329,41 @@ fun SongshushoupaiApp(
                 )
 
                 1 -> {}
-                2 -> SettingsPage(
-                    scrollState = settingsScrollState,
-                    onImportComplete = ::refreshData,
-                    basicConfigExpanded = basicConfigExpanded,
-                    onBasicConfigExpandedChange = { basicConfigExpanded = it },
-                    backupExpanded = backupExpanded,
-                    onBackupExpandedChange = { backupExpanded = it },
-                    aboutExpanded = aboutExpanded,
-                    onAboutExpandedChange = { aboutExpanded = it },
-                    themeExpanded = themeExpanded,
-                    onThemeExpandedChange = { themeExpanded = it },
-                    qrExpanded = qrExpanded,
-                    onQrExpandedChange = { qrExpanded = it },
-                    onThemeChanged = onThemeChanged,
-                    onDarkModeChanged = onDarkModeChanged
-                )
+                2 -> {
+                    AnimatedContent(
+                        targetState = settingsSubPage,
+                        transitionSpec = {
+                            if (targetState != null && initialState == null) {
+                                (slideInHorizontally(animationSpec = tween(300)) { it } +
+                                    androidx.compose.animation.fadeIn(animationSpec = tween(300))) togetherWith
+                                (slideOutHorizontally(animationSpec = tween(300)) { -it } +
+                                    androidx.compose.animation.fadeOut(animationSpec = tween(300)))
+                            } else {
+                                (slideInHorizontally(animationSpec = tween(300)) { -it } +
+                                    androidx.compose.animation.fadeIn(animationSpec = tween(300))) togetherWith
+                                (slideOutHorizontally(animationSpec = tween(300)) { it } +
+                                    androidx.compose.animation.fadeOut(animationSpec = tween(300)))
+                            }
+                        },
+                        label = "settingsNav"
+                    ) { subPage ->
+                        when (subPage) {
+                            null -> SettingsPage(
+                                onNavigateToBasicSettings = { settingsSubPage = "basic" },
+                                onNavigateToQrCodeSettings = { settingsSubPage = "qrcode" },
+                                onNavigateToThemeSettings = { settingsSubPage = "theme" },
+                                onNavigateToBackupSettings = { settingsSubPage = "backup" }
+                            )
+                            "basic" -> BasicSettingsPage()
+                            "qrcode" -> QrCodeSettingsPage()
+                            "theme" -> ThemeSettingsPage(
+                                onThemeChanged = onThemeChanged,
+                                onDarkModeChanged = onDarkModeChanged
+                            )
+                            "backup" -> BackupSettingsPage()
+                        }
+                    }
+                }
             }
         }
     }
