@@ -77,7 +77,7 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import android.os.Build
 import androidx.compose.ui.tooling.preview.Preview
-import android.widget.Toast
+import com.laofang.songshushoupai.songshu.start.egg.ColorSudokuActivity
 
 import com.laofang.songshushoupai.songshu.ui.theme.RedPrimaryLight
 import com.laofang.songshushoupai.songshu.ui.theme.YellowPrimaryLight
@@ -193,6 +193,7 @@ fun SettingsPage(
     var backupConfirmAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     var showWebDavConfigDialog by remember { mutableStateOf(false) }
     var updateInfo by remember { mutableStateOf(UpdateChecker.getCachedResult(context)) }
+    var iconClickCount by remember { mutableIntStateOf(0) }
     var defaultOrientation by remember { mutableStateOf(saved.defaultOrientation) }
     var keepScreenOn by remember { mutableStateOf(saved.keepScreenOn) }
     var showBattery by remember { mutableStateOf(saved.showBattery) }
@@ -720,8 +721,6 @@ fun SettingsPage(
             }
         }
 
-        // ===== 你可能喜欢 =====
-
         // ===== 关于软件 =====
         FoldableCard("关于软件", aboutExpanded, onAboutExpandedChange, contentPadding = 16.dp) {
             Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -730,7 +729,11 @@ fun SettingsPage(
                         .size(72.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .clickable {
-                            Toast.makeText(context, "趁现在", Toast.LENGTH_SHORT).show()
+                            iconClickCount++
+                            if (iconClickCount >= 7) {
+                                iconClickCount = 0
+                                context.startActivity(Intent(context, ColorSudokuActivity::class.java))
+                            }
                         },
                     contentAlignment = Alignment.Center
                 ) {
