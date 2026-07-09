@@ -41,112 +41,53 @@ fun ThemeSettingsCard(
     currentThemeColorIndex: Int,
     onThemeColorIndexChange: (Int) -> Unit
 ) {
+    val cs = MaterialTheme.colorScheme
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = "深色模式",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        val darkModeOptions = remember {
-            listOf(0 to "跟随系统", 1 to "浅色模式", 2 to "深色模式")
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            darkModeOptions.forEach { (mode, label) ->
-                val isSelected = currentDarkMode == mode
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(
-                            if (isSelected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                        )
-                        .clickable { onDarkModeChange(mode) }
-                        .padding(vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                        else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+        Text("深色模式", style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
+        val darkOpts = remember { listOf(0 to "跟随系统", 1 to "浅色模式", 2 to "深色模式") }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            darkOpts.forEach { (mode, label) ->
+                val sel = currentDarkMode == mode
+                Box(Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
+                    .background(if (sel) cs.primary else cs.surfaceVariant.copy(alpha = 0.5f))
+                    .clickable { onDarkModeChange(mode) }.padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center) {
+                    Text(label, style = MaterialTheme.typography.bodySmall,
+                        color = if (sel) cs.onPrimary else cs.onSurfaceVariant)
                 }
             }
         }
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(Modifier.padding(vertical = 8.dp))
+        Text("主题色彩", style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
 
-        Text(
-            text = "主题色彩",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        val themeOptions = remember {
-            val isMonetSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        val themeOpts = remember {
+            val monet = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
             buildList {
-                if (isMonetSupported) add(Pair(8, "莫奈取色" to Color.Unspecified))
-                add(Pair(6, "红色" to RedPrimaryLight))
-                add(Pair(2, "橙色" to OrangePrimaryLight))
-                add(Pair(7, "黄色" to YellowPrimaryLight))
-                add(Pair(1, "绿色" to GreenPrimaryLight))
-                add(Pair(5, "青色" to TealPrimaryLight))
-                add(Pair(0, "蓝色" to BluePrimaryLight))
-                add(Pair(4, "紫色" to PurplePrimaryLight))
-                add(Pair(3, "粉色" to PinkPrimaryLight))
+                if (monet) add(8 to ("莫奈取色" to Color.Unspecified))
+                add(6 to ("红色" to RedPrimaryLight)); add(2 to ("橙色" to OrangePrimaryLight))
+                add(7 to ("黄色" to YellowPrimaryLight)); add(1 to ("绿色" to GreenPrimaryLight))
+                add(5 to ("青色" to TealPrimaryLight)); add(0 to ("蓝色" to BluePrimaryLight))
+                add(4 to ("紫色" to PurplePrimaryLight)); add(3 to ("粉色" to PinkPrimaryLight))
             }
         }
-        themeOptions.forEach { (index, pair) ->
+        themeOpts.forEach { (index, pair) ->
             val (label, previewColor) = pair
-            val isSelected = currentThemeColorIndex == index
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .clickable { onThemeColorIndexChange(index) }
-                    .background(
-                        if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                        else Color.Transparent
-                    )
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(22.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(
-                            if (index == 8) MaterialTheme.colorScheme.surfaceVariant else previewColor
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (index == 8) {
-                        Icon(
-                            painter = painterResource(android.R.drawable.star_on),
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+            val sel = currentThemeColorIndex == index
+            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+                .clickable { onThemeColorIndexChange(index) }
+                .background(if (sel) cs.primaryContainer.copy(alpha = 0.3f) else Color.Transparent)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(22.dp).clip(RoundedCornerShape(6.dp))
+                    .background(if (index == 8) cs.surfaceVariant else previewColor),
+                    contentAlignment = Alignment.Center) {
+                    if (index == 8) Icon(painterResource(android.R.drawable.star_on), null,
+                        Modifier.size(16.dp), cs.onSurfaceVariant)
                 }
-                Spacer(modifier = Modifier.width(14.dp))
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
-                )
-                if (isSelected) {
-                    Text(
-                        text = "✓",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+                Spacer(Modifier.width(14.dp))
+                Text(label, style = MaterialTheme.typography.bodyLarge, color = cs.onSurface, modifier = Modifier.weight(1f))
+                if (sel) Text("✓", style = MaterialTheme.typography.bodyMedium, color = cs.primary)
             }
         }
     }

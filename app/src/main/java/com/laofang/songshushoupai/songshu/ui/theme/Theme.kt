@@ -11,6 +11,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+private fun Color.luminance(): Float {
+    fun linearize(c: Float) = if (c <= 0.04045f) c / 12.92f else ((c + 0.055f) / 1.055f).let { it * it * it }
+    return 0.2126f * linearize(red) + 0.7152f * linearize(green) + 0.0722f * linearize(blue)
+}
+
+private fun Color.onColor(): Color = if (luminance() > 0.3f) Color.Black else Color.White
+
 private val DefaultLight = lightColorScheme(primary = Purple40, secondary = PurpleGrey40, tertiary = Pink40)
 private val DefaultDark = darkColorScheme(primary = Purple80, secondary = PurpleGrey80, tertiary = Pink80)
 
@@ -18,13 +25,15 @@ private fun scheme(l: Color, ld: Color, s: Color, sd: Color, t: Color, td: Color
     Pair(
         lightColorScheme(
             primary = l, secondary = s, tertiary = t,
+            onPrimary = l.onColor(), onSecondary = s.onColor(), onTertiary = t.onColor(),
             primaryContainer = l.copy(alpha = 0.15f),
-            onPrimaryContainer = l
+            onPrimaryContainer = l.onColor()
         ),
         darkColorScheme(
             primary = ld, secondary = sd, tertiary = td,
+            onPrimary = ld.onColor(), onSecondary = sd.onColor(), onTertiary = td.onColor(),
             primaryContainer = ld.copy(alpha = 0.15f),
-            onPrimaryContainer = ld
+            onPrimaryContainer = if (ld.luminance() > 0.3f) ld.copy(red = 0.15f, green = 0.15f, blue = 0.15f) else ld
         )
     )
 

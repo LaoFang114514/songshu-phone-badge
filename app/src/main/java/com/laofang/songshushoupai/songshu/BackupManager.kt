@@ -160,16 +160,17 @@ object BackupManager {
 
     suspend fun webdavTestConnection(cfg: WebDavConfig): String? = withContext(Dispatchers.IO) {
         try {
-            val conn = httpConn("${cfg.url.trimEnd('/')}/songshushoupai/")
+            val conn = httpConn(fileUrl(cfg))
             try {
-                conn.requestMethod = "PUT"; conn.doOutput = true
-                conn.setRequestProperty("Content-Length", "0"); basicAuth(conn, cfg)
-                conn.outputStream.close()
+                conn.requestMethod = "HEAD"
+                basicAuth(conn, cfg)
                 when (val code = conn.responseCode) {
-                    in 200..299, 301, 302, 405, 409 -> null
+                    in 200..299 -> null
+                    301, 302 -> null
                     401 -> "认证失败，请检查用户名和密码"
-                    403 -> "无权限访问 (403)"
-                    404 -> "路径不存在 (404)，请检查服务器地址"
+                    403 -> "无权限访问 (403)，请检查服务器地址是否包含用户名路径"
+                    404 -> null
+                    405 -> null
                     else -> "连接失败: $code ${conn.responseMessage}"
                 }
             } finally { conn.disconnect() }
@@ -191,27 +192,8 @@ object BackupManager {
 
     private fun fileUrl(cfg: WebDavConfig): String {
         val base = cfg.url.trimEnd('/')
-        return try { URI("$base/songshushoupai/songshushoupai_backup.zip").toASCIIString() }
-               catch (_: Exception) { "$base/songshushoupai/songshushoupai_backup.zip" }
-    }
-
-    private fun createFolder(cfg: WebDavConfig): String? {
-        val url = "${cfg.url.trimEnd('/')}/songshushoupai/"
-        Log.d(TAG, "Creating folder: $url")
-        return try {
-            val conn = httpConn(url)
-            try {
-                conn.requestMethod = "PUT"; conn.doOutput = true
-                conn.setRequestProperty("Content-Length", "0"); basicAuth(conn, cfg)
-                conn.outputStream.close()
-                when (val code = conn.responseCode) {
-                    in 200..299, 301, 302, 405, 409 -> null
-                    401 -> "认证失败，请检查用户名和密码"
-                    403 -> "无权限创建目录 (403)"
-                    else -> "创建目录失败: $code ${conn.responseMessage}"
-                }
-            } finally { conn.disconnect() }
-        } catch (e: Exception) { Log.w(TAG, "Folder creation warning", e); null }
+        return try { URI("$base/songshushoupai_backup.zip").toASCIIString() }
+               catch (_: Exception) { "$base/songshushoupai_backup.zip" }
     }
 
     private fun uploadZip(ctx: Context, cfg: WebDavConfig): String? {
@@ -225,7 +207,6 @@ object BackupManager {
                     writeImagesToZip(zos, list)
                 }
             }
-            createFolder(cfg)?.let { return it }
             val url = fileUrl(cfg)
             Log.d(TAG, "Upload to: $url, size=${tmp.length()}")
             val conn = httpConn(url)

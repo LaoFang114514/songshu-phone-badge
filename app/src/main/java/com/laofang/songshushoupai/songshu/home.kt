@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -58,6 +60,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -71,6 +74,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
@@ -92,6 +96,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.laofang.songshushoupai.songshu.start.StartActivity
 import java.io.File
 import java.io.FileOutputStream
+import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.core.view.WindowCompat
+
+
+private val DlgShape = RoundedCornerShape(12.dp)
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("SourceLockedOrientationActivity")
@@ -100,52 +109,37 @@ class MainActivity : ComponentActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         enableEdgeToEdge()
         setContent {
-            val context = LocalContext.current
-            var themeColorIndex by remember {
-                mutableIntStateOf(SettingsManager.loadSettings(context).themeColorIndex)
-            }
-            var darkMode by remember {
-                mutableIntStateOf(SettingsManager.loadSettings(context).darkMode)
-            }
+            val ctx = LocalContext.current
+            var themeIdx by remember { mutableIntStateOf(SettingsManager.loadSettings(ctx).themeColorIndex) }
+            var darkMode by remember { mutableIntStateOf(SettingsManager.loadSettings(ctx).darkMode) }
 
-            val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-            DisposableEffect(lifecycleOwner) {
-                val observer = LifecycleEventObserver { _, event ->
-                    if (event == Lifecycle.Event.ON_RESUME) {
-                        val s = SettingsManager.loadSettings(context)
-                        themeColorIndex = s.themeColorIndex
-                        darkMode = s.darkMode
+            val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+            DisposableEffect(owner) {
+                val obs = LifecycleEventObserver { _, e ->
+                    if (e == Lifecycle.Event.ON_RESUME) {
+                        val s = SettingsManager.loadSettings(ctx)
+                        themeIdx = s.themeColorIndex; darkMode = s.darkMode
                     }
                 }
-                lifecycleOwner.lifecycle.addObserver(observer)
-                onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                owner.lifecycle.addObserver(obs)
+                onDispose { owner.lifecycle.removeObserver(obs) }
             }
 
-            val useDarkTheme = when (darkMode) {
-                1 -> false
-                2 -> true
-                else -> isSystemInDarkTheme()
-            }
-
-            SongshushoupaiTheme(
-                darkTheme = useDarkTheme,
-                themeColorIndex = themeColorIndex
-            ) {
-                SongshushoupaiApp(
-                    onThemeChanged = { newIndex ->
-                        themeColorIndex = newIndex
-                        val settings = SettingsManager.loadSettings(context)
-                        SettingsManager.saveSettings(context, settings.copy(
-                            themeColorIndex = newIndex
-                        ))
-                    },
-                    onDarkModeChanged = { newMode ->
-                        darkMode = newMode
-                        val settings = SettingsManager.loadSettings(context)
-                        SettingsManager.saveSettings(context, settings.copy(
-                            darkMode = newMode
-                        ))
+            val dark = when (darkMode) { 1 -> false; 2 -> true; else -> isSystemInDarkTheme() }
+            SongshushoupaiTheme(darkTheme = dark, themeColorIndex = themeIdx) {
+                val view = LocalView.current
+                if (!view.isInEditMode) {
+                    SideEffect {
+                        val w = (view.context as? android.app.Activity)?.window ?: return@SideEffect
+                        WindowCompat.getInsetsController(w, view).run {
+                            isAppearanceLightStatusBars = !dark
+                            isAppearanceLightNavigationBars = !dark
+                        }
                     }
+                }
+                SongshushoupaiApp(
+                    onThemeChanged = { themeIdx = it; SettingsManager.saveSettings(ctx, SettingsManager.loadSettings(ctx).copy(themeColorIndex = it)) },
+                    onDarkModeChanged = { darkMode = it; SettingsManager.saveSettings(ctx, SettingsManager.loadSettings(ctx).copy(darkMode = it)) }
                 )
             }
         }
@@ -160,231 +154,122 @@ fun SongshushoupaiApp(
     onThemeChanged: (Int) -> Unit = {},
     onDarkModeChanged: (Int) -> Unit = {}
 ) {
-
-    var currentDestination by remember { mutableIntStateOf(0) }
-    val context = LocalContext.current
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    var dest by remember { mutableIntStateOf(0) }
+    val ctx = LocalContext.current
+    val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val imageList = remember { mutableStateOf<List<ImageItem>>(emptyList()) }
-    var selectedIndex by remember { mutableIntStateOf(0) }
-    var settingsSubPage by remember { mutableStateOf<String?>(null) }
-    val homeListState = remember { LazyListState() }
+    var selIdx by remember { mutableIntStateOf(0) }
+    var settingsSub by remember { mutableStateOf<String?>(null) }
+    val listState = remember { LazyListState() }
     val scope = rememberCoroutineScope()
-    var lastBackPressTime by remember { mutableLongStateOf(0L) }
+    var lastBack by remember { mutableLongStateOf(0L) }
 
-    BackHandler(enabled = currentDestination == 2 && settingsSubPage != null) {
-        settingsSubPage = null
-    }
-
-    BackHandler(enabled = !(currentDestination == 2 && settingsSubPage != null)) {
+    BackHandler(dest == 2 && settingsSub != null) { settingsSub = null }
+    BackHandler(!(dest == 2 && settingsSub != null)) {
         val now = System.currentTimeMillis()
-        if (now - lastBackPressTime < 2000) {
-            (context as? android.app.Activity)?.finish()
-        } else {
-            lastBackPressTime = now
-            android.widget.Toast.makeText(context, "再按一次退出应用", android.widget.Toast.LENGTH_SHORT).show()
-        }
+        if (now - lastBack < 2000) (ctx as? android.app.Activity)?.finish()
+        else { lastBack = now; android.widget.Toast.makeText(ctx, "再按一次退出应用", android.widget.Toast.LENGTH_SHORT).show() }
     }
 
-    fun refreshData() {
-        imageList.value = ImageDataManager.getImageList(context)
-        selectedIndex = ImageDataManager.getSelectedIndex(context)
+    fun refresh() {
+        imageList.value = ImageDataManager.getImageList(ctx)
+        selIdx = ImageDataManager.getSelectedIndex(ctx)
     }
 
-    val videoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            scope.launch {
-                withContext(Dispatchers.IO) {
+    val videoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri ?: return@rememberLauncherForActivityResult
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    val input = ctx.contentResolver.openInputStream(uri) ?: return@withContext
+                    val file = File(File(ctx.filesDir, "videos").also { it.mkdirs() }, "vid_${System.currentTimeMillis()}.mp4")
+                    FileOutputStream(file).use { out -> input.copyTo(out) }
+                    input.close()
                     try {
-                        val inputStream = context.contentResolver.openInputStream(it) ?: return@withContext
-                        val dir = File(context.filesDir, "videos").also { d -> d.mkdirs() }
-                        val file = File(dir, "vid_${System.currentTimeMillis()}.mp4")
-                        FileOutputStream(file).use { out -> inputStream.copyTo(out) }
-                        inputStream.close()
-
-                        var coverPath = ""
-                        try {
-                            val retriever = MediaMetadataRetriever()
-                            retriever.setDataSource(file.absolutePath)
-                            val frame = retriever.getFrameAtTime(0)
-                            retriever.release()
-                            if (frame != null) {
-                                val coverDir = File(context.filesDir, "covers").also { d -> d.mkdirs() }
-                                val coverFile = File(coverDir, "cover_${System.currentTimeMillis()}.jpg")
-                                FileOutputStream(coverFile).use { out ->
-                                    frame.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, out)
-                                }
-                                coverPath = coverFile.absolutePath
-                                frame.recycle()
-                            }
-                        } catch (_: Throwable) {}
-
-                        ImageDataManager.addVideoToList(context, file.absolutePath, coverPath)
-                    } catch (_: Throwable) {}
-                }
-                refreshData()
+                        val r = MediaMetadataRetriever()
+                        r.setDataSource(file.absolutePath)
+                        r.getFrameAtTime(0)?.let { frame ->
+                            val cf = File(File(ctx.filesDir, "covers").also { it.mkdirs() }, "cover_${System.currentTimeMillis()}.jpg")
+                            FileOutputStream(cf).use { out -> frame.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, out) }
+                            ImageDataManager.addVideoToList(ctx, file.absolutePath, cf.absolutePath)
+                            frame.recycle()
+                        } ?: ImageDataManager.addVideoToList(ctx, file.absolutePath, "")
+                        r.release()
+                    } catch (_: Throwable) { ImageDataManager.addVideoToList(ctx, file.absolutePath, "") }
+                } catch (_: Throwable) {}
             }
+            refresh()
         }
     }
 
-    val observer = remember {
-        LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                imageList.value = ImageDataManager.getImageList(context)
-                selectedIndex = ImageDataManager.getSelectedIndex(context)
-            }
-        }
-    }
-
-    DisposableEffect(lifecycleOwner) {
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
+    val obs = remember { LifecycleEventObserver { _, e -> if (e == Lifecycle.Event.ON_RESUME) refresh() } }
+    DisposableEffect(owner) { owner.lifecycle.addObserver(obs); onDispose { owner.lifecycle.removeObserver(obs) } }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            val topTitle = when {
-                currentDestination == 2 && settingsSubPage != null -> when (settingsSubPage) {
-                    "basic" -> "基本设置"
-                    "qrcode" -> "二维码设置"
-                    "theme" -> "主题设置"
-                    "backup" -> "数据备份"
-                    else -> "松鼠兽牌"
-                }
-                else -> "松鼠兽牌"
-            }
-            TopAppBar(
-                title = { Text(topTitle) }
-            )
+            val title = if (dest == 2 && settingsSub != null) when (settingsSub) {
+                "basic" -> "基本设置"; "qrcode" -> "二维码设置"; "theme" -> "主题设置"
+                "backup" -> "数据备份"; "about" -> "关于软件"; else -> "松鼠兽牌"
+            } else "松鼠兽牌"
+            TopAppBar(title = { Text(title) })
         },
         bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-            ) {
-                AppDestinations.entries.forEach { destination ->
+            NavigationBar(containerColor = colorScheme.primary.copy(alpha = 0.08f)) {
+                AppDestinations.entries.forEach { d ->
                     NavigationBarItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(destination.icon),
-                                contentDescription = destination.label,
-                                modifier = if (destination == AppDestinations.FAVORITES) {
-                                    Modifier.size(40.dp)
-                                } else {
-                                    Modifier.size(24.dp)
-                                }
-                            )
-                        },
-                        selected = currentDestination == destination.ordinal,
+                        icon = { Icon(painterResource(d.icon), d.label, modifier = if (d == AppDestinations.FAVORITES) Modifier.size(40.dp) else Modifier.size(24.dp)) },
+                        selected = dest == d.ordinal,
                         onClick = {
-                            if (destination == AppDestinations.FAVORITES) {
+                            if (d == AppDestinations.FAVORITES) {
                                 try {
-                                    val intent = Intent(context, StartActivity::class.java)
-                                    val options = ActivityOptionsCompat.makeCustomAnimation(
-                                        context,
-                                        android.R.anim.fade_in,
-                                        android.R.anim.fade_out
-                                    )
-                                    context.startActivity(intent, options.toBundle())
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
-                            } else {
-                                currentDestination = destination.ordinal
-                            }
+                                    ctx.startActivity(Intent(ctx, StartActivity::class.java),
+                                        ActivityOptionsCompat.makeCustomAnimation(ctx, android.R.anim.fade_in, android.R.anim.fade_out).toBundle())
+                                } catch (_: Exception) {}
+                            } else dest = d.ordinal
                         },
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                        )
+                        colors = NavigationBarItemDefaults.colors(indicatorColor = colorScheme.primary.copy(alpha = 0.12f))
                     )
                 }
             }
         }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            when (currentDestination) {
-                0 -> HomePage(
-                    imageList = imageList.value,
-                    selectedIndex = selectedIndex,
-                    listState = homeListState,
-                    onAddClick = {
-                        val intent = Intent(context, CropActivity::class.java)
-                        intent.putExtra("index", -1)
-                        context.startActivity(intent)
-                    },
-                    onAddVideoClick = {
-                        videoPickerLauncher.launch("video/*")
-                    },
-                    onSelect = { index ->
-                        selectedIndex = index
-                        ImageDataManager.setSelectedIndex(context, index)
-                    },
-                    onDelete = { index ->
-                        ImageDataManager.deleteImage(context, index)
-                        imageList.value = ImageDataManager.getImageList(context)
-                        selectedIndex = ImageDataManager.getSelectedIndex(context)
-                    },
-                    onMoveUp = { index ->
-                        if (index > 0) {
-                            ImageDataManager.moveItem(context, index, index - 1)
-                            imageList.value = ImageDataManager.getImageList(context)
-                            selectedIndex = ImageDataManager.getSelectedIndex(context)
-                        }
-                    },
-                    onMoveDown = { index ->
-                        if (index < imageList.value.size - 1) {
-                            ImageDataManager.moveItem(context, index, index + 1)
-                            imageList.value = ImageDataManager.getImageList(context)
-                            selectedIndex = ImageDataManager.getSelectedIndex(context)
-                        }
-                    },
-                    onRename = { index, newName ->
-                        ImageDataManager.renameItem(context, index, newName)
-                        imageList.value = ImageDataManager.getImageList(context)
-                    }
+    ) { pad ->
+        AnimatedContent(dest, Modifier.fillMaxSize().padding(pad),
+            transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(300)) }, label = "pageTransition"
+        ) { d ->
+            when (d) {
+                0 -> HomePage(imageList.value, selIdx, listState,
+                    onAddClick = { ctx.startActivity(Intent(ctx, CropActivity::class.java).putExtra("index", -1)) },
+                    onAddVideoClick = { videoPicker.launch("video/*") },
+                    onSelect = { selIdx = it; ImageDataManager.setSelectedIndex(ctx, it) },
+                    onDelete = { i -> ImageDataManager.deleteImage(ctx, i); refresh() },
+                    onMoveUp = { i -> if (i > 0) { ImageDataManager.moveItem(ctx, i, i - 1); refresh() } },
+                    onMoveDown = { i -> if (i < imageList.value.size - 1) { ImageDataManager.moveItem(ctx, i, i + 1); refresh() } },
+                    onRename = { i, n -> ImageDataManager.renameItem(ctx, i, n); imageList.value = ImageDataManager.getImageList(ctx) }
                 )
-
                 1 -> {}
-                2 -> {
-                    AnimatedContent(
-                        targetState = settingsSubPage,
-                        transitionSpec = {
-                            if (targetState != null && initialState == null) {
-                                (slideInHorizontally(animationSpec = tween(300)) { it } +
-                                    androidx.compose.animation.fadeIn(animationSpec = tween(300))) togetherWith
-                                (slideOutHorizontally(animationSpec = tween(300)) { -it } +
-                                    androidx.compose.animation.fadeOut(animationSpec = tween(300)))
-                            } else {
-                                (slideInHorizontally(animationSpec = tween(300)) { -it } +
-                                    androidx.compose.animation.fadeIn(animationSpec = tween(300))) togetherWith
-                                (slideOutHorizontally(animationSpec = tween(300)) { it } +
-                                    androidx.compose.animation.fadeOut(animationSpec = tween(300)))
-                            }
-                        },
-                        label = "settingsNav"
-                    ) { subPage ->
-                        when (subPage) {
-                            null -> SettingsPage(
-                                onNavigateToBasicSettings = { settingsSubPage = "basic" },
-                                onNavigateToQrCodeSettings = { settingsSubPage = "qrcode" },
-                                onNavigateToThemeSettings = { settingsSubPage = "theme" },
-                                onNavigateToBackupSettings = { settingsSubPage = "backup" }
-                            )
-                            "basic" -> BasicSettingsPage()
-                            "qrcode" -> QrCodeSettingsPage()
-                            "theme" -> ThemeSettingsPage(
-                                onThemeChanged = onThemeChanged,
-                                onDarkModeChanged = onDarkModeChanged
-                            )
-                            "backup" -> BackupSettingsPage()
-                        }
+                2 -> AnimatedContent(settingsSub,
+                    transitionSpec = {
+                        if (targetState != null && initialState == null)
+                            (slideInHorizontally(tween(300)) { it } + fadeIn(tween(300))) togetherWith
+                            (slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300)))
+                        else
+                            (slideInHorizontally(tween(300)) { -it } + fadeIn(tween(300))) togetherWith
+                            (slideOutHorizontally(tween(300)) { it } + fadeOut(tween(300)))
+                    }, label = "settingsNav"
+                ) { sub ->
+                    when (sub) {
+                        null -> SettingsPage(
+                            onNavigateToBasicSettings = { settingsSub = "basic" },
+                            onNavigateToQrCodeSettings = { settingsSub = "qrcode" },
+                            onNavigateToThemeSettings = { settingsSub = "theme" },
+                            onNavigateToBackupSettings = { settingsSub = "backup" },
+                            onNavigateToAboutSettings = { settingsSub = "about" })
+                        "basic" -> BasicSettingsPage()
+                        "qrcode" -> QrCodeSettingsPage()
+                        "theme" -> ThemeSettingsPage(onThemeChanged, onDarkModeChanged)
+                        "backup" -> BackupSettingsPage()
+                        "about" -> AboutSettingsPage()
                     }
                 }
             }
@@ -395,411 +280,152 @@ fun SongshushoupaiApp(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomePage(
-    imageList: List<ImageItem>,
-    selectedIndex: Int,
-    listState: LazyListState,
-    onAddClick: () -> Unit,
-    onAddVideoClick: () -> Unit,
-    onSelect: (Int) -> Unit,
-    onDelete: (Int) -> Unit,
-    onMoveUp: (Int) -> Unit,
-    onMoveDown: (Int) -> Unit,
-    onRename: (Int, String) -> Unit
+    imageList: List<ImageItem>, selectedIndex: Int, listState: LazyListState,
+    onAddClick: () -> Unit, onAddVideoClick: () -> Unit,
+    onSelect: (Int) -> Unit, onDelete: (Int) -> Unit,
+    onMoveUp: (Int) -> Unit, onMoveDown: (Int) -> Unit, onRename: (Int, String) -> Unit
 ) {
-    var deleteIndex by remember { mutableIntStateOf(-1) }
-    var renameIndex by remember { mutableIntStateOf(-1) }
+    var delIdx by remember { mutableIntStateOf(-1) }
+    var renIdx by remember { mutableIntStateOf(-1) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
+    Column(Modifier.fillMaxSize()) {
+        LazyColumn(Modifier.weight(1f).fillMaxWidth(), listState,
             verticalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = remember { PaddingValues(
-                horizontal = 16.dp, vertical = 8.dp
-            ) }
+            contentPadding = remember { PaddingValues(horizontal = 16.dp, vertical = 8.dp) }
         ) {
-            itemsIndexed(
-                items = imageList,
-                key = { index, _ -> index }
-            ) { index, item ->
-                ImageCard(
-                    item = item,
-                    isSelected = item.index == selectedIndex,
-                    onSelect = { onSelect(item.index) },
-                    onDelete = { deleteIndex = item.index },
-                    onMoveUp = { onMoveUp(item.index) },
-                    onMoveDown = { onMoveDown(item.index) },
-                    onRenameClick = { renameIndex = item.index },
-                    canMoveUp = index > 0,
-                    canMoveDown = index < imageList.size - 1
-                )
+            itemsIndexed(imageList, key = { _, item -> item.index }) { i, item ->
+                ImageCard(item, item.index == selectedIndex, { onSelect(item.index) },
+                    { delIdx = item.index }, { onMoveUp(item.index) }, { onMoveDown(item.index) },
+                    { renIdx = item.index }, i > 0, i < imageList.size - 1)
             }
-
-            item {
-                AddImageCard(
-                    onImageClick = onAddClick,
-                    onVideoClick = onAddVideoClick
-                )
-            }
+            item { AddImageCard(onAddClick, onAddVideoClick) }
         }
     }
 
-    if (deleteIndex >= 0 && deleteIndex < imageList.size) {
-        AlertDialog(
-            onDismissRequest = { deleteIndex = -1 },
-            title = { Text("确认删除") },
-            text = { Text("确定要删除「${imageList[deleteIndex].name}」吗？") },
-            confirmButton = {
-                Button(onClick = {
-                    onDelete(deleteIndex)
-                    deleteIndex = -1
-                }, shape = RoundedCornerShape(12.dp)) { Text("删除") }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = { deleteIndex = -1 }, shape = RoundedCornerShape(12.dp)) { Text("取消") }
-            }
-        )
+    if (delIdx in imageList.indices) {
+        AlertDialog(onDismissRequest = { delIdx = -1 }, title = { Text("确认删除") },
+            text = { Text("确定要删除「${imageList[delIdx].name}」吗？") },
+            confirmButton = { Button(onClick = { onDelete(delIdx); delIdx = -1 }, shape = DlgShape) { Text("删除") } },
+            dismissButton = { OutlinedButton(onClick = { delIdx = -1 }, shape = DlgShape) { Text("取消") } })
     }
-
-    if (renameIndex >= 0 && renameIndex < imageList.size) {
-        var text by remember { mutableStateOf(imageList[renameIndex].name) }
-        AlertDialog(
-            onDismissRequest = { renameIndex = -1 },
-            title = { Text("重命名") },
-            text = {
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    singleLine = true,
-                    label = { Text("名称") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (text.isNotBlank()) {
-                        onRename(renameIndex, text.trim())
-                    }
-                    renameIndex = -1
-                }, shape = RoundedCornerShape(12.dp)) { Text("确认") }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = { renameIndex = -1 }, shape = RoundedCornerShape(12.dp)) { Text("取消") }
-            }
-        )
+    if (renIdx in imageList.indices) {
+        var txt by remember { mutableStateOf(imageList[renIdx].name) }
+        AlertDialog(onDismissRequest = { renIdx = -1 }, title = { Text("重命名") },
+            text = { OutlinedTextField(txt, { txt = it }, singleLine = true, label = { Text("名称") }) },
+            confirmButton = { Button(onClick = { if (txt.isNotBlank()) onRename(renIdx, txt.trim()); renIdx = -1 }, shape = DlgShape) { Text("确认") } },
+            dismissButton = { OutlinedButton(onClick = { renIdx = -1 }, shape = DlgShape) { Text("取消") } })
     }
 }
 
 @Composable
-private fun AddImageCard(
-    onImageClick: () -> Unit,
-    onVideoClick: () -> Unit
-) {
-    var showDialog by remember { mutableStateOf(false) }
+private fun AddImageCard(onImageClick: () -> Unit, onVideoClick: () -> Unit) {
+    var show by remember { mutableStateOf(false) }
 
-    Card(
-        onClick = { showDialog = true },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        ),
-        border = BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-        )
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    painter = painterResource(android.R.drawable.ic_input_add),
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "添加兽牌",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+    Card(onClick = { show = true }, modifier = Modifier.fillMaxWidth().height(100.dp), shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+        border = BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.5f))) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                Icon(painterResource(android.R.drawable.ic_input_add), null, Modifier.size(40.dp), colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(4.dp))
+                Text("添加兽牌", style = MaterialTheme.typography.bodyMedium, color = colorScheme.onSurfaceVariant)
             }
         }
     }
 
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("请选择展示方式") },
+    if (show) {
+        AlertDialog(onDismissRequest = { show = false }, title = { Text("请选择展示方式") },
             text = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Card(
-                        onClick = {
-                            showDialog = false
-                            onImageClick()
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(120.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(android.R.drawable.ic_menu_gallery),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(40.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "图片",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-                    }
-                    Card(
-                        onClick = {
-                            showDialog = false
-                            onVideoClick()
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(120.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(android.R.drawable.ic_menu_slideshow),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(40.dp),
-                                    tint = MaterialTheme.colorScheme.tertiary
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "视频",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-                    }
+                Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(8.dp)) {
+                    PickCard(onClick = { show = false; onImageClick() }, icon = android.R.drawable.ic_menu_gallery,
+                        label = "图片", tint = colorScheme.primary, modifier = Modifier.weight(1f).height(120.dp))
+                    PickCard(onClick = { show = false; onVideoClick() }, icon = android.R.drawable.ic_menu_slideshow,
+                        label = "视频", tint = colorScheme.tertiary, modifier = Modifier.weight(1f).height(120.dp))
                 }
             },
             confirmButton = {},
-            dismissButton = {
-                Button(
-                    onClick = { showDialog = false },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("取消")
-                }
+            dismissButton = { Button(onClick = { show = false }, modifier = Modifier.fillMaxWidth(), shape = DlgShape) { Text("取消") } })
+    }
+}
+
+@Composable
+private fun PickCard(onClick: () -> Unit, icon: Int, label: String, tint: androidx.compose.ui.graphics.Color, modifier: Modifier = Modifier) {
+    Card(onClick, modifier, shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant)) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                Icon(painterResource(icon), null, Modifier.size(40.dp), tint)
+                Spacer(Modifier.height(8.dp))
+                Text(label, style = MaterialTheme.typography.titleMedium, color = colorScheme.onSurface)
             }
-        )
+        }
     }
 }
 
 @Composable
 fun ImageCard(
-    item: ImageItem,
-    isSelected: Boolean,
-    onSelect: () -> Unit,
-    onDelete: () -> Unit,
-    onMoveUp: () -> Unit,
-    onMoveDown: () -> Unit,
-    onRenameClick: () -> Unit,
-    canMoveUp: Boolean,
-    canMoveDown: Boolean
+    item: ImageItem, isSelected: Boolean, onSelect: () -> Unit, onDelete: () -> Unit,
+    onMoveUp: () -> Unit, onMoveDown: () -> Unit, onRenameClick: () -> Unit,
+    canMoveUp: Boolean, canMoveDown: Boolean
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var bitmap by remember(item.filePath) {
-        mutableStateOf<android.graphics.Bitmap?>(null)
+    var bitmap by remember(item.filePath) { mutableStateOf<android.graphics.Bitmap?>(null) }
+    val borderWidth by animateFloatAsState(if (isSelected) 2f else 0f, tween(250), label = "borderWidth")
+
+    Row(Modifier.fillMaxWidth().height(100.dp).clip(RoundedCornerShape(16.dp))
+        .background(colorScheme.surface)
+        .border(BorderStroke(borderWidth.dp, colorScheme.primary), RoundedCornerShape(16.dp))
+        .clickable { onSelect() }.padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+
+        Box(Modifier.size(76.dp).clip(RoundedCornerShape(12.dp)).background(colorScheme.surfaceVariant)) {
+            val bmp = bitmap
+            if (bmp != null) Image(BitmapPainter(bmp.asImageBitmap()), item.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            else Image(painterResource(R.drawable.shili), item.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            if (isSelected) Box(Modifier.align(Alignment.TopEnd).padding(4.dp).size(18.dp).clip(CircleShape).background(colorScheme.primary))
+        }
+
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+            Text(item.name, style = MaterialTheme.typography.titleMedium)
+            Text(if (isSelected) "当前使用中" else if (item.isVideo) "视频" else "图片",
+                style = MaterialTheme.typography.bodySmall,
+                color = if (isSelected) colorScheme.primary else colorScheme.onSurfaceVariant)
+        }
+
+        Box {
+            IconButton({ expanded = true }) { Icon(Icons.Filled.MoreVert, "更多选项") }
+            DropdownMenu(expanded, { expanded = false }, shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.border(BorderStroke(1.dp, colorScheme.outlineVariant), RoundedCornerShape(12.dp))) {
+                DropdownMenuItem({ Text("重命名") }, onClick = { onRenameClick(); expanded = false })
+                DropdownMenuItem({ Text("上移") }, onClick = { onMoveUp(); expanded = false }, enabled = canMoveUp)
+                DropdownMenuItem({ Text("下移") }, onClick = { onMoveDown(); expanded = false }, enabled = canMoveDown)
+                DropdownMenuItem({ Text("删除") }, onClick = { onDelete(); expanded = false })
+            }
+        }
     }
-
-    val animatedBorderWidth by animateFloatAsState(
-        targetValue = if (isSelected) 2f else 0f,
-        animationSpec = tween(durationMillis = 250),
-        label = "borderWidth"
-    )
-
-    val borderModifier = Modifier.border(
-        BorderStroke(animatedBorderWidth.dp, MaterialTheme.colorScheme.primary),
-        RoundedCornerShape(16.dp)
-    )
 
     LaunchedEffect(item.filePath) {
         bitmap = withContext(Dispatchers.IO) {
             val path = if (item.isVideo) item.coverPath else item.filePath
-            if (path.isNotEmpty()) {
-                try {
-                    val opts = android.graphics.BitmapFactory.Options()
-                    opts.inJustDecodeBounds = true
-                    android.graphics.BitmapFactory.decodeFile(path, opts)
-                    if (opts.outWidth <= 0 || opts.outHeight <= 0) {
-                        null
-                    } else {
-                        var sampleSize = 1
-                        val maxDim = 256
-                        while (opts.outWidth / sampleSize > maxDim || opts.outHeight / sampleSize > maxDim) {
-                            sampleSize *= 2
-                        }
-                        opts.inSampleSize = sampleSize
-                        opts.inJustDecodeBounds = false
-                        opts.inPreferredConfig = android.graphics.Bitmap.Config.RGB_565
-                        android.graphics.BitmapFactory.decodeFile(path, opts)
-                    }
-                } catch (_: Throwable) {
-                    null
-                }
-            } else null
-        }
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .then(borderModifier)
-            .clickable { onSelect() }
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(76.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-            if (bitmap != null) {
-                Image(
-                    painter = BitmapPainter(bitmap!!.asImageBitmap()),
-                    contentDescription = item.name,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.shili),
-                    contentDescription = item.name,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
-            if (isSelected) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(4.dp)
-                        .size(18.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                )
-            }
-        }
-
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = item.name,
-                style = MaterialTheme.typography.titleMedium
-            )
-            if (item.isVideo) {
-                Text(
-                    text = if (isSelected) "当前使用中" else "视频",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            } else {
-                Text(
-                    text = if (isSelected) "当前使用中" else "图片",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        Box {
-            IconButton(onClick = { expanded = true }) {
-                Icon(
-                    imageVector = Icons.Filled.MoreVert,
-                    contentDescription = "更多选项"
-                )
-            }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-            ) {
-                DropdownMenuItem(
-                    text = { Text("重命名") },
-                    onClick = { onRenameClick(); expanded = false }
-                )
-                DropdownMenuItem(
-                    text = { Text("上移") },
-                    onClick = { onMoveUp(); expanded = false },
-                    enabled = canMoveUp
-                )
-                DropdownMenuItem(
-                    text = { Text("下移") },
-                    onClick = { onMoveDown(); expanded = false },
-                    enabled = canMoveDown
-                )
-                DropdownMenuItem(
-                    text = { Text("删除") },
-                    onClick = { onDelete(); expanded = false }
-                )
-            }
+            if (path.isEmpty()) return@withContext null
+            try {
+                val opts = android.graphics.BitmapFactory.Options()
+                opts.inJustDecodeBounds = true
+                android.graphics.BitmapFactory.decodeFile(path, opts)
+                if (opts.outWidth <= 0 || opts.outHeight <= 0) return@withContext null
+                var ss = 1
+                while (opts.outWidth / ss > 256 || opts.outHeight / ss > 256) ss *= 2
+                opts.inSampleSize = ss; opts.inJustDecodeBounds = false
+                opts.inPreferredConfig = android.graphics.Bitmap.Config.RGB_565
+                android.graphics.BitmapFactory.decodeFile(path, opts)
+            } catch (_: Throwable) { null }
         }
     }
 }
 
-enum class AppDestinations(
-    val label: String,
-    val icon: Int,
-) {
+enum class AppDestinations(val label: String, val icon: Int) {
     HOME("主页", R.drawable.ic_home),
     FAVORITES("启动", R.drawable.ic_favorite),
     PROFILE("设置", R.drawable.ic_account_box),
-
 }
 
