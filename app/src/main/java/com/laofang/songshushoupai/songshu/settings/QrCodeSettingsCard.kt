@@ -40,86 +40,46 @@ fun QrCodeSettingsCard(
     qrPreviewBmp: android.graphics.Bitmap?,
     onQrPreviewBmpChange: (android.graphics.Bitmap?) -> Unit
 ) {
-    val context = LocalContext.current
+    val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
-    
-    val qrImageLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: android.net.Uri? ->
-        uri?.let {
-            scope.launch {
-                with(Dispatchers.IO) {
-                    try {
-                        val inputStream = context.contentResolver.openInputStream(it) ?: return@with
-                        val dir = File(context.filesDir, "qrcodes").also { d -> d.mkdirs() }
-                        val file = File(dir, "custom_qr.png")
-                        FileOutputStream(file).use { out -> inputStream.copyTo(out) }
-                        inputStream.close()
-                        val path = file.absolutePath
-                        onQrCodePathChange(path)
-                        onQrPreviewBmpChange(android.graphics.BitmapFactory.decodeFile(path))
-                    } catch (_: Exception) {}
-                }
+
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        scope.launch {
+            with(Dispatchers.IO) {
+                try {
+                    val input = ctx.contentResolver.openInputStream(uri) ?: return@with
+                    val file = File(File(ctx.filesDir, "qrcodes").also { it.mkdirs() }, "custom_qr.png")
+                    FileOutputStream(file).use { out -> input.copyTo(out) }
+                    input.close()
+                    onQrCodePathChange(file.absolutePath)
+                    onQrPreviewBmpChange(android.graphics.BitmapFactory.decodeFile(file.absolutePath))
+                } catch (_: Exception) {}
             }
         }
     }
-    
+
     Column {
-        SettingsSwitchRow("上划展示二维码", "打开上划屏幕展示二维码", showQrCode) {
-            onShowQrCodeChange(it)
-        }
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-        val qrAlpha = if (showQrCode) 1f else 0.4f
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .graphicsLayer { alpha = qrAlpha },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = "自定义二维码", style = MaterialTheme.typography.bodyLarge)
-                Text(
-                    text = if (qrCodePath.isNotEmpty()) "已导入自定义二维码" else "未导入，将使用默认示例图",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+        SettingsSwitchRow("上划展示二维码", "打开上划屏幕展示二维码", showQrCode) { onShowQrCodeChange(it) }
+        HorizontalDivider(Modifier.padding(vertical = 8.dp))
+        val alpha = if (showQrCode) 1f else 0.4f
+        Row(Modifier.fillMaxWidth().padding(vertical = 4.dp).graphicsLayer { this.alpha = alpha },
+            verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("自定义二维码", style = MaterialTheme.typography.bodyLarge)
+                Text(if (qrCodePath.isNotEmpty()) "已导入自定义二维码" else "未导入，将使用默认示例图",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            OutlinedButton(
-                onClick = { qrImageLauncher.launch("image/*") },
-                enabled = showQrCode,
-                shape = RoundedCornerShape(12.dp)
-            ) { Text("导入") }
+            OutlinedButton(onClick = { picker.launch("image/*") }, enabled = showQrCode, shape = RoundedCornerShape(12.dp)) { Text("导入") }
         }
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .graphicsLayer { alpha = qrAlpha },
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
-        ) {
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
+        Surface(Modifier.fillMaxWidth().graphicsLayer { this.alpha = alpha },
+            shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)) {
+            Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                val imgModifier = Modifier.fillMaxWidth(0.6f).heightIn(max = 200.dp)
                 if (qrPreviewBmp != null) {
-                    Image(
-                        painter = BitmapPainter(qrPreviewBmp.asImageBitmap()),
-                        contentDescription = "二维码预览",
-                        modifier = Modifier
-                            .fillMaxWidth(0.6f)
-                            .heightIn(max = 200.dp),
-                        contentScale = ContentScale.Fit
-                    )
+                    Image(BitmapPainter(qrPreviewBmp.asImageBitmap()), "二维码预览", imgModifier, contentScale = ContentScale.Fit)
                 } else {
-                    Image(
-                        painter = androidx.compose.ui.res.painterResource(R.drawable.qr_zanzhu),
-                        contentDescription = "默认二维码",
-                        modifier = Modifier
-                            .fillMaxWidth(0.6f)
-                            .heightIn(max = 200.dp),
-                        contentScale = ContentScale.Fit
-                    )
+                    Image(androidx.compose.ui.res.painterResource(R.drawable.qr_zanzhu), "默认二维码", imgModifier, contentScale = ContentScale.Fit)
                 }
             }
         }

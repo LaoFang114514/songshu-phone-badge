@@ -1,13 +1,10 @@
 package com.laofang.songshushoupai.songshu
 
 import android.content.Intent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,54 +20,48 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.laofang.songshushoupai.songshu.settings.BackupOperation
 import com.laofang.songshushoupai.songshu.settings.BasicSettingsCard
 import com.laofang.songshushoupai.songshu.settings.QrCodeSettingsCard
 import com.laofang.songshushoupai.songshu.settings.ThemeSettingsCard
 import com.laofang.songshushoupai.songshu.settings.BackupSettingsCard
-import com.laofang.songshushoupai.songshu.start.egg.ColorSudokuActivity
+import com.laofang.songshushoupai.songshu.settings.AboutSettingsCard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
 private val CardShape = RoundedCornerShape(16.dp)
+private val BtnShape = RoundedCornerShape(12.dp)
 
 @Composable
 private fun cardBorder() = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
 
 @Composable
-private fun SettingsPageScaffold(
-    content: @Composable () -> Unit
-) {
+private fun SettingsPageScaffold(content: @Composable () -> Unit) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(17.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(17.dp),
         verticalArrangement = Arrangement.spacedBy(11.dp)
     ) { content() }
 }
@@ -79,10 +69,7 @@ private fun SettingsPageScaffold(
 @Composable
 private fun NavRow(label: String, onClick: () -> Unit) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(cardBorder(), CardShape)
-            .clickable(onClick = onClick),
+        modifier = Modifier.fillMaxWidth().border(cardBorder(), CardShape).clip(CardShape).clickable(onClick = onClick),
         shape = CardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
@@ -90,17 +77,8 @@ private fun NavRow(label: String, onClick: () -> Unit) {
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = " ▶",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+            Text(" ▶", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -111,105 +89,30 @@ private fun StatusDialog(message: String, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { Text("提示") },
         text = { Text(message) },
-        confirmButton = { Button(onClick = onDismiss, shape = RoundedCornerShape(12.dp)) { Text("确定") } }
+        confirmButton = { Button(onClick = onDismiss, shape = BtnShape) { Text("确定") } },
+        shape = BtnShape
     )
 }
 
 @Composable
-private fun BackupConfirmDialog(
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
+private fun BackupConfirmDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("确认操作") },
         text = { Text("此操作将覆盖当前数据，确定要继续吗？") },
         confirmButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = onDismiss, shape = RoundedCornerShape(12.dp)) { Text("取消") }
-                Button(onClick = onConfirm, shape = RoundedCornerShape(12.dp)) { Text("确定") }
+                OutlinedButton(onClick = onDismiss, shape = BtnShape) { Text("取消") }
+                Button(onClick = onConfirm, shape = BtnShape) { Text("确定") }
             }
         },
-        dismissButton = {}
+        dismissButton = {},
+        shape = BtnShape
     )
 }
 
-@Composable
-private fun WebDavConfigDialog(
-    initialUrl: String,
-    onDismiss: () -> Unit,
-    onSave: (WebDavConfig) -> Unit
-) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var dialogUrl by remember { mutableStateOf(initialUrl) }
-    var dialogUser by remember { mutableStateOf("") }
-    var dialogPass by remember { mutableStateOf("") }
-    var dialogTesting by remember { mutableStateOf(false) }
-    var statusMessage by remember { mutableStateOf<String?>(null) }
-
-    if (statusMessage != null) {
-        StatusDialog(message = statusMessage!!, onDismiss = { statusMessage = null })
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("WebDAV 服务器配置") },
-        text = {
-            Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = dialogUrl, onValueChange = { dialogUrl = it },
-                    label = { Text("服务器地址") },
-                    placeholder = { Text("https://example.com/remote.php/dav/files/user/") },
-                    singleLine = true, modifier = Modifier.fillMaxWidth(), enabled = !dialogTesting
-                )
-                OutlinedTextField(
-                    value = dialogUser, onValueChange = { dialogUser = it },
-                    label = { Text("用户名") },
-                    singleLine = true, modifier = Modifier.fillMaxWidth(), enabled = !dialogTesting
-                )
-                OutlinedTextField(
-                    value = dialogPass, onValueChange = { dialogPass = it },
-                    label = { Text("密码") },
-                    singleLine = true, visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(), enabled = !dialogTesting
-                )
-                if (dialogTesting) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                        Text("测试连接中...", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
-                    onClick = {
-                        if (dialogUrl.isBlank()) { statusMessage = "请先填写服务器地址"; return@OutlinedButton }
-                        dialogTesting = true
-                        scope.launch {
-                            val config = WebDavConfig(dialogUrl, dialogUser, dialogPass)
-                            val error = BackupManager.webdavTestConnection(config)
-                            statusMessage = if (error == null) "连接成功!" else "连接失败: $error"
-                            dialogTesting = false
-                        }
-                    },
-                    enabled = !dialogTesting, shape = RoundedCornerShape(12.dp)
-                ) { Text("测试连接") }
-                Button(
-                    onClick = {
-                        dialogTesting = false
-                        onSave(WebDavConfig(dialogUrl, dialogUser, dialogPass))
-                        BackupManager.saveWebDavConfig(context, WebDavConfig(dialogUrl, dialogUser, dialogPass))
-                        onDismiss()
-                    },
-                    enabled = !dialogTesting, shape = RoundedCornerShape(12.dp)
-                ) { Text("保存") }
-            }
-        },
-        dismissButton = { OutlinedButton(onClick = onDismiss, shape = RoundedCornerShape(12.dp)) { Text("取消") } }
-    )
+private fun openUrl(context: android.content.Context, url: String) {
+    context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
 }
 
 @Composable
@@ -217,17 +120,14 @@ fun SettingsPage(
     onNavigateToBasicSettings: () -> Unit = {},
     onNavigateToQrCodeSettings: () -> Unit = {},
     onNavigateToThemeSettings: () -> Unit = {},
-    onNavigateToBackupSettings: () -> Unit = {}
+    onNavigateToBackupSettings: () -> Unit = {},
+    onNavigateToAboutSettings: () -> Unit = {}
 ) {
-    val context = LocalContext.current
-    var showAboutPopup by remember { mutableStateOf(false) }
-    val updateInfo by remember { mutableStateOf(UpdateChecker.getCachedResult(context)) }
+    val ctx = LocalContext.current
+    val updateInfo by remember { mutableStateOf(UpdateChecker.getCachedResult(ctx)) }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Card(
@@ -237,185 +137,60 @@ fun SettingsPage(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "支持开发者",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
-                    ) {
+                    Text("支持开发者", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                    Surface(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.error.copy(alpha = 0.15f)) {
                         Text(
-                            text = "V${BuildConfig.VERSION_NAME}",
+                            "V${BuildConfig.VERSION_NAME}",
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.error
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = "欢迎通过以下渠道赞助",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Button(
-                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://www.ifdian.net/a/laofang".toUri())) },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) { Text("爱发电") }
-                    OutlinedButton(
-                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://ko-fi.com/laofang".toUri())) },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) { Text("Ko-fi") }
+                Spacer(Modifier.height(6.dp))
+                Text("欢迎通过以下渠道赞助", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                Spacer(Modifier.height(16.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Button(onClick = { openUrl(ctx, "https://www.ifdian.net/a/laofang") }, Modifier.weight(1f), shape = BtnShape) { Text("爱发电") }
+                    OutlinedButton(onClick = { openUrl(ctx, "https://ko-fi.com/laofang") }, Modifier.weight(1f), shape = BtnShape) { Text("Ko-fi") }
                 }
             }
         }
 
-        if (updateInfo != null) {
-            val info = updateInfo!!
+        updateInfo?.let { info ->
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(cardBorder(), CardShape)
-                    .clip(CardShape)
-                    .clickable { context.startActivity(Intent(Intent.ACTION_VIEW, info.link.toUri())) },
+                modifier = Modifier.fillMaxWidth().border(cardBorder(), CardShape).clip(CardShape)
+                    .clickable { openUrl(ctx, info.link) },
                 shape = CardShape,
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "发现新版本 ${info.version}",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
+                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("发现新版本 ${info.version}", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                    Spacer(Modifier.width(12.dp))
                     Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primary) {
-                        Text(
-                            text = "点击查看",
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
+                        Text("点击查看", modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary)
                     }
                 }
             }
         }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
         NavRow("基本设置") { onNavigateToBasicSettings() }
         NavRow("二维码设置") { onNavigateToQrCodeSettings() }
         NavRow("主题设置") { onNavigateToThemeSettings() }
         NavRow("数据备份") { onNavigateToBackupSettings() }
-        NavRow("关于软件") { showAboutPopup = true }
-    }
-
-    if (showAboutPopup) {
-        var iconClickCount by remember { mutableIntStateOf(0) }
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f))
-                    .clickable { showAboutPopup = false }
-            )
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth(0.85f)
-                    .border(cardBorder(), CardShape)
-                    .clip(CardShape),
-                shape = CardShape,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(96.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .clickable {
-                                iconClickCount++
-                                if (iconClickCount >= 7) {
-                                    iconClickCount = 0
-                                    try {
-                                        val activity = context as? android.app.Activity
-                                        if (activity != null) {
-                                            val intent = Intent(activity, ColorSudokuActivity::class.java)
-                                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                            context.startActivity(intent)
-                                        } else {
-                                            android.widget.Toast.makeText(context, "无法访问页面", android.widget.Toast.LENGTH_SHORT).show()
-                                        }
-                                    } catch (e: Exception) {
-                                        android.widget.Toast.makeText(context, "跳转失败: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(painter = painterResource(R.mipmap.ic_launcher_background), contentDescription = null, modifier = Modifier.fillMaxSize())
-                        Image(painter = painterResource(R.mipmap.ic_launcher_foreground), contentDescription = "应用图标", modifier = Modifier.size(98.dp))
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text("松鼠兽牌", style = MaterialTheme.typography.headlineSmall)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Surface(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)) {
-                        Text(
-                            text = "V${BuildConfig.VERSION_NAME}",
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        "一款简单易用的旧手机变兽牌工具，帮助你使用旧手机快速创建和展示自己的兽牌图片，适合需要兽牌但经费不足的小伙伴。",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://qun.qq.com/universal-pop/pop.html?ucid=JxRTxJmIQfa8p4d0_U_TyZyEn&gc=&sign=dc86ae0ca4700c5dbc23894f0fdb82fccfd937cd0fe5edec4afa9472c7300d07&external=&_type=gp&o&_client=yqq&hash=-".toUri())) },
-                            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
-                        ) { Text("QQ群") }
-                        OutlinedButton(
-                            onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://github.com/LaoFang114514/songshu-phone-badge".toUri())) },
-                            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
-                        ) { Text("GitHub") }
-                        OutlinedButton(
-                            onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://songshushoupai.mysxl.cn/".toUri())) },
-                            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
-                        ) { Text("官网") }
-                    }
-                }
-            }
-        }
+        NavRow("关于软件") { onNavigateToAboutSettings() }
     }
 }
 
 @Composable
+fun AboutSettingsPage() {
+    SettingsPageScaffold { AboutSettingsCard() }
+}
+
+@Composable
 fun BasicSettingsPage() {
-    val context = LocalContext.current
+    val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var defaultOrientation by remember { mutableStateOf(false) }
     var keepScreenOn by remember { mutableStateOf(false) }
@@ -423,21 +198,21 @@ fun BasicSettingsPage() {
     var lockOrientation by remember { mutableStateOf(false) }
     var antiBurnIn by remember { mutableStateOf(false) }
     var muteVideo by remember { mutableStateOf(false) }
+    var base by remember { mutableStateOf<AppSettings?>(null) }
 
     LaunchedEffect(Unit) {
-        val s = SettingsManager.loadSettings(context)
-        defaultOrientation = s.defaultOrientation
-        keepScreenOn = s.keepScreenOn
-        showBattery = s.showBattery
-        lockOrientation = s.lockOrientation
-        antiBurnIn = s.antiBurnIn
-        muteVideo = s.muteVideo
+        SettingsManager.loadSettings(ctx).also { s ->
+            base = s; defaultOrientation = s.defaultOrientation; keepScreenOn = s.keepScreenOn
+            showBattery = s.showBattery; lockOrientation = s.lockOrientation
+            antiBurnIn = s.antiBurnIn; muteVideo = s.muteVideo
+        }
     }
 
     fun save() {
+        val b = base ?: return
         scope.launch {
             withContext(Dispatchers.IO) {
-                SettingsManager.saveSettings(context, AppSettings(
+                SettingsManager.saveSettings(ctx, b.copy(
                     defaultOrientation = defaultOrientation, keepScreenOn = keepScreenOn,
                     showBattery = showBattery, lockOrientation = lockOrientation,
                     antiBurnIn = antiBurnIn, muteVideo = muteVideo
@@ -460,38 +235,29 @@ fun BasicSettingsPage() {
 
 @Composable
 fun QrCodeSettingsPage() {
-    val context = LocalContext.current
+    val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var showQrCode by remember { mutableStateOf(false) }
     var qrCodePath by remember { mutableStateOf("") }
     var qrPreviewBmp by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
-    var baseSettings by remember { mutableStateOf<AppSettings?>(null) }
+    var base by remember { mutableStateOf<AppSettings?>(null) }
 
     LaunchedEffect(Unit) {
-        val s = SettingsManager.loadSettings(context)
-        baseSettings = s
-        showQrCode = s.showQrCode
-        qrCodePath = s.qrCodePath
+        SettingsManager.loadSettings(ctx).also { s ->
+            base = s; showQrCode = s.showQrCode; qrCodePath = s.qrCodePath
+        }
     }
-
     LaunchedEffect(qrCodePath) {
         qrPreviewBmp = withContext(Dispatchers.IO) {
-            if (qrCodePath.isNotEmpty() && File(qrCodePath).exists()) {
+            if (qrCodePath.isNotEmpty() && File(qrCodePath).exists())
                 try { android.graphics.BitmapFactory.decodeFile(qrCodePath) } catch (_: Throwable) { null }
-            } else null
+            else null
         }
     }
 
     fun save() {
-        val base = baseSettings ?: return
-        scope.launch {
-            withContext(Dispatchers.IO) {
-                SettingsManager.saveSettings(context, base.copy(
-                    showQrCode = showQrCode,
-                    qrCodePath = qrCodePath
-                ))
-            }
-        }
+        val b = base ?: return
+        scope.launch { withContext(Dispatchers.IO) { SettingsManager.saveSettings(ctx, b.copy(showQrCode = showQrCode, qrCodePath = qrCodePath)) } }
     }
 
     SettingsPageScaffold {
@@ -504,87 +270,132 @@ fun QrCodeSettingsPage() {
 }
 
 @Composable
-fun ThemeSettingsPage(
-    onThemeChanged: (Int) -> Unit,
-    onDarkModeChanged: (Int) -> Unit
-) {
-    val context = LocalContext.current
+fun ThemeSettingsPage(onThemeChanged: (Int) -> Unit, onDarkModeChanged: (Int) -> Unit) {
+    val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
-    var currentDarkMode by remember { mutableIntStateOf(0) }
-    var currentThemeColorIndex by remember { mutableIntStateOf(0) }
+    var darkMode by remember { mutableIntStateOf(0) }
+    var themeColor by remember { mutableIntStateOf(0) }
+    var base by remember { mutableStateOf<AppSettings?>(null) }
 
     LaunchedEffect(Unit) {
-        val s = SettingsManager.loadSettings(context)
-        currentDarkMode = s.darkMode
-        currentThemeColorIndex = s.themeColorIndex
+        SettingsManager.loadSettings(ctx).also { s -> base = s; darkMode = s.darkMode; themeColor = s.themeColorIndex }
     }
 
     fun save() {
-        scope.launch {
-            withContext(Dispatchers.IO) {
-                SettingsManager.saveSettings(context, AppSettings(darkMode = currentDarkMode, themeColorIndex = currentThemeColorIndex))
-            }
-        }
+        val b = base ?: return
+        scope.launch { withContext(Dispatchers.IO) { SettingsManager.saveSettings(ctx, b.copy(darkMode = darkMode, themeColorIndex = themeColor)) } }
     }
 
     SettingsPageScaffold {
         ThemeSettingsCard(
-            currentDarkMode = currentDarkMode,
-            onDarkModeChange = { currentDarkMode = it; save(); onDarkModeChanged(it) },
-            currentThemeColorIndex = currentThemeColorIndex,
-            onThemeColorIndexChange = { currentThemeColorIndex = it; save(); onThemeChanged(it) }
+            currentDarkMode = darkMode,
+            onDarkModeChange = { darkMode = it; save(); onDarkModeChanged(it) },
+            currentThemeColorIndex = themeColor,
+            onThemeColorIndexChange = { themeColor = it; save(); onThemeChanged(it) }
         )
     }
 }
 
 @Composable
 fun BackupSettingsPage() {
-    val context = LocalContext.current
+    val ctx = LocalContext.current
+    val appCtx = ctx.applicationContext
+    val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
-    var statusMessage by remember { mutableStateOf<String?>(null) }
-    var showBackupConfirmDialog by remember { mutableStateOf(false) }
-    var backupConfirmAction by remember { mutableStateOf<(() -> Unit)?>(null) }
-    var showWebDavConfigDialog by remember { mutableStateOf(false) }
+    var statusMsg by remember { mutableStateOf<String?>(null) }
+    var showConfirm by remember { mutableStateOf(false) }
+    var pendingOp by remember { mutableStateOf<BackupOperation?>(null) }
     var webdavUrl by remember { mutableStateOf("") }
+    var webdavUser by remember { mutableStateOf("") }
+    var webdavPass by remember { mutableStateOf("") }
+    var isTesting by remember { mutableStateOf(false) }
+    var savedUrl by remember { mutableStateOf("") }
+    var savedUser by remember { mutableStateOf("") }
+    var savedPass by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        webdavUrl = BackupManager.loadWebDavConfig(context).url
+        BackupManager.loadWebDavConfig(ctx).also { c ->
+            webdavUrl = c.url; webdavUser = c.username; webdavPass = c.password
+            savedUrl = c.url; savedUser = c.username; savedPass = c.password
+        }
     }
 
-    if (statusMessage != null) {
-        StatusDialog(message = statusMessage!!, onDismiss = { statusMessage = null })
+    val isConfigModified = webdavUrl != savedUrl || webdavUser != savedUser || webdavPass != savedPass
+
+    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        isLoading = true
+        scope.launch {
+            val msg = withContext(Dispatchers.IO) {
+                try { BackupManager.exportToZip(appCtx, uri); "导出成功" } catch (e: Exception) { "导出失败: ${e.localizedMessage}" }
+            }
+            statusMsg = msg; isLoading = false
+        }
     }
+
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        isLoading = true
+        scope.launch {
+            val ok = withContext(Dispatchers.IO) { BackupManager.importFromZip(appCtx, uri) }
+            statusMsg = if (ok) "导入成功" else "导入失败"; isLoading = false
+        }
+    }
+
+    fun exec(op: BackupOperation) {
+        when (op) {
+            BackupOperation.EXPORT -> exportLauncher.launch("songshushoupai_backup.zip")
+            BackupOperation.IMPORT -> importLauncher.launch(arrayOf("application/zip", "application/octet-stream"))
+            BackupOperation.WEBDAV_UPLOAD, BackupOperation.WEBDAV_DOWNLOAD -> {
+                val cfg = BackupManager.loadWebDavConfig(appCtx)
+                if (cfg.url.isBlank()) { statusMsg = "请先配置服务器地址"; return }
+                isLoading = true
+                scope.launch {
+                    val result = withContext(Dispatchers.IO) {
+                        if (op == BackupOperation.WEBDAV_UPLOAD) BackupManager.webdavUpload(appCtx, cfg)
+                        else BackupManager.webdavDownload(appCtx, cfg)
+                    }
+                    statusMsg = result ?: if (op == BackupOperation.WEBDAV_UPLOAD) "备份到服务器成功" else "从服务器恢复成功"
+                    isLoading = false
+                }
+            }
+        }
+    }
+
+    statusMsg?.let { StatusDialog(message = it, onDismiss = { statusMsg = null }) }
 
     SettingsPageScaffold {
         BackupSettingsCard(
-            context = context,
+            context = ctx,
             isLoading = isLoading,
-            onShowBackupConfirmDialogChange = { show, action ->
-                showBackupConfirmDialog = show
-                backupConfirmAction = action
+            onBackupOperation = { pendingOp = it; showConfirm = true },
+            webdavUrl = webdavUrl, webdavUser = webdavUser, webdavPass = webdavPass,
+            onWebdavUrlChange = { webdavUrl = it },
+            onWebdavUserChange = { webdavUser = it },
+            onWebdavPassChange = { webdavPass = it },
+            onTestConnection = {
+                if (webdavUrl.isBlank()) { statusMsg = "请先填写服务器地址"; return@BackupSettingsCard }
+                isTesting = true
+                scope.launch {
+                    val err = BackupManager.webdavTestConnection(WebDavConfig(webdavUrl, webdavUser, webdavPass))
+                    statusMsg = if (err == null) "连接成功!" else "连接失败: $err"
+                    isTesting = false
+                }
             },
-            onShowWebDavConfigDialogChange = { showWebDavConfigDialog = it },
-            webdavUrl = webdavUrl,
-            onStatusMessageChange = { statusMessage = it }
+            onSaveWebDavConfig = {
+                BackupManager.saveWebDavConfig(appCtx, WebDavConfig(webdavUrl, webdavUser, webdavPass))
+                savedUrl = webdavUrl; savedUser = webdavUser; savedPass = webdavPass
+                statusMsg = "WebDAV 配置已保存"
+            },
+            isTesting = isTesting,
+            isConfigModified = isConfigModified
         )
     }
 
-    if (showBackupConfirmDialog) {
+    if (showConfirm) {
         BackupConfirmDialog(
-            onDismiss = { showBackupConfirmDialog = false; backupConfirmAction = null },
-            onConfirm = {
-                showBackupConfirmDialog = false
-                backupConfirmAction?.invoke()
-                backupConfirmAction = null
-            }
-        )
-    }
-
-    if (showWebDavConfigDialog) {
-        WebDavConfigDialog(
-            initialUrl = webdavUrl,
-            onDismiss = { showWebDavConfigDialog = false },
-            onSave = { webdavUrl = it.url }
+            onDismiss = { showConfirm = false; pendingOp = null },
+            onConfirm = { showConfirm = false; pendingOp?.let { exec(it) }; pendingOp = null }
         )
     }
 }
