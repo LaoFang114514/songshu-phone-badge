@@ -47,6 +47,8 @@ import com.laofang.songshushoupai.songshu.settings.QrCodeSettingsCard
 import com.laofang.songshushoupai.songshu.settings.ThemeSettingsCard
 import com.laofang.songshushoupai.songshu.settings.BackupSettingsCard
 import com.laofang.songshushoupai.songshu.settings.AboutSettingsCard
+import android.content.Context
+import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -111,7 +113,7 @@ private fun BackupConfirmDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
     )
 }
 
-private fun openUrl(context: android.content.Context, url: String) {
+private fun openUrl(context: Context, url: String) {
     context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
 }
 
@@ -124,7 +126,24 @@ fun SettingsPage(
     onNavigateToAboutSettings: () -> Unit = {}
 ) {
     val ctx = LocalContext.current
-    val updateInfo by remember { mutableStateOf(UpdateChecker.getCachedResult(ctx)) }
+    val scope = rememberCoroutineScope()
+    var updateInfo by remember { mutableStateOf(UpdateChecker.getCachedResult(ctx)) }
+    var checkingUpdate by remember { mutableStateOf(false) }
+
+    fun doCheckUpdate(forceRefresh: Boolean) {
+        if (checkingUpdate) return
+        checkingUpdate = true
+        scope.launch {
+            if (forceRefresh) {
+                ctx.getSharedPreferences("rss_cache", Context.MODE_PRIVATE).edit { putString("cache_data", "") }
+            }
+            val result = UpdateChecker.checkForUpdate(ctx, BuildConfig.VERSION_NAME)
+            result.getOrNull()?.let { updateInfo = it }
+            checkingUpdate = false
+        }
+    }
+
+    LaunchedEffect(Unit) { doCheckUpdate(false) }
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -138,9 +157,12 @@ fun SettingsPage(
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("支持开发者", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                    Surface(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.error.copy(alpha = 0.15f)) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
+                        modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { doCheckUpdate(true) }
+                    ) {
                         Text(
-                            "V${BuildConfig.VERSION_NAME}",
+                            if (checkingUpdate) "检查中..." else "V${BuildConfig.VERSION_NAME}",
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.error
@@ -159,8 +181,9 @@ fun SettingsPage(
 
         updateInfo?.let { info ->
             Card(
-                modifier = Modifier.fillMaxWidth().border(cardBorder(), CardShape).clip(CardShape)
-                    .clickable { openUrl(ctx, info.link) },
+                modifier = Modifier.fillMaxWidth().border(cardBorder(), CardShape)
+                    .clickable { openUrl(ctx, info.link) }
+                    .clip(CardShape),
                 shape = CardShape,
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
