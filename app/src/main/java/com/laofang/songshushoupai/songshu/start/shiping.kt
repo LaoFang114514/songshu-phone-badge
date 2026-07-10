@@ -485,7 +485,7 @@ fun FullScreenVideoScreen(videoPath: String) {
             ) {
                 Text(
                     text = "电量：$batteryLevel%",
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = Color.White,
                     modifier = Modifier
                         .background(
                             color = Color.Black.copy(alpha = 0.5f),

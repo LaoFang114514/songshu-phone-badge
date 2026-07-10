@@ -26,8 +26,8 @@ android {
         applicationId = "com.laofang.songshushoupai.songshu"
         minSdk = 23
         targetSdk = 36
-        versionCode = 7
-        versionName = "0.8.1"
+        versionCode = 8
+        versionName = "0.8.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.material3)
     implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)

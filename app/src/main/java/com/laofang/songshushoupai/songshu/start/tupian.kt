@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ActivityInfo
 import android.content.BroadcastReceiver
 import android.os.BatteryManager
 import android.os.Build
@@ -60,8 +61,10 @@ import kotlin.time.Duration.Companion.milliseconds
 import java.io.File
 
 class StartActivity : ComponentActivity() {
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         enableEdgeToEdge()
 
         val settings = SettingsManager.loadSettings(this)
@@ -451,7 +454,7 @@ fun FullScreenImageScreen() {
             ) {
                 Text(
                     text = "电量：$batteryLevel%",
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = Color.White,
                     modifier = Modifier
                         .background(
                             color = Color.Black.copy(alpha = 0.5f),
