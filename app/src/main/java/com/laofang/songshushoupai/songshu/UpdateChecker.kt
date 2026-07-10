@@ -15,22 +15,14 @@ data class UpdateInfo(val version: String, val title: String, val description: S
 
 object UpdateChecker {
     private const val FEED_URL = "https://songshushoupai.mysxl.cn/blog/feed.xml"
-    private const val CACHE_MS = 3 * 60 * 60 * 1000L
+
+    private var checkedThisSession = false
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("rss_cache", Context.MODE_PRIVATE)
 
     private fun appVersion(ctx: Context): String = try {
         ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName ?: ""
     } catch (_: Exception) { "" }
-
-    private fun cacheValid(ctx: Context): Boolean {
-        val p = prefs(ctx)
-        val ts = p.getLong("cache_timestamp", 0L)
-        val data = p.getString("cache_data", null)
-        if (data.isNullOrEmpty() || ts == 0L) return false
-        if (p.getString("cache_version", "") != appVersion(ctx)) return false
-        return System.currentTimeMillis() - ts <= CACHE_MS
-    }
 
     fun getCachedResult(ctx: Context): UpdateInfo? {
         val data = prefs(ctx).getString("cache_data", null) ?: return null
@@ -53,7 +45,7 @@ object UpdateChecker {
     }
 
     suspend fun checkForUpdate(ctx: Context, currentVersion: String): Result<UpdateInfo?> = withContext(Dispatchers.IO) {
-        if (cacheValid(ctx)) return@withContext Result.success(getCachedResult(ctx))
+        if (checkedThisSession) return@withContext Result.success(getCachedResult(ctx))
         try {
             val conn = URL(FEED_URL).openConnection() as HttpURLConnection
             try {
@@ -63,14 +55,16 @@ object UpdateChecker {
                 conn.setRequestProperty("User-Agent", "Songshushoupai/1.0")
                 if (conn.responseCode !in 200..299) throw Exception("HTTP ${conn.responseCode}")
                 val items = parseFeed(conn.inputStream.bufferedReader().readText())
-                if (items.isEmpty()) { saveCache(ctx, null); return@withContext Result.success(null) }
+                if (items.isEmpty()) { saveCache(ctx, null); checkedThisSession = true; return@withContext Result.success(null) }
                 val latest = items.first()
                 val ver = extractVersion(latest.title)
                 val result = if (ver != null && isNewer(ver, currentVersion)) latest.copy(version = ver) else null
                 saveCache(ctx, result)
+                checkedThisSession = true
                 Result.success(result)
             } finally { conn.disconnect() }
         } catch (e: Exception) {
+            checkedThisSession = true
             getCachedResult(ctx)?.let { Result.success(it) } ?: Result.failure(e)
         }
     }

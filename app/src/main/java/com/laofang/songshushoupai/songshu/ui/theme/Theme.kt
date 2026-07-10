@@ -10,6 +10,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.ColorScheme
 
 private fun Color.luminance(): Float {
     fun linearize(c: Float) = if (c <= 0.04045f) c / 12.92f else ((c + 0.055f) / 1.055f).let { it * it * it }
@@ -49,11 +50,41 @@ private val schemes = listOf(
     scheme(BluePrimaryLight, BluePrimaryDark, BlueSecondaryLight, BlueSecondaryDark, BlueTertiaryLight, BlueTertiaryDark),
 )
 
-fun getPresetColorScheme(index: Int, dark: Boolean): androidx.compose.material3.ColorScheme {
+fun getPresetColorScheme(index: Int, dark: Boolean): ColorScheme {
     if (index !in schemes.indices) return if (dark) DefaultDark else DefaultLight
     val (l, d) = schemes[index]
     return if (dark) d else l
 }
+
+private fun ColorScheme.neutralSurfaces(isLight: Boolean): ColorScheme = if (isLight) copy(
+    background = Color.White,
+    onBackground = Color.Black,
+    surface = Color.White,
+    onSurface = Color.Black,
+    surfaceVariant = Color(0xFFF5F5F5),
+    onSurfaceVariant = Color(0xFF757575),
+    surfaceContainerLowest = Color.White,
+    surfaceContainerLow = Color(0xFFF9F9F9),
+    surfaceContainer = Color(0xFFF3F3F3),
+    surfaceContainerHigh = Color(0xFFEDEDED),
+    surfaceContainerHighest = Color(0xFFE8E8E8),
+    surfaceBright = Color.White,
+    surfaceDim = Color(0xFFF0F0F0)
+) else copy(
+    background = Color.Black,
+    onBackground = Color.White,
+    surface = Color.Black,
+    onSurface = Color.White,
+    surfaceVariant = Color(0xFF1E1E1E),
+    onSurfaceVariant = Color(0xFFBDBDBD),
+    surfaceContainerLowest = Color(0xFF0A0A0A),
+    surfaceContainerLow = Color(0xFF121212),
+    surfaceContainer = Color(0xFF1A1A1A),
+    surfaceContainerHigh = Color(0xFF222222),
+    surfaceContainerHighest = Color(0xFF2A2A2A),
+    surfaceBright = Color(0xFF303030),
+    surfaceDim = Color.Black
+)
 
 @Composable
 fun SongshushoupaiTheme(
@@ -62,9 +93,10 @@ fun SongshushoupaiTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (themeColorIndex == 8 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        if (darkTheme) dynamicDarkColorScheme(LocalContext.current) else dynamicLightColorScheme(LocalContext.current)
+        val dynamic = if (darkTheme) dynamicDarkColorScheme(LocalContext.current) else dynamicLightColorScheme(LocalContext.current)
+        dynamic.neutralSurfaces(!darkTheme)
     } else {
-        getPresetColorScheme(themeColorIndex, darkTheme)
+        getPresetColorScheme(themeColorIndex, darkTheme).neutralSurfaces(!darkTheme)
     }
     MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
 }

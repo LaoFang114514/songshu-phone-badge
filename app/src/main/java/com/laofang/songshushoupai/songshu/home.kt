@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -41,13 +42,17 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -129,6 +134,7 @@ class MainActivity : ComponentActivity() {
             SongshushoupaiTheme(darkTheme = dark, themeColorIndex = themeIdx) {
                 val view = LocalView.current
                 if (!view.isInEditMode) {
+                    @Suppress("DEPRECATION")
                     SideEffect {
                         val w = (view.context as? android.app.Activity)?.window ?: return@SideEffect
                         WindowCompat.getInsetsController(w, view).run {
@@ -207,6 +213,7 @@ fun SongshushoupaiApp(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        containerColor = colorScheme.background,
         topBar = {
             val title = if (dest == 2 && settingsSub != null) when (settingsSub) {
                 "basic" -> "基本设置"; "qrcode" -> "二维码设置"; "theme" -> "主题设置"
@@ -215,27 +222,36 @@ fun SongshushoupaiApp(
             TopAppBar(title = { Text(title) })
         },
         bottomBar = {
-            NavigationBar(containerColor = colorScheme.primary.copy(alpha = 0.08f)) {
-                AppDestinations.entries.forEach { d ->
-                    NavigationBarItem(
-                        icon = { Icon(painterResource(d.icon), d.label, modifier = if (d == AppDestinations.FAVORITES) Modifier.size(40.dp) else Modifier.size(24.dp)) },
-                        selected = dest == d.ordinal,
-                        onClick = {
-                            if (d == AppDestinations.FAVORITES) {
-                                try {
-                                    ctx.startActivity(Intent(ctx, StartActivity::class.java),
-                                        ActivityOptionsCompat.makeCustomAnimation(ctx, android.R.anim.fade_in, android.R.anim.fade_out).toBundle())
-                                } catch (_: Exception) {}
-                            } else dest = d.ordinal
-                        },
-                        colors = NavigationBarItemDefaults.colors(indicatorColor = colorScheme.primary.copy(alpha = 0.12f))
-                    )
+            Column(
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .background(colorScheme.surface)
+            ) {
+                HorizontalDivider(color = colorScheme.primary.copy(alpha = 0.3f))
+                NavigationBar(containerColor = colorScheme.surface, tonalElevation = 0.dp, modifier = Modifier.height(70.dp)) {
+                    AppDestinations.entries.forEach { d ->
+                        NavigationBarItem(
+                            icon = { Icon(painterResource(d.icon), d.label, modifier = if (d == AppDestinations.FAVORITES) Modifier.size(40.dp) else Modifier.size(24.dp)) },
+                            selected = dest == d.ordinal,
+                            onClick = {
+                                if (d == AppDestinations.FAVORITES) {
+                                    try {
+                                        ctx.startActivity(Intent(ctx, StartActivity::class.java),
+                                            ActivityOptionsCompat.makeCustomAnimation(ctx, android.R.anim.fade_in, android.R.anim.fade_out).toBundle())
+                                    } catch (_: Exception) {}
+                                } else dest = d.ordinal
+                            },
+                            colors = NavigationBarItemDefaults.colors(indicatorColor = colorScheme.primary.copy(alpha = 0.12f))
+                        )
+                    }
                 }
             }
         }
     ) { pad ->
         AnimatedContent(dest, Modifier.fillMaxSize().padding(pad),
-            transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(300)) }, label = "pageTransition"
+            transitionSpec = {
+                fadeIn(tween(120)) togetherWith fadeOut(tween(120))
+            }, label = "pageTransition"
         ) { d ->
             when (d) {
                 0 -> HomePage(imageList.value, selIdx, listState,
@@ -250,12 +266,15 @@ fun SongshushoupaiApp(
                 1 -> {}
                 2 -> AnimatedContent(settingsSub,
                     transitionSpec = {
-                        if (targetState != null && initialState == null)
-                            (slideInHorizontally(tween(300)) { it } + fadeIn(tween(300))) togetherWith
-                            (slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300)))
-                        else
-                            (slideInHorizontally(tween(300)) { -it } + fadeIn(tween(300))) togetherWith
-                            (slideOutHorizontally(tween(300)) { it } + fadeOut(tween(300)))
+                        val goingDeeper = initialState == null && targetState != null
+                        val goingBack = initialState != null && targetState == null
+                        if (goingDeeper) {
+                            slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                        } else if (goingBack) {
+                            slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+                        } else {
+                            fadeIn(tween(120)) togetherWith fadeOut(tween(120))
+                        }
                     }, label = "settingsNav"
                 ) { sub ->
                     when (sub) {
@@ -268,7 +287,7 @@ fun SongshushoupaiApp(
                         "basic" -> BasicSettingsPage()
                         "qrcode" -> QrCodeSettingsPage()
                         "theme" -> ThemeSettingsPage(onThemeChanged, onDarkModeChanged)
-                        "backup" -> BackupSettingsPage()
+                        "backup" -> BackupSettingsPage(onDataChanged = { refresh() })
                         "about" -> AboutSettingsPage()
                     }
                 }
@@ -322,11 +341,11 @@ private fun AddImageCard(onImageClick: () -> Unit, onVideoClick: () -> Unit) {
     var show by remember { mutableStateOf(false) }
 
     Card(onClick = { show = true }, modifier = Modifier.fillMaxWidth().height(100.dp), shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-        border = BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.5f))) {
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
+        border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.3f))) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Icon(painterResource(android.R.drawable.ic_input_add), null, Modifier.size(40.dp), colorScheme.onSurfaceVariant)
+                Icon(Icons.Filled.Add, null, Modifier.size(40.dp), colorScheme.primary)
                 Spacer(Modifier.height(4.dp))
                 Text("添加兽牌", style = MaterialTheme.typography.bodyMedium, color = colorScheme.onSurfaceVariant)
             }
@@ -336,11 +355,13 @@ private fun AddImageCard(onImageClick: () -> Unit, onVideoClick: () -> Unit) {
     if (show) {
         AlertDialog(onDismissRequest = { show = false }, title = { Text("请选择展示方式") },
             text = {
-                Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(8.dp)) {
-                    PickCard(onClick = { show = false; onImageClick() }, icon = android.R.drawable.ic_menu_gallery,
-                        label = "图片", tint = colorScheme.primary, modifier = Modifier.weight(1f).height(120.dp))
-                    PickCard(onClick = { show = false; onVideoClick() }, icon = android.R.drawable.ic_menu_slideshow,
-                        label = "视频", tint = colorScheme.tertiary, modifier = Modifier.weight(1f).height(120.dp))
+                Column {
+                    Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(8.dp)) {
+                        PickCard(onClick = { show = false; onImageClick() }, icon = Icons.Filled.Image,
+                            label = "图片", tint = colorScheme.primary, modifier = Modifier.weight(1f).height(120.dp))
+                        PickCard(onClick = { show = false; onVideoClick() }, icon = Icons.Filled.Videocam,
+                            label = "视频", tint = colorScheme.tertiary, modifier = Modifier.weight(1f).height(120.dp))
+                    }
                 }
             },
             confirmButton = {},
@@ -349,12 +370,13 @@ private fun AddImageCard(onImageClick: () -> Unit, onVideoClick: () -> Unit) {
 }
 
 @Composable
-private fun PickCard(onClick: () -> Unit, icon: Int, label: String, tint: androidx.compose.ui.graphics.Color, modifier: Modifier = Modifier) {
+private fun PickCard(onClick: () -> Unit, icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, tint: androidx.compose.ui.graphics.Color, modifier: Modifier = Modifier) {
     Card(onClick, modifier, shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant)) {
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant),
+        border = BorderStroke(1.dp, colorScheme.outlineVariant)) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Icon(painterResource(icon), null, Modifier.size(40.dp), tint)
+                Icon(icon, null, Modifier.size(40.dp), tint)
                 Spacer(Modifier.height(8.dp))
                 Text(label, style = MaterialTheme.typography.titleMedium, color = colorScheme.onSurface)
             }
@@ -370,11 +392,11 @@ fun ImageCard(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var bitmap by remember(item.filePath) { mutableStateOf<android.graphics.Bitmap?>(null) }
-    val borderWidth by animateFloatAsState(if (isSelected) 2f else 0f, tween(250), label = "borderWidth")
+    val borderWidth by animateFloatAsState(if (isSelected) 2f else 1f, tween(250), label = "borderWidth")
 
     Row(Modifier.fillMaxWidth().height(100.dp).clip(RoundedCornerShape(16.dp))
         .background(colorScheme.surface)
-        .border(BorderStroke(borderWidth.dp, colorScheme.primary), RoundedCornerShape(16.dp))
+        .border(BorderStroke(borderWidth.dp, if (isSelected) colorScheme.primary else colorScheme.primary.copy(alpha = 0.3f)), RoundedCornerShape(16.dp))
         .clickable { onSelect() }.padding(12.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
 

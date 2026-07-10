@@ -320,7 +320,7 @@ fun ThemeSettingsPage(onThemeChanged: (Int) -> Unit, onDarkModeChanged: (Int) ->
 }
 
 @Composable
-fun BackupSettingsPage() {
+fun BackupSettingsPage(onDataChanged: () -> Unit = {}) {
     val ctx = LocalContext.current
     val appCtx = ctx.applicationContext
     val scope = rememberCoroutineScope()
@@ -362,6 +362,7 @@ fun BackupSettingsPage() {
         scope.launch {
             val ok = withContext(Dispatchers.IO) { BackupManager.importFromZip(appCtx, uri) }
             statusMsg = if (ok) "导入成功" else "导入失败"; isLoading = false
+            if (ok) onDataChanged()
         }
     }
 
@@ -380,6 +381,7 @@ fun BackupSettingsPage() {
                     }
                     statusMsg = result ?: if (op == BackupOperation.WEBDAV_UPLOAD) "备份到服务器成功" else "从服务器恢复成功"
                     isLoading = false
+                    if (result == null && op == BackupOperation.WEBDAV_DOWNLOAD) onDataChanged()
                 }
             }
         }
