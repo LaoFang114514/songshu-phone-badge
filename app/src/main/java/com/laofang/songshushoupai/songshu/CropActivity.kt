@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -54,12 +53,15 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.Dispatchers
@@ -108,8 +110,9 @@ private fun loadBitmap(uri: android.net.Uri, ctx: android.content.Context): Bitm
 @Composable
 fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
     val ctx = LocalContext.current
-    val sw = ctx.resources.displayMetrics.widthPixels.toFloat()
-    val sh = ctx.resources.displayMetrics.heightPixels.toFloat()
+    val dm = ctx.resources.displayMetrics
+    val sw = dm.widthPixels.toFloat()
+    val sh = dm.heightPixels.toFloat()
 
     var bmp by remember { mutableStateOf<Bitmap?>(null) }
     var loading by remember { mutableStateOf(true) }
@@ -172,7 +175,15 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
             }
 
             Box(modifier = Modifier.fillMaxWidth().weight(1f).clip(RectangleShape).background(MaterialTheme.colorScheme.surface), contentAlignment = Alignment.Center) {
-                Box(modifier = Modifier.fillMaxSize(0.75f).aspectRatio(sw / sh).clip(RectangleShape).background(Color.Black)
+                val screenAspect = sw / sh
+                val density = dm.density
+                val statusBarH = with(LocalDensity.current) { WindowInsets.statusBars.getTop(LocalDensity.current).toFloat() }
+                val topBarPx = 56f * density + statusBarH
+                val bottomBarPx = 56f * density + 48f * density
+                val availH = (sh - topBarPx - bottomBarPx).coerceAtLeast(100f)
+                val cropW = minOf(sw * 1f, availH * 1f * screenAspect)
+                val cropH = cropW / screenAspect
+                Box(modifier = Modifier.width((cropW / density).dp).height((cropH / density).dp).clip(RectangleShape).background(Color.Black)
                     .onSizeChanged { bw = it.width.toFloat(); bh = it.height.toFloat() }) {
                     Canvas(modifier = Modifier.fillMaxSize().clip(RectangleShape)) {
                         val ts = fitScale * scale; val cx = size.width / 2; val cy = size.height / 2
