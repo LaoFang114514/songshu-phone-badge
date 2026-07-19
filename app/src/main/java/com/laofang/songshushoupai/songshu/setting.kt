@@ -245,6 +245,12 @@ fun SettingsPage(
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.fillMaxWidth()
                         )
+                        Spacer(Modifier.height(12.dp))
+                        Button(
+                            onClick = { openUrl(ctx, "https://h5.qzone.qq.com/ugc/share/?sharetag=9653E56224DEB4DF2573CB788FF50CB2&subtype=&ciphertext=&sid=&blog_photo=&g=84&res_uin=2908807760&cellid=50e260ad98d85c6ac7a40a00&subid=&bp1=&bp2=&bp7=&appid=311#wechat_qqauth&wechat_redirect") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = BtnShape
+                        ) { Text("前往了解详情") }
                     }
                 }
             }
