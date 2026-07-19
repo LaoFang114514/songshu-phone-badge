@@ -115,8 +115,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val ctx = LocalContext.current
-            var themeIdx by remember { mutableIntStateOf(SettingsManager.loadSettings(ctx).themeColorIndex) }
-            var darkMode by remember { mutableIntStateOf(SettingsManager.loadSettings(ctx).darkMode) }
+            val initSettings = remember { SettingsManager.loadSettings(ctx) }
+            var themeIdx by remember { mutableIntStateOf(initSettings.themeColorIndex) }
+            var darkMode by remember { mutableIntStateOf(initSettings.darkMode) }
 
             val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
             DisposableEffect(owner) {
@@ -178,8 +179,12 @@ fun SongshushoupaiApp(
     }
 
     fun refresh() {
-        imageList.value = ImageDataManager.getImageList(ctx)
-        selIdx = ImageDataManager.getSelectedIndex(ctx)
+        scope.launch {
+            val list = withContext(Dispatchers.IO) { ImageDataManager.getImageList(ctx) }
+            val idx = withContext(Dispatchers.IO) { ImageDataManager.getSelectedIndex(ctx) }
+            imageList.value = list
+            selIdx = idx
+        }
     }
 
     val videoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
