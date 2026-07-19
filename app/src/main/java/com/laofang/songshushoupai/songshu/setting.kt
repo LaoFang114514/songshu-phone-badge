@@ -61,6 +61,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 
 private val CardShape = RoundedCornerShape(16.dp)
 private val BtnShape = RoundedCornerShape(12.dp)
@@ -151,7 +152,10 @@ fun SettingsPage(
         }
     }
 
-    LaunchedEffect(Unit) { doCheckUpdate(false) }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(300.milliseconds)
+        doCheckUpdate(false)
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
