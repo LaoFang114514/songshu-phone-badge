@@ -209,7 +209,9 @@ fun SettingsPage(
             }
         }
 
-        var emergencyExpanded by remember { mutableStateOf(true) }
+        var emergencyExpanded by remember {
+            mutableStateOf(ctx.getSharedPreferences("ui_state", Context.MODE_PRIVATE).getBoolean("emergency_expanded", true))
+        }
         Card(
             modifier = Modifier.fillMaxWidth().border(cardBorder(), CardShape).clip(CardShape),
             shape = CardShape,
@@ -217,7 +219,10 @@ fun SettingsPage(
         ) {
             Column {
                 Row(
-                    modifier = Modifier.fillMaxWidth().clickable { emergencyExpanded = !emergencyExpanded }.padding(16.dp),
+                    modifier = Modifier.fillMaxWidth().clickable {
+                        emergencyExpanded = !emergencyExpanded
+                        ctx.getSharedPreferences("ui_state", Context.MODE_PRIVATE).edit { putBoolean("emergency_expanded", emergencyExpanded) }
+                    }.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("这是一条临时通知", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
@@ -240,7 +245,7 @@ fun SettingsPage(
                             "大家好，我是呆龙，塔塔的cp，塔塔在得闲兽聚突发中风，目前的情况很危险，很多朋友在帮我们我非常感激各位，我知道他的性格不是很讨喜，可能很多人讨厌他，但是他的家庭并不是很富裕已经无力扶起高昂的医疗费用。\n" +
                             "我记得第一次跟他参加展会，第一次一起在武汉聚会，我没法漠视他这样离开。\n" +
                             "我作为他的对象如果放弃的话他会失去生命，如果病情继续恶化我会无力负担高额的治疗费用，但是我不愿意放弃他的生命，恳请各位提供力所能及的帮助，不胜感激。\n" +
-                            "量力而行，恳请各位转发谢谢",
+                            "量力而行，恳请各位转发谢谢。",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.fillMaxWidth()
