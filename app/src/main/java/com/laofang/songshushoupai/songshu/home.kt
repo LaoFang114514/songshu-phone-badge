@@ -75,6 +75,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
@@ -83,6 +84,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -103,6 +105,7 @@ import java.io.File
 import java.io.FileOutputStream
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.core.view.WindowCompat
+import kotlin.time.Duration.Companion.milliseconds
 
 
 private val DlgShape = RoundedCornerShape(12.dp)
@@ -164,8 +167,8 @@ fun SongshushoupaiApp(
     var dest by remember { mutableIntStateOf(0) }
     val ctx = LocalContext.current
     val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    val imageList = remember { mutableStateOf<List<ImageItem>>(emptyList()) }
-    var selIdx by remember { mutableIntStateOf(0) }
+    val imageList = remember { mutableStateOf(ImageDataManager.getImageList(ctx)) }
+    var selIdx by remember { mutableIntStateOf(ImageDataManager.getSelectedIndex(ctx)) }
     var settingsSub by remember { mutableStateOf<String?>(null) }
     val listState = remember { LazyListState() }
     val scope = rememberCoroutineScope()
@@ -253,23 +256,42 @@ fun SongshushoupaiApp(
             }
         }
     ) { pad ->
-        AnimatedContent(dest, Modifier.fillMaxSize().padding(pad),
-            transitionSpec = {
-                fadeIn(tween(120)) togetherWith fadeOut(tween(120))
-            }, label = "pageTransition"
-        ) { d ->
-            when (d) {
-                0 -> HomePage(imageList.value, selIdx, listState,
-                    onAddClick = { ctx.startActivity(Intent(ctx, CropActivity::class.java).putExtra("index", -1)) },
-                    onAddVideoClick = { videoPicker.launch("video/*") },
-                    onSelect = { selIdx = it; ImageDataManager.setSelectedIndex(ctx, it) },
-                    onDelete = { i -> ImageDataManager.deleteImage(ctx, i); refresh() },
-                    onMoveUp = { i -> if (i > 0) { ImageDataManager.moveItem(ctx, i, i - 1); refresh() } },
-                    onMoveDown = { i -> if (i < imageList.value.size - 1) { ImageDataManager.moveItem(ctx, i, i + 1); refresh() } },
-                    onRename = { i, n -> ImageDataManager.renameItem(ctx, i, n); imageList.value = ImageDataManager.getImageList(ctx) }
-                )
-                1 -> {}
-                2 -> AnimatedContent(settingsSub,
+        val homeAlpha by animateFloatAsState(
+            targetValue = if (dest == 0) 1f else 0f,
+            animationSpec = tween(200),
+            label = "homeAlpha"
+        )
+        val settingsAlpha by animateFloatAsState(
+            targetValue = if (dest == 2) 1f else 0f,
+            animationSpec = tween(200),
+            label = "settingsAlpha"
+        )
+
+        LaunchedEffect(dest) {
+            if (dest != 2) {
+                kotlinx.coroutines.delay(220.milliseconds)
+                settingsSub = null
+            }
+        }
+
+        Box(Modifier.fillMaxSize().padding(pad)) {
+            HomePage(imageList.value, selIdx, listState,
+                onAddClick = { ctx.startActivity(Intent(ctx, CropActivity::class.java).putExtra("index", -1)) },
+                onAddVideoClick = { videoPicker.launch("video/*") },
+                onSelect = { selIdx = it; ImageDataManager.setSelectedIndex(ctx, it) },
+                onDelete = { i -> ImageDataManager.deleteImage(ctx, i); refresh() },
+                onMoveUp = { i -> if (i > 0) { ImageDataManager.moveItem(ctx, i, i - 1); refresh() } },
+                onMoveDown = { i -> if (i < imageList.value.size - 1) { ImageDataManager.moveItem(ctx, i, i + 1); refresh() } },
+                onRename = { i, n -> ImageDataManager.renameItem(ctx, i, n); imageList.value = ImageDataManager.getImageList(ctx) },
+                modifier = Modifier.fillMaxSize().alpha(homeAlpha).zIndex(if (dest == 0) 1f else 0f)
+            )
+            Box(
+                modifier = Modifier.fillMaxSize()
+                    .alpha(settingsAlpha)
+                    .zIndex(if (dest == 2) 1f else 0f),
+                contentAlignment = Alignment.Center
+            ) {
+                AnimatedContent(settingsSub,
                     transitionSpec = {
                         val goingDeeper = initialState == null && targetState != null
                         val goingBack = initialState != null && targetState == null
@@ -307,12 +329,13 @@ fun HomePage(
     imageList: List<ImageItem>, selectedIndex: Int, listState: LazyListState,
     onAddClick: () -> Unit, onAddVideoClick: () -> Unit,
     onSelect: (Int) -> Unit, onDelete: (Int) -> Unit,
-    onMoveUp: (Int) -> Unit, onMoveDown: (Int) -> Unit, onRename: (Int, String) -> Unit
+    onMoveUp: (Int) -> Unit, onMoveDown: (Int) -> Unit, onRename: (Int, String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var delIdx by remember { mutableIntStateOf(-1) }
     var renIdx by remember { mutableIntStateOf(-1) }
 
-    Column(Modifier.fillMaxSize()) {
+    Column(modifier) {
         LazyColumn(Modifier.weight(1f).fillMaxWidth(), listState,
             verticalArrangement = Arrangement.spacedBy(10.dp),
             contentPadding = remember { PaddingValues(horizontal = 16.dp, vertical = 8.dp) }
