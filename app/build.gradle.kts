@@ -24,7 +24,7 @@ android {
 
     defaultConfig {
         applicationId = "com.laofang.songshushoupai.songshu"
-        minSdk = 23
+        minSdk = 21
         targetSdk = 37
         versionCode = 12
         versionName = "0.9.0"
@@ -62,6 +62,9 @@ android {
         }
     }
 
+    lint {
+        disable += "GradleDependency"
+    }
 }
 
 dependencies {
@@ -71,7 +74,6 @@ dependencies {
     implementation(libs.androidx.compose.m3)
     implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.compose.material.icons.extended)
-    implementation(libs.androidx.compose.m3.adaptive.navigation.suite)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
