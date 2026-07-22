@@ -93,6 +93,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.graphics.Color
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
@@ -367,16 +368,24 @@ fun HomePage(
 @Composable
 private fun AddImageCard(onImageClick: () -> Unit, onVideoClick: () -> Unit) {
     var show by remember { mutableStateOf(false) }
+    val isDark = isSystemInDarkTheme()
+    val cardBg = if (isDark) colorScheme.surface else Color.White
 
-    Card(onClick = { show = true }, modifier = Modifier.fillMaxWidth().height(100.dp), shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
-        border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.3f))) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Icon(Icons.Filled.Add, null, Modifier.size(40.dp), colorScheme.primary)
-                Spacer(Modifier.height(4.dp))
-                Text("添加兽牌", style = MaterialTheme.typography.bodyMedium, color = colorScheme.onSurfaceVariant)
-            }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(cardBg)
+            .border(BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.3f)), RoundedCornerShape(16.dp))
+            .clickable { show = true },
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Icon(Icons.Filled.Add, null, Modifier.size(40.dp), colorScheme.primary)
+            Spacer(Modifier.height(4.dp))
+            Text("添加兽牌", style = MaterialTheme.typography.bodyMedium, color = colorScheme.onSurfaceVariant)
         }
     }
 
@@ -398,7 +407,7 @@ private fun AddImageCard(onImageClick: () -> Unit, onVideoClick: () -> Unit) {
 }
 
 @Composable
-private fun PickCard(onClick: () -> Unit, icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, tint: androidx.compose.ui.graphics.Color, modifier: Modifier = Modifier) {
+private fun PickCard(onClick: () -> Unit, icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, tint: Color, modifier: Modifier = Modifier) {
     Card(onClick, modifier, shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant),
         border = BorderStroke(1.dp, colorScheme.outlineVariant)) {
