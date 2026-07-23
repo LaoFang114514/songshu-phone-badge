@@ -5,14 +5,8 @@ package com.laofang.songshushoupai.songshu.start
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.ActivityInfo
-import android.content.BroadcastReceiver
 import android.graphics.SurfaceTexture
-import android.os.BatteryManager
-import android.os.Build
 import android.os.Bundle
 import android.view.TextureView
 import android.view.WindowManager
@@ -24,230 +18,86 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.spring
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import com.laofang.songshushoupai.songshu.ui.theme.SongshushoupaiTheme
+import com.laofang.songshushoupai.songshu.ui.theme.SongshushoupaiAutoTheme
 import kotlin.time.Duration.Companion.milliseconds
 import androidx.media3.common.util.UnstableApi
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.shape.RoundedCornerShape
 import com.laofang.songshushoupai.songshu.R
 import com.laofang.songshushoupai.songshu.SettingsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import java.io.File
-import kotlin.math.abs
-import kotlin.math.sqrt
-
-private class AspectRatioTextureView(context: Context) : TextureView(context) {
-    private var aspectRatio = 0f
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (aspectRatio > 0f) {
-            val width = MeasureSpec.getSize(widthMeasureSpec)
-            val height = MeasureSpec.getSize(heightMeasureSpec)
-            val targetHeight = (width / aspectRatio).toInt()
-            if (targetHeight <= height) {
-                super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(targetHeight, MeasureSpec.EXACTLY))
-            } else {
-                val targetWidth = (height * aspectRatio).toInt()
-                super.onMeasure(MeasureSpec.makeMeasureSpec(targetWidth, MeasureSpec.EXACTLY), heightMeasureSpec)
-            }
-        } else {
-            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        }
-    }
-}
 
 class VideoPlayerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         enableEdgeToEdge()
-
         val settings = SettingsManager.loadSettings(this)
-        if (settings.keepScreenOn) {
-            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        }
-
+        if (settings.keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        val controller = WindowInsetsControllerCompat(window, window.decorView)
-        controller.hide(WindowInsetsCompat.Type.systemBars())
-        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-
-        val videoPath = intent.getStringExtra("videoPath") ?: ""
-
-        setContent {
-            val ctx = LocalContext.current
-            var currentSettings by remember { mutableStateOf(SettingsManager.loadSettings(ctx)) }
-            LaunchedEffect(Unit) {
-                currentSettings = SettingsManager.loadSettings(ctx)
-            }
-            val useDarkTheme = when (currentSettings.darkMode) {
-                1 -> false
-                2 -> true
-                else -> isSystemInDarkTheme()
-            }
-            SongshushoupaiTheme(
-                darkTheme = useDarkTheme,
-                themeColorIndex = currentSettings.themeColorIndex
-            ) {
-                FullScreenVideoScreen(videoPath = videoPath)
-            }
+        WindowInsetsControllerCompat(window, window.decorView).run {
+            hide(WindowInsetsCompat.Type.systemBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
+        val videoPath = intent.getStringExtra("videoPath") ?: ""
+        setContent { SongshushoupaiAutoTheme { FullScreenVideoScreen(videoPath) } }
     }
 }
 
 @Suppress("DEPRECATION")
 @SuppressLint("LocalContextResourcesRead")
-@OptIn(UnstableApi::class)
 @Composable
 fun FullScreenVideoScreen(videoPath: String) {
     val context = LocalContext.current
     val activity = context as? Activity
-    val appSettings = remember { SettingsManager.loadSettings(context) }
+    val s = remember { SettingsManager.loadSettings(context) }
     var rotation by remember { mutableFloatStateOf(0f) }
-    val coroutineScope = rememberCoroutineScope()
-    val screenHeightPx = context.resources.displayMetrics.heightPixels.toFloat()
-    val screenWidthPx = context.resources.displayMetrics.widthPixels.toFloat()
-    val screenAspectRatio = screenWidthPx / screenHeightPx
+    val scope = rememberCoroutineScope()
+    val dm = context.resources.displayMetrics
+    val screenAR = dm.widthPixels.toFloat() / dm.heightPixels.toFloat()
 
-    val antiBurnInOffset = remember { Animatable(0f) }
-
+    val antiBurnInOffset = rememberAntiBurnInOffset(s.antiBurnIn, dm.heightPixels.toFloat())
     var showInitialHint by remember { mutableStateOf(true) }
-    var hideInitialHintJob by remember { mutableStateOf<Job?>(null) }
-
+    var hideHintJob by remember { mutableStateOf<Job?>(null) }
     var showRotationHint by remember { mutableStateOf(false) }
-    var hideRotationHintJob by remember { mutableStateOf<Job?>(null) }
-
-    var batteryLevel by remember { mutableIntStateOf(-1) }
+    val batteryLevel = rememberBatteryLevel()
     var videoAspectRatio by remember { mutableFloatStateOf(0f) }
     var gestureScale by remember { mutableFloatStateOf(1f) }
     var gestureResetJob by remember { mutableStateOf<Job?>(null) }
-
     var showQrOverlay by remember { mutableStateOf(false) }
-    var qrInComposition by remember { mutableStateOf(false) }
     var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
-
-    val qrBgAlpha = remember { Animatable(0f) }
-    val qrContentScale = remember { Animatable(0.6f) }
-    val qrContentAlpha = remember { Animatable(0f) }
-
-    LaunchedEffect(showQrOverlay) {
-        if (showQrOverlay) {
-            qrInComposition = true
-            qrBgAlpha.snapTo(0f)
-            qrContentScale.snapTo(0.6f)
-            qrContentAlpha.snapTo(0f)
-            launch { qrBgAlpha.animateTo(1f, tween(300)) }
-            launch { qrContentScale.animateTo(1f, spring(dampingRatio = 0.6f, stiffness = 200f)) }
-            launch { qrContentAlpha.animateTo(1f, tween(250)) }
-        } else if (qrInComposition) {
-            launch { qrBgAlpha.animateTo(0f, tween(200)) }
-            launch { qrContentAlpha.animateTo(0f, tween(200)) }
-            delay(200.milliseconds)
-            qrInComposition = false
-        }
-    }
+    val qr = rememberQrAnim(showQrOverlay)
 
     LaunchedEffect(Unit) {
-        if (appSettings.defaultOrientation) {
-            rotation = 180f
-        }
-    }
-
-    DisposableEffect(Unit) {
-        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-                val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-                batteryLevel = if (level >= 0 && scale > 0) {
-                    level * 100 / scale
-                } else -1
-            }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
-        } else {
-            context.registerReceiver(receiver, filter)
-        }
-        onDispose {
-            context.unregisterReceiver(receiver)
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        hideInitialHintJob = launch {
-            delay(2000.milliseconds)
-            if (isActive) {
-                showInitialHint = false
-            }
-        }
-
-        if (appSettings.showQrCode) {
+        if (s.defaultOrientation) rotation = 180f
+        hideHintJob = launch { delay(2000.milliseconds); if (isActive) showInitialHint = false }
+        if (s.showQrCode) {
             qrBitmap = withContext(Dispatchers.IO) {
-                val path = appSettings.qrCodePath
-                if (path.isNotEmpty() && File(path).exists()) {
-                    try { BitmapFactory.decodeFile(path) } catch (_: Throwable) { null }
-                } else {
-                    try {
-                        BitmapFactory.decodeResource(context.resources, R.drawable.qr_zanzhu)
-                    } catch (_: Throwable) { null }
-                }
+                val p = s.qrCodePath
+                if (p.isNotEmpty() && File(p).exists())
+                    try { BitmapFactory.decodeFile(p) } catch (_: Throwable) { null }
+                else try { BitmapFactory.decodeResource(context.resources, R.drawable.qr_zanzhu) } catch (_: Throwable) { null }
             }
-        }
-    }
-
-    LaunchedEffect(appSettings.antiBurnIn) {
-        if (!appSettings.antiBurnIn) {
-            antiBurnInOffset.snapTo(0f)
-            return@LaunchedEffect
-        }
-        val step3 = screenHeightPx * 0.03f
-        val step6 = screenHeightPx * 0.06f
-        while (isActive) {
-            delay(300000L.milliseconds)
-            antiBurnInOffset.animateTo(-step3, tween(3000))
-            delay(300000L.milliseconds)
-            antiBurnInOffset.animateTo(-step3 + step6, tween(3000))
-            delay(300000L.milliseconds)
-            antiBurnInOffset.animateTo(0f, tween(3000))
         }
     }
 
@@ -255,318 +105,86 @@ fun FullScreenVideoScreen(videoPath: String) {
         ExoPlayer.Builder(context).build().apply {
             setMediaItem(MediaItem.fromUri(videoPath))
             repeatMode = Player.REPEAT_MODE_ALL
-            prepare()
-            playWhenReady = true
-            volume = if (appSettings.muteVideo) 0f else 1f
+            prepare(); playWhenReady = true
+            volume = if (s.muteVideo) 0f else 1f
         }
     }
-
     var playerRef by remember { mutableStateOf<ExoPlayer?>(null) }
-
     DisposableEffect(Unit) {
-        playerRef = exoPlayer
-        onDispose {
-            playerRef = null
-            exoPlayer.release()
-        }
+        onDispose { exoPlayer.release() }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
+    Box(Modifier.fillMaxSize().background(Color.Black)) {
         AndroidView(
             factory = { ctx ->
                 TextureView(ctx).apply {
                     surfaceTextureListener = object : TextureView.SurfaceTextureListener {
-                        override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-                            val s = Surface(surface)
-                            setTag(R.id.tag_surface, s)
-                            playerRef?.setVideoSurface(s)
+                        override fun onSurfaceTextureAvailable(surface: SurfaceTexture, w: Int, h: Int) {
+                            val sf = Surface(surface); setTag(R.id.tag_surface, sf); playerRef?.setVideoSurface(sf)
                         }
-                        override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {}
-                        override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
-                            (getTag(R.id.tag_surface) as? Surface)?.release()
-                            setTag(R.id.tag_surface, null)
-                            playerRef?.setVideoSurface(null)
-                            return true
+                        override fun onSurfaceTextureSizeChanged(s: SurfaceTexture, w: Int, h: Int) {}
+                        override fun onSurfaceTextureDestroyed(s: SurfaceTexture): Boolean {
+                            (getTag(R.id.tag_surface) as? Surface)?.release(); setTag(R.id.tag_surface, null)
+                            playerRef?.setVideoSurface(null); return true
                         }
-                        override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {}
+                        override fun onSurfaceTextureUpdated(s: SurfaceTexture) {}
                     }
                 }
             },
             update = { view ->
                 playerRef = exoPlayer
                 if (view.isAvailable && view.surfaceTexture != null && view.getTag(R.id.tag_surface) == null) {
-                    val s = Surface(view.surfaceTexture)
-                    view.setTag(R.id.tag_surface, s)
-                    exoPlayer.setVideoSurface(s)
+                    val sf = Surface(view.surfaceTexture); view.setTag(R.id.tag_surface, sf); exoPlayer.setVideoSurface(sf)
                 }
-                val trackGroup = exoPlayer.currentTracks.groups.firstOrNull { it.type == C.TRACK_TYPE_VIDEO }
-                if (trackGroup != null) {
-                    for (i in 0 until trackGroup.length) {
-                        if (trackGroup.isTrackSupported(i)) {
-                            val format = trackGroup.getTrackFormat(i)
-                            if (format.width > 0 && format.height > 0) {
-                                videoAspectRatio = format.width.toFloat() / format.height
-                                break
-                            }
-                        }
+                val tg = exoPlayer.currentTracks.groups.firstOrNull { it.type == C.TRACK_TYPE_VIDEO }
+                if (tg != null) for (i in 0 until tg.length) {
+                    if (tg.isTrackSupported(i)) {
+                        val f = tg.getTrackFormat(i)
+                        if (f.width > 0 && f.height > 0) { videoAspectRatio = f.width.toFloat() / f.height; break }
                     }
                 }
             },
-            modifier = Modifier
-                .align(Alignment.Center)
-                .fillMaxSize()
-                .aspectRatio(if (videoAspectRatio > 0f) videoAspectRatio else screenAspectRatio)
-                .graphicsLayer {
-                    rotationZ = rotation
-                    translationY = antiBurnInOffset.value
-                }
+            modifier = Modifier.align(Alignment.Center).fillMaxSize()
+                .aspectRatio(if (videoAspectRatio > 0f) videoAspectRatio else screenAR)
+                .graphicsLayer { rotationZ = rotation; translationY = antiBurnInOffset.value }
         )
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {
-                    awaitEachGesture {
-                        val firstDown = awaitFirstDown()
-                        val startX = firstDown.position.x
-                        val startY = firstDown.position.y
-                        var isMultiTouch = false
-                        var isLongPress = false
-                        var moved = false
-                        var pendingSwipeDown = false
-                        var pendingSwipeUp = false
-                        var wasMultiTouch = false
-
-                        val longPressJob = coroutineScope.launch {
-                            delay(300L.milliseconds)
-                            if (!moved && !isMultiTouch) {
-                                isLongPress = true
-                                if (!appSettings.lockOrientation) {
-                                    rotation = if (rotation == 0f) 180f else 0f
-                                    hideRotationHintJob?.cancel()
-                                    showRotationHint = true
-                                    hideRotationHintJob = coroutineScope.launch {
-                                        delay(2000.milliseconds)
-                                        if (isActive) {
-                                            showRotationHint = false
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        var lastDist = 0f
-
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            val changes = event.changes.filter { it.pressed }
-                            if (changes.isEmpty()) break
-
-                            if (changes.size >= 2) {
-                                if (!isMultiTouch) {
-                                    isMultiTouch = true
-                                    wasMultiTouch = true
-                                    pendingSwipeDown = false
-                                    pendingSwipeUp = false
-                                }
-                                longPressJob.cancel()
-
-                                val p1 = changes[0].position
-                                val p2 = changes[1].position
-                                val currentDist = sqrt(
-                                    (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y)
-                                )
-
-                                if (lastDist > 0f) {
-                                    val zoomDelta = currentDist / lastDist
-                                    gestureResetJob?.cancel()
-                                    if (gestureScale == 1f) {
-                                        gestureScale = zoomDelta
-                                    } else {
-                                        gestureScale *= zoomDelta
-                                    }
-
-                                    if (gestureScale < 0.7f) {
-                                        gestureScale = 1f
-                                        coroutineScope.launch {
-                                            delay(100.milliseconds)
-                                            if (isActive) {
-                                                try {
-                                                    activity?.let {
-                                                        if (!it.isFinishing && !it.isDestroyed) {
-                                                            it.finish()
-                                                            it.overridePendingTransition(
-                                                                android.R.anim.fade_in,
-                                                                android.R.anim.fade_out
-                                                            )
-                                                        }
-                                                    }
-                                                } catch (e: Exception) {
-                                                    e.printStackTrace()
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    gestureResetJob?.cancel()
-                                    gestureResetJob = coroutineScope.launch {
-                                        delay(500.milliseconds)
-                                        gestureScale = 1f
-                                    }
-                                }
-                                lastDist = currentDist
-
-                                changes.forEach { it.consume() }
-                            } else {
-                                if (wasMultiTouch) {
-                                    changes.first().consume()
-                                    continue
-                                }
-
-                                val change = changes.first()
-                                val totalDy = change.position.y - startY
-                                val totalDx = change.position.x - startX
-                                val dragDist = sqrt(
-                                    (change.position.x - firstDown.position.x) * (change.position.x - firstDown.position.x) +
-                                    (change.position.y - firstDown.position.y) * (change.position.y - firstDown.position.y)
-                                )
-
-                                if (!pendingSwipeDown && !pendingSwipeUp && totalDy > 150f && abs(totalDy) > abs(totalDx) * 1.5f) {
-                                    pendingSwipeDown = true
-                                    longPressJob.cancel()
-                                }
-
-                                if (!pendingSwipeDown && !pendingSwipeUp && totalDy < -150f && abs(totalDy) > abs(totalDx) * 1.5f) {
-                                    pendingSwipeUp = true
-                                    longPressJob.cancel()
-                                }
-
-                                if (dragDist > 20f) {
-                                    moved = true
-                                    longPressJob.cancel()
-                                }
-                                change.consume()
-                            }
-                        }
-
-                        longPressJob.cancel()
-
-                        val swipeDownConfirmed = pendingSwipeDown && !wasMultiTouch
-                        val swipeUpConfirmed = pendingSwipeUp && !wasMultiTouch
-
-                        if (appSettings.showQrCode &&
-                            ((swipeDownConfirmed && rotation == 0f) || (swipeUpConfirmed && rotation == 180f))
-                        ) {
-                            showQrOverlay = true
-                        } else if (!isMultiTouch && !isLongPress && !moved) {
-                            hideInitialHintJob?.cancel()
-                            showInitialHint = true
-                            hideInitialHintJob = coroutineScope.launch {
-                                delay(2000.milliseconds)
-                                if (isActive) {
-                                    showInitialHint = false
-                                }
-                            }
-                        }
+        Box(Modifier.fillMaxSize().fullScreenGestures(
+            scope = scope,
+            showQrCode = s.showQrCode,
+            rotation = rotation,
+            lockOrientation = s.lockOrientation,
+            onRotationToggle = {
+                rotation = if (rotation == 0f) 180f else 0f
+                showRotationHint = true
+            },
+            showRotationHint = { showRotationHint = it },
+            gestures = GestureCallbacks(
+                onSwipeDown = { showQrOverlay = true },
+                onSwipeUp = { showQrOverlay = true },
+                onTap = {
+                    hideHintJob?.cancel(); showInitialHint = true
+                    hideHintJob = scope.launch { delay(2000.milliseconds); if (isActive) showInitialHint = false }
+                }
+            ),
+            onPinchScale = { delta ->
+                gestureResetJob?.cancel()
+                gestureScale = if (gestureScale == 1f) delta else gestureScale * delta
+                if (gestureScale < 0.7f) {
+                    gestureScale = 1f
+                    scope.launch {
+                        delay(100.milliseconds)
+                        if (isActive) try { activity?.let { if (!it.isFinishing && !it.isDestroyed) { it.finish(); it.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out) } } } catch (_: Exception) {}
                     }
                 }
-        )
-
-        if (appSettings.showBattery && batteryLevel >= 0) {
-            Box(
-                modifier = Modifier
-                    .align(if (rotation == 0f) Alignment.TopCenter else Alignment.BottomCenter)
-                    .graphicsLayer(rotationZ = rotation)
-                    .padding(top = 12.dp)
-            ) {
-                Text(
-                    text = "电量：$batteryLevel%",
-                    color = Color.White,
-                    modifier = Modifier
-                        .background(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
-                    fontSize = 13.sp
-                )
+                gestureResetJob = scope.launch { delay(500.milliseconds); gestureScale = 1f }
             }
-        }
+        ))
 
-        if (showInitialHint) {
-            Box(
-                modifier = Modifier
-                    .align(if (rotation == 0f) Alignment.BottomCenter else Alignment.TopCenter)
-                    .graphicsLayer(rotationZ = rotation)
-            ) {
-                Text(
-                    text = if (appSettings.lockOrientation) "双指捏合退出播放" else "双指捏合退出播放\n长按屏幕旋转兽牌",
-                    color = Color.White,
-                    modifier = Modifier
-                        .padding(bottom = 50.dp)
-                        .background(
-                            color = Color.Black.copy(alpha = 0.6f),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                )
-            }
-        }
-
-        if (showRotationHint) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .graphicsLayer(rotationZ = rotation)
-            ) {
-                Text(
-                    text = "已翻转兽牌",
-                    color = Color.White,
-                    modifier = Modifier
-                        .background(
-                            color = Color.Black.copy(alpha = 0.7f),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-                        )
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-            }
-        }
-
-        if (qrInComposition) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.85f * qrBgAlpha.value))
-                    .graphicsLayer(rotationZ = rotation)
-                    .pointerInput(Unit) {
-                        detectTapGestures(onTap = { showQrOverlay = false })
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                val bmp = qrBitmap
-                if (bmp != null) {
-                    Image(
-                        painter = BitmapPainter(bmp.asImageBitmap()),
-                        contentDescription = "二维码",
-                        modifier = Modifier
-                            .fillMaxWidth(0.7f)
-                            .heightIn(max = 400.dp)
-                            .graphicsLayer {
-                                scaleX = qrContentScale.value
-                                scaleY = qrContentScale.value
-                                alpha = qrContentAlpha.value
-                            },
-                        contentScale = ContentScale.Fit
-                    )
-                } else {
-                    Text("二维码加载中...", color = Color.White.copy(alpha = qrContentAlpha.value))
-                }
-            }
-        }
+        BatteryOverlay(batteryLevel, rotation)
+        InitialHintOverlay(s.lockOrientation, rotation, showInitialHint)
+        RotationHintOverlay(rotation, showRotationHint)
+        QrOverlay(qr, qrBitmap, rotation) { showQrOverlay = false }
     }
 }
 

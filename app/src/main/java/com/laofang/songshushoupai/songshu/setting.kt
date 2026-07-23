@@ -34,7 +34,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -72,7 +71,7 @@ private fun cardBorder() = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineV
 @Composable
 private fun SettingsPageScaffold(content: @Composable () -> Unit) {
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(17.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(11.dp)
     ) { content() }
 }
@@ -276,111 +275,76 @@ fun AboutSettingsPage() {
 }
 
 @Composable
-fun BasicSettingsPage() {
+private fun <T> SettingsPageHost(
+    load: (Context) -> T,
+    save: (Context, T) -> Unit,
+    content: @Composable (state: T, onChange: (T.() -> T) -> Unit) -> Unit
+) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
-    var defaultOrientation by remember { mutableStateOf(false) }
-    var keepScreenOn by remember { mutableStateOf(false) }
-    var showBattery by remember { mutableStateOf(false) }
-    var lockOrientation by remember { mutableStateOf(false) }
-    var antiBurnIn by remember { mutableStateOf(false) }
-    var muteVideo by remember { mutableStateOf(false) }
-    var base by remember { mutableStateOf<AppSettings?>(null) }
-
-    LaunchedEffect(Unit) {
-        SettingsManager.loadSettings(ctx).also { s ->
-            base = s; defaultOrientation = s.defaultOrientation; keepScreenOn = s.keepScreenOn
-            showBattery = s.showBattery; lockOrientation = s.lockOrientation
-            antiBurnIn = s.antiBurnIn; muteVideo = s.muteVideo
-        }
+    var state by remember { mutableStateOf(load(ctx)) }
+    fun update(transform: T.() -> T) {
+        state = state.transform()
+        scope.launch { withContext(Dispatchers.IO) { save(ctx, state) } }
     }
+    SettingsPageScaffold { content(state, ::update) }
+}
 
-    fun save() {
-        val b = base ?: return
-        scope.launch {
-            withContext(Dispatchers.IO) {
-                SettingsManager.saveSettings(ctx, b.copy(
-                    defaultOrientation = defaultOrientation, keepScreenOn = keepScreenOn,
-                    showBattery = showBattery, lockOrientation = lockOrientation,
-                    antiBurnIn = antiBurnIn, muteVideo = muteVideo
-                ))
-            }
-        }
-    }
-
-    SettingsPageScaffold {
-        BasicSettingsCard(
-            defaultOrientation = defaultOrientation, onDefaultOrientationChange = { defaultOrientation = it; save() },
-            keepScreenOn = keepScreenOn, onKeepScreenOnChange = { keepScreenOn = it; save() },
-            showBattery = showBattery, onShowBatteryChange = { showBattery = it; save() },
-            lockOrientation = lockOrientation, onLockOrientationChange = { lockOrientation = it; save() },
-            antiBurnIn = antiBurnIn, onAntiBurnInChange = { antiBurnIn = it; save() },
-            muteVideo = muteVideo, onMuteVideoChange = { muteVideo = it; save() }
-        )
-    }
+@Composable
+fun BasicSettingsPage() = SettingsPageHost(
+    load = { SettingsManager.loadSettings(it) },
+    save = { ctx, s -> SettingsManager.saveSettings(ctx, s) }
+) { s, update ->
+    BasicSettingsCard(
+        defaultOrientation = s.defaultOrientation, onDefaultOrientationChange = { update { copy(defaultOrientation = it) } },
+        keepScreenOn = s.keepScreenOn, onKeepScreenOnChange = { update { copy(keepScreenOn = it) } },
+        showBattery = s.showBattery, onShowBatteryChange = { update { copy(showBattery = it) } },
+        lockOrientation = s.lockOrientation, onLockOrientationChange = { update { copy(lockOrientation = it) } },
+        antiBurnIn = s.antiBurnIn, onAntiBurnInChange = { update { copy(antiBurnIn = it) } },
+        muteVideo = s.muteVideo, onMuteVideoChange = { update { copy(muteVideo = it) } }
+    )
 }
 
 @Composable
 fun QrCodeSettingsPage() {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
-    var showQrCode by remember { mutableStateOf(false) }
-    var qrCodePath by remember { mutableStateOf("") }
+    var state by remember { mutableStateOf(SettingsManager.loadSettings(ctx)) }
     var qrPreviewBmp by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
-    var base by remember { mutableStateOf<AppSettings?>(null) }
 
-    LaunchedEffect(Unit) {
-        SettingsManager.loadSettings(ctx).also { s ->
-            base = s; showQrCode = s.showQrCode; qrCodePath = s.qrCodePath
-        }
-    }
-    LaunchedEffect(qrCodePath) {
+    LaunchedEffect(state.qrCodePath) {
         qrPreviewBmp = withContext(Dispatchers.IO) {
-            if (qrCodePath.isNotEmpty() && File(qrCodePath).exists())
-                try { android.graphics.BitmapFactory.decodeFile(qrCodePath) } catch (_: Throwable) { null }
+            if (state.qrCodePath.isNotEmpty() && File(state.qrCodePath).exists())
+                try { android.graphics.BitmapFactory.decodeFile(state.qrCodePath) } catch (_: Throwable) { null }
             else null
         }
     }
 
-    fun save() {
-        val b = base ?: return
-        scope.launch { withContext(Dispatchers.IO) { SettingsManager.saveSettings(ctx, b.copy(showQrCode = showQrCode, qrCodePath = qrCodePath)) } }
+    fun update(transform: AppSettings.() -> AppSettings) {
+        state = state.transform()
+        scope.launch { withContext(Dispatchers.IO) { SettingsManager.saveSettings(ctx, state) } }
     }
 
     SettingsPageScaffold {
         QrCodeSettingsCard(
-            showQrCode = showQrCode, onShowQrCodeChange = { showQrCode = it; save() },
-            qrCodePath = qrCodePath, onQrCodePathChange = { qrCodePath = it; save() },
+            showQrCode = state.showQrCode, onShowQrCodeChange = { update { copy(showQrCode = it) } },
+            qrCodePath = state.qrCodePath, onQrCodePathChange = { update { copy(qrCodePath = it) } },
             qrPreviewBmp = qrPreviewBmp, onQrPreviewBmpChange = { qrPreviewBmp = it }
         )
     }
 }
 
 @Composable
-fun ThemeSettingsPage(onThemeChanged: (Int) -> Unit, onDarkModeChanged: (Int) -> Unit) {
-    val ctx = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var darkMode by remember { mutableIntStateOf(0) }
-    var themeColor by remember { mutableIntStateOf(0) }
-    var base by remember { mutableStateOf<AppSettings?>(null) }
-
-    LaunchedEffect(Unit) {
-        SettingsManager.loadSettings(ctx).also { s -> base = s; darkMode = s.darkMode; themeColor = s.themeColorIndex }
-    }
-
-    fun save() {
-        val b = base ?: return
-        scope.launch { withContext(Dispatchers.IO) { SettingsManager.saveSettings(ctx, b.copy(darkMode = darkMode, themeColorIndex = themeColor)) } }
-    }
-
-    SettingsPageScaffold {
-        ThemeSettingsCard(
-            currentDarkMode = darkMode,
-            onDarkModeChange = { darkMode = it; save(); onDarkModeChanged(it) },
-            currentThemeColorIndex = themeColor,
-            onThemeColorIndexChange = { themeColor = it; save(); onThemeChanged(it) }
-        )
-    }
+fun ThemeSettingsPage(onThemeChanged: (Int) -> Unit, onDarkModeChanged: (Int) -> Unit) = SettingsPageHost(
+    load = { SettingsManager.loadSettings(it) },
+    save = { ctx, s -> SettingsManager.saveSettings(ctx, s) }
+) { s, update ->
+    ThemeSettingsCard(
+        currentDarkMode = s.darkMode,
+        onDarkModeChange = { update { copy(darkMode = it) }; onDarkModeChanged(it) },
+        currentThemeColorIndex = s.themeColorIndex,
+        onThemeColorIndexChange = { update { copy(themeColorIndex = it) }; onThemeChanged(it) }
+    )
 }
 
 @Composable

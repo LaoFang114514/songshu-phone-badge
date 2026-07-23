@@ -14,7 +14,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -67,7 +66,7 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.laofang.songshushoupai.songshu.ui.theme.SongshushoupaiTheme
+import com.laofang.songshushoupai.songshu.ui.theme.SongshushoupaiAutoTheme
 
 class CropActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,15 +76,7 @@ class CropActivity : ComponentActivity() {
             enableEdgeToEdge()
             val idx = intent.getIntExtra("index", -1)
             setContent {
-                val ctx = LocalContext.current
-                var s by remember { mutableStateOf(SettingsManager.loadSettings(ctx)) }
-                LaunchedEffect(Unit) {
-                    s = SettingsManager.loadSettings(ctx)
-                }
-                val dark = when (s.darkMode) { 1 -> false; 2 -> true; else -> isSystemInDarkTheme() }
-                SongshushoupaiTheme(darkTheme = dark, themeColorIndex = s.themeColorIndex) {
-                    CropScreen(editIndex = idx, onFinish = { finish() })
-                }
+                SongshushoupaiAutoTheme { CropScreen(editIndex = idx, onFinish = { finish() }) }
             }
         } catch (e: Throwable) { android.util.Log.e("CropActivity", "onCreate error", e); finish() }
     }
@@ -260,14 +251,19 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
     }
 }
 
-fun loadBitmapFromFile(path: String): Bitmap? {
+fun decodeBitmapSampled(path: String, maxDim: Int = 2048, config: Bitmap.Config = Bitmap.Config.ARGB_8888): Bitmap? {
     return try {
         val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(path, opts)
         if (opts.outWidth <= 0 || opts.outHeight <= 0) return null
-        val dec = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
+        val dec = BitmapFactory.Options().apply { inPreferredConfig = config }
+        var ss = 1
+        while (opts.outWidth / ss > maxDim || opts.outHeight / ss > maxDim) ss *= 2
+        dec.inSampleSize = ss
         try { BitmapFactory.decodeFile(path, dec) } catch (_: Throwable) {
             dec.inSampleSize *= 2; try { BitmapFactory.decodeFile(path, dec) } catch (_: Throwable) { null }
         }
     } catch (_: Throwable) { null }
 }
+
+fun loadBitmapFromFile(path: String): Bitmap? = decodeBitmapSampled(path)

@@ -106,7 +106,6 @@ import java.io.File
 import java.io.FileOutputStream
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.core.view.WindowCompat
-import kotlin.time.Duration.Companion.milliseconds
 
 
 private val DlgShape = RoundedCornerShape(12.dp)
@@ -149,8 +148,16 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 SongshushoupaiApp(
-                    onThemeChanged = { themeIdx = it; SettingsManager.saveSettings(ctx, SettingsManager.loadSettings(ctx).copy(themeColorIndex = it)) },
-                    onDarkModeChanged = { darkMode = it; SettingsManager.saveSettings(ctx, SettingsManager.loadSettings(ctx).copy(darkMode = it)) }
+                    onThemeChanged = {
+                        themeIdx = it
+                        val s = SettingsManager.loadSettings(ctx)
+                        SettingsManager.saveSettings(ctx, s.copy(themeColorIndex = it))
+                    },
+                    onDarkModeChanged = {
+                        darkMode = it
+                        val s = SettingsManager.loadSettings(ctx)
+                        SettingsManager.saveSettings(ctx, s.copy(darkMode = it))
+                    }
                 )
             }
         }
@@ -176,7 +183,7 @@ fun SongshushoupaiApp(
     var lastBack by remember { mutableLongStateOf(0L) }
 
     BackHandler(dest == 2 && settingsSub != null) { settingsSub = null }
-    BackHandler(!(dest == 2 && settingsSub != null)) {
+    BackHandler(dest != 2 || settingsSub == null) {
         val now = System.currentTimeMillis()
         if (now - lastBack < 2000) (ctx as? android.app.Activity)?.finish()
         else { lastBack = now; android.widget.Toast.makeText(ctx, "再按一次退出应用", android.widget.Toast.LENGTH_SHORT).show() }
@@ -184,8 +191,9 @@ fun SongshushoupaiApp(
 
     fun refresh() {
         scope.launch {
-            val list = withContext(Dispatchers.IO) { ImageDataManager.getImageList(ctx) }
-            val idx = withContext(Dispatchers.IO) { ImageDataManager.getSelectedIndex(ctx) }
+            val (list, idx) = withContext(Dispatchers.IO) {
+                ImageDataManager.getImageList(ctx) to ImageDataManager.getSelectedIndex(ctx)
+            }
             imageList.value = list
             selIdx = idx
         }
@@ -267,13 +275,6 @@ fun SongshushoupaiApp(
             animationSpec = tween(200),
             label = "settingsAlpha"
         )
-
-        LaunchedEffect(dest) {
-            if (dest != 2) {
-                kotlinx.coroutines.delay(220.milliseconds)
-                settingsSub = null
-            }
-        }
 
         Box(Modifier.fillMaxSize().padding(pad)) {
             HomePage(imageList.value, selIdx, listState,
@@ -467,17 +468,7 @@ fun ImageCard(
         bitmap = withContext(Dispatchers.IO) {
             val path = if (item.isVideo) item.coverPath else item.filePath
             if (path.isEmpty()) return@withContext null
-            try {
-                val opts = android.graphics.BitmapFactory.Options()
-                opts.inJustDecodeBounds = true
-                android.graphics.BitmapFactory.decodeFile(path, opts)
-                if (opts.outWidth <= 0 || opts.outHeight <= 0) return@withContext null
-                var ss = 1
-                while (opts.outWidth / ss > 256 || opts.outHeight / ss > 256) ss *= 2
-                opts.inSampleSize = ss; opts.inJustDecodeBounds = false
-                opts.inPreferredConfig = android.graphics.Bitmap.Config.RGB_565
-                android.graphics.BitmapFactory.decodeFile(path, opts)
-            } catch (_: Throwable) { null }
+            decodeBitmapSampled(path, 256, android.graphics.Bitmap.Config.RGB_565)
         }
     }
 }

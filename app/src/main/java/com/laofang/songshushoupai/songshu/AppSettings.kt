@@ -115,22 +115,19 @@ object ImageDataManager {
     }
 
     fun addImageToList(context: Context, filePath: String) {
-        val list = getImageList(context).toMutableList()
-        if (list.size == 1 && list[0].filePath.isEmpty()) {
-            list[0] = ImageItem(0, filePath, "兽牌 1", "image")
-        } else {
-            list.add(ImageItem(list.size, filePath, "兽牌 ${list.size + 1}", "image"))
-        }
-        saveList(context, list)
+        addItem(context, ImageItem(0, filePath, "", "image"))
     }
 
     fun addVideoToList(context: Context, filePath: String, coverPath: String = "") {
+        addItem(context, ImageItem(0, filePath, "", "video", coverPath))
+    }
+
+    private fun addItem(context: Context, item: ImageItem) {
         val list = getImageList(context).toMutableList()
-        if (list.size == 1 && list[0].filePath.isEmpty()) {
-            list[0] = ImageItem(0, filePath, "兽牌 1", "video", coverPath)
-        } else {
-            list.add(ImageItem(list.size, filePath, "兽牌 ${list.size + 1}", "video", coverPath))
-        }
+        val name = "兽牌 ${if (list.size == 1 && list[0].filePath.isEmpty()) 1 else list.size + 1}"
+        val finalItem = item.copy(name = name)
+        if (list.size == 1 && list[0].filePath.isEmpty()) list[0] = finalItem.copy(index = 0)
+        else list.add(finalItem.copy(index = list.size))
         saveList(context, list)
     }
 
@@ -182,6 +179,11 @@ object ImageDataManager {
         if (index !in list.indices) return
         list[index] = list[index].copy(name = newName)
         saveList(context, list)
+    }
+
+    fun restoreList(context: Context, list: List<ImageItem>, selectedIndex: Int) {
+        saveList(context, list)
+        setSelectedIndex(context, selectedIndex)
     }
 
     private fun reindex(list: MutableList<ImageItem>) {
