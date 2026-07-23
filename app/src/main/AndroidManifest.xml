@@ -17,7 +17,6 @@
         android:theme="@style/Theme.Songshushoupai"
         tools:targetApi="31">
 
-        <!-- 启动页 Activity，通常作为入口点或者在 MainActivity 之前显示 -->
         <activity
             android:name=".start.StartActivity"
             android:exported="false"

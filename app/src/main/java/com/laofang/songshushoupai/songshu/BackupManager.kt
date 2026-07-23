@@ -113,7 +113,7 @@ object BackupManager {
         return Triple(configJson, imageMap, coverMap)
     }
 
-    private fun restoreFromEntries(ctx: Context, configJson: String, imageMap: Map<String, ByteArray>, coverMap: Map<String, ByteArray>): Boolean {
+    private fun restoreFromEntries(ctx: Context, configJson: String, imageMap: Map<String, ByteArray>, coverMap: Map<String, ByteArray>, prefix: String = "import"): Boolean {
         val cfg = JSONObject(configJson)
         val arr = cfg.getJSONArray("images")
         val sel = cfg.optInt("selected_index", 0)
@@ -131,33 +131,31 @@ object BackupManager {
             if (oldPath.isNotEmpty()) {
                 val fn = File(oldPath).name
                 val key = imageMap.keys.find { it.endsWith(fn) }
-                if (key != null) { val f = File(imgDir, "import_${ts}_${i}_$fn"); f.writeBytes(imageMap[key]!!); newPath = f.absolutePath }
+                if (key != null) { val f = File(imgDir, "${prefix}_${ts}_${i}_$fn"); f.writeBytes(imageMap[key]!!); newPath = f.absolutePath }
             }
             var newCoverPath = ""
             if (oldCover.isNotEmpty()) {
                 val fn = File(oldCover).name
                 val key = coverMap.keys.find { it.endsWith(fn) }
-                if (key != null) { val f = File(covDir, "import_${ts}_${i}_$fn"); f.writeBytes(coverMap[key]!!); newCoverPath = f.absolutePath }
+                if (key != null) { val f = File(covDir, "${prefix}_${ts}_${i}_$fn"); f.writeBytes(coverMap[key]!!); newCoverPath = f.absolutePath }
             }
             newList.add(ImageItem(i, newPath, name, type, newCoverPath))
         }
-        saveImageList(ctx, newList, sel)
+        ImageDataManager.restoreList(ctx, newList, sel)
         return true
     }
 
     fun importFromZip(ctx: Context, uri: Uri): Boolean {
         return try {
-            val (configJson, imageMap, coverMap) = ctx.contentResolver.openInputStream(uri)?.use { readZipEntries(
-                it) }
+            val (configJson, imageMap, coverMap) = ctx.contentResolver.openInputStream(uri)?.use { readZipEntries(it) }
                 ?: return false
             if (configJson == null) return false
             restoreFromEntries(ctx, configJson, imageMap, coverMap)
         } catch (e: Exception) { Log.e(TAG, "Import failed", e); false }
     }
 
-    suspend fun webdavUpload(ctx: Context, cfg: WebDavConfig): String? = withContext(Dispatchers.IO) { uploadZip(ctx, cfg) }
-    suspend fun webdavDownload(ctx: Context, cfg: WebDavConfig): String? = withContext(Dispatchers.IO) { downloadRestore(ctx, cfg) }
-
+    fun webdavUpload(ctx: Context, cfg: WebDavConfig): String? = uploadZip(ctx, cfg)
+    fun webdavDownload(ctx: Context, cfg: WebDavConfig): String? = downloadRestore(ctx, cfg)
     suspend fun webdavTestConnection(cfg: WebDavConfig): String? = withContext(Dispatchers.IO) {
         try {
             val conn = httpConn(fileUrl(cfg))
@@ -269,30 +267,8 @@ object BackupManager {
             val (configJson, imageMap, coverMap) = readZipEntries(FileInputStream(tmp))
             if (configJson == null) return "ZIP文件中未找到配置文件 config.json"
 
-            val cfg2 = JSONObject(configJson)
-            val arr = cfg2.getJSONArray("images")
-            val sel = cfg2.optInt("selected_index", 0)
-            val imgDir = File(ctx.filesDir, "images").also { it.mkdirs() }
-            val covDir = File(ctx.filesDir, "covers").also { it.mkdirs() }
-            val ts = System.currentTimeMillis()
-            val newList = mutableListOf<ImageItem>()
-            for (i in 0 until arr.length()) {
-                val o = arr.getJSONObject(i)
-                val name = o.optString("name", "兽牌 ${i + 1}")
-                val oldPath = o.optString("path", ""); val type = o.optString("type", "image"); val oldCover = o.optString("cover", "")
-                var np = ""; var ncp = ""
-                if (oldPath.isNotEmpty()) {
-                    val fn = File(oldPath).name; val key = imageMap.keys.find { it.endsWith(fn) }
-                    if (key != null) { val f = File(imgDir, "restore_${ts}_${i}_$fn"); f.writeBytes(imageMap[key]!!); np = f.absolutePath }
-                }
-                if (oldCover.isNotEmpty()) {
-                    val fn = File(oldCover).name; val key = coverMap.keys.find { it.endsWith(fn) }
-                    if (key != null) { val f = File(covDir, "restore_${ts}_${i}_$fn"); f.writeBytes(coverMap[key]!!); ncp = f.absolutePath }
-                }
-                newList.add(ImageItem(i, np, name, type, ncp))
-            }
-            saveImageList(ctx, newList, sel)
-            Log.d(TAG, "Restore OK: ${newList.size} items")
+            restoreFromEntries(ctx, configJson, imageMap, coverMap, "restore")
+            Log.d(TAG, "Restore OK")
             null
         } catch (e: Exception) { Log.e(TAG, "Download/Restore failed", e); e.localizedMessage ?: "未知错误" }
         finally { tmp.delete() }
@@ -322,13 +298,5 @@ object BackupManager {
                 }
             }
         } catch (e: Exception) { Log.w(TAG, "Save to Downloads failed (non-fatal)", e) }
-    }
-
-    private fun saveImageList(ctx: Context, list: List<ImageItem>, sel: Int) {
-        val arr = JSONArray()
-        list.forEach { arr.put(JSONObject().apply { put("path", it.filePath); put("name", it.name); put("type", it.type); put("cover", it.coverPath) }) }
-        ctx.getSharedPreferences("image_data", Context.MODE_PRIVATE).edit {
-            putString("image_list", arr.toString()); putInt("selected_index", sel)
-        }
     }
 }
