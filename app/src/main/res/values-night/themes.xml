@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Songshushoupai" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/system_bar_dark</item>
+        <item name="android:navigationBarColor">@color/system_bar_dark</item>
+    </style>
+
+    <style name="Theme.Songshushoupai.Dark" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/system_bar_dark</item>
+        <item name="android:navigationBarColor">@color/system_bar_dark</item>
+    </style>
+
+    <style name="Theme.Songshushoupai.App" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowDisablePreview">true</item>
+    </style>
+</resources>
