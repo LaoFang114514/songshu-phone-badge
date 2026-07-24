@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -61,6 +60,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 
 private val CardShape = RoundedCornerShape(16.dp)
 private val BtnShape = RoundedCornerShape(12.dp)
@@ -131,7 +133,8 @@ fun SettingsPage(
     onNavigateToQrCodeSettings: () -> Unit = {},
     onNavigateToThemeSettings: () -> Unit = {},
     onNavigateToBackupSettings: () -> Unit = {},
-    onNavigateToAboutSettings: () -> Unit = {}
+    onNavigateToAboutSettings: () -> Unit = {},
+    onUpdateClick: (UpdateInfo) -> Unit = {}
 ) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -154,6 +157,23 @@ fun SettingsPage(
     LaunchedEffect(Unit) {
         kotlinx.coroutines.delay(300.milliseconds)
         doCheckUpdate(false)
+    }
+
+    val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(owner) {
+        val obs = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val prefs = ctx.getSharedPreferences("update_state", Context.MODE_PRIVATE)
+                val lastVer = prefs.getString("last_version", "")
+                val curVer = BuildConfig.VERSION_NAME
+                if (lastVer != "" && lastVer != curVer) {
+                    updateInfo = null
+                }
+                prefs.edit { putString("last_version", curVer) }
+            }
+        }
+        owner.lifecycle.addObserver(obs)
+        onDispose { owner.lifecycle.removeObserver(obs) }
     }
 
     Column(
@@ -192,18 +212,17 @@ fun SettingsPage(
 
         updateInfo?.let { info ->
             Card(
-                modifier = Modifier.fillMaxWidth().border(cardBorder(), CardShape)
-                    .clickable { openUrl(ctx, info.link) }
-                    .clip(CardShape),
+                modifier = Modifier.fillMaxWidth().border(cardBorder(), CardShape).clip(CardShape)
+                    .clickable { onUpdateClick(info) },
                 shape = CardShape,
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("发现新版本 ${info.version}", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                    Spacer(Modifier.width(12.dp))
-                    Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primary) {
-                        Text("点击查看", modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary)
-                    }
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("发现新版本 ${info.version}", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                    Text(" ▶", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

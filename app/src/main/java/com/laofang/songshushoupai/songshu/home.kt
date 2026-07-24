@@ -106,6 +106,8 @@ import java.io.File
 import java.io.FileOutputStream
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.core.view.WindowCompat
+import androidx.core.net.toUri
+import androidx.compose.ui.text.buildAnnotatedString
 
 
 private val DlgShape = RoundedCornerShape(12.dp)
@@ -181,6 +183,23 @@ fun SongshushoupaiApp(
     val listState = remember { LazyListState() }
     val scope = rememberCoroutineScope()
     var lastBack by remember { mutableLongStateOf(0L) }
+    var updatePopupInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+    var updatePopupShown by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        UpdateChecker.clearCacheIfVersionChanged(ctx)
+        val result = UpdateChecker.checkForUpdate(ctx, BuildConfig.VERSION_NAME)
+        val info = result.getOrNull()
+        if (info != null && !updatePopupShown && UpdateChecker.shouldAutoShowPopup(ctx)) {
+            updatePopupInfo = info
+            updatePopupShown = true
+        }
+    }
+
+    fun dismissUpdatePopup() {
+        UpdateChecker.dismissPopup(ctx)
+        updatePopupInfo = null
+    }
 
     BackHandler(dest == 2 && settingsSub != null) { settingsSub = null }
     BackHandler(dest != 2 || settingsSub == null) {
@@ -312,7 +331,8 @@ fun SongshushoupaiApp(
                             onNavigateToQrCodeSettings = { settingsSub = "qrcode" },
                             onNavigateToThemeSettings = { settingsSub = "theme" },
                             onNavigateToBackupSettings = { settingsSub = "backup" },
-                            onNavigateToAboutSettings = { settingsSub = "about" })
+                            onNavigateToAboutSettings = { settingsSub = "about" },
+                            onUpdateClick = { updatePopupInfo = it })
                         "basic" -> BasicSettingsPage()
                         "qrcode" -> QrCodeSettingsPage()
                         "theme" -> ThemeSettingsPage(onThemeChanged, onDarkModeChanged)
@@ -320,6 +340,31 @@ fun SongshushoupaiApp(
                         "about" -> AboutSettingsPage()
                     }
                 }
+            }
+
+            if (updatePopupInfo != null) {
+                val info = updatePopupInfo!!
+                AlertDialog(
+                    onDismissRequest = { dismissUpdatePopup() },
+                    title = { Text("发现新版本 V ${info.version}") },
+                    text = {
+                        if (info.description.isNotBlank()) {
+                            HtmlDescriptionText(html = info.description)
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                dismissUpdatePopup()
+                                try { ctx.startActivity(Intent(Intent.ACTION_VIEW, info.link.toUri())) } catch (_: Exception) {}
+                            },
+                            shape = DlgShape
+                        ) { Text("查看更新") }
+                    },
+                    dismissButton = {
+                        OutlinedButton(onClick = { dismissUpdatePopup() }, shape = DlgShape) { Text("稍后再说") }
+                    }
+                )
             }
         }
     }
@@ -477,5 +522,37 @@ enum class AppDestinations(val label: String, val icon: Int) {
     HOME("主页", R.drawable.ic_home),
     FAVORITES("启动", R.drawable.ic_favorite),
     PROFILE("设置", R.drawable.ic_account_box),
+}
+
+@Composable
+private fun HtmlDescriptionText(html: String, modifier: Modifier = Modifier) {
+    val ctx = LocalContext.current
+    val annotated = remember(html) {
+        buildAnnotatedString {
+            @Suppress("DEPRECATION")
+            val spanned = if (android.os.Build.VERSION.SDK_INT >= 24)
+                android.text.Html.fromHtml(html, android.text.Html.FROM_HTML_MODE_LEGACY)
+            else
+                android.text.Html.fromHtml(html)
+            append(spanned.toString())
+            val urlSpans = spanned.getSpans(0, spanned.length, android.text.style.URLSpan::class.java)
+            for (span in urlSpans) {
+                val start = spanned.getSpanStart(span)
+                val end = spanned.getSpanEnd(span)
+                addLink(
+                    androidx.compose.ui.text.LinkAnnotation.Url(span.url) {
+                        try { ctx.startActivity(Intent(Intent.ACTION_VIEW, span.url.toUri())) } catch (_: Exception) {}
+                    },
+                    start, end
+                )
+            }
+        }
+    }
+    Text(
+        text = annotated,
+        style = MaterialTheme.typography.bodyMedium.copy(color = colorScheme.onSurfaceVariant),
+        maxLines = 8,
+        modifier = modifier
+    )
 }
 

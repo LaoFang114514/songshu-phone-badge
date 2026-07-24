@@ -24,6 +24,24 @@ object UpdateChecker {
         ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName ?: ""
     } catch (_: Exception) { "" }
 
+    fun clearCacheIfVersionChanged(ctx: Context) {
+        val p = prefs(ctx)
+        val saved = p.getString("cache_version", null)
+        val current = appVersion(ctx)
+        if (saved != null && saved != current) {
+            p.edit { clear() }
+        }
+    }
+
+    fun shouldAutoShowPopup(ctx: Context): Boolean {
+        val dismissTime = prefs(ctx).getLong("popup_dismiss_time", 0L)
+        return System.currentTimeMillis() - dismissTime >= 24 * 60 * 60 * 1000L
+    }
+
+    fun dismissPopup(ctx: Context) {
+        prefs(ctx).edit { putLong("popup_dismiss_time", System.currentTimeMillis()) }
+    }
+
     fun getCachedResult(ctx: Context): UpdateInfo? {
         val data = prefs(ctx).getString("cache_data", null) ?: return null
         if (data.isEmpty()) return null
@@ -89,7 +107,8 @@ object UpdateChecker {
                     XmlPullParser.END_TAG -> {
                         if (parser.name == "item" && inItem) {
                             inItem = false
-                            out.add(UpdateInfo("", title, desc.replace(Regex("<[^>]*>"), "").trim(), link, date))
+                            val cleanDesc = desc.replace(Regex("""<a\s[^>]*>Read More</a>""", RegexOption.IGNORE_CASE), "").trim()
+                            out.add(UpdateInfo("", title, cleanDesc, link, date))
                         }
                         tag = ""
                     }
