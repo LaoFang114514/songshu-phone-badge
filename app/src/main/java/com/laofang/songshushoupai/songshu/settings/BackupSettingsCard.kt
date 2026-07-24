@@ -54,8 +54,8 @@ fun BackupSettingsCard(
         Text("本地备份", style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
         Text("将配置和所有图片导出为ZIP文件，或从ZIP文件恢复。", style = MaterialTheme.typography.bodySmall, color = cs.onSurface.copy(alpha = 0.7f))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { onBackupOperation(BackupOperation.EXPORT) }, Modifier.weight(1f), !isLoading, BtnShape) { Text("导出配置") }
-            OutlinedButton(onClick = { onBackupOperation(BackupOperation.IMPORT) }, Modifier.weight(1f), !isLoading, BtnShape) { Text("导入配置") }
+            Button(onClick = { onBackupOperation(BackupOperation.EXPORT) }, Modifier.weight(1f), !isLoading, BtnShape) { Text("导出配置") }
+            Button(onClick = { onBackupOperation(BackupOperation.IMPORT) }, Modifier.weight(1f), !isLoading, BtnShape) { Text("导入配置") }
         }
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
         Text("WebDAV 备份", style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
@@ -69,10 +69,10 @@ fun BackupSettingsCard(
             singleLine = true, visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(), enabled = !isTesting)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = onTestConnection, Modifier.weight(1f), !isTesting, BtnShape) { ProgressOrText(isTesting, "测试连接") }
-            OutlinedButton(onClick = { onBackupOperation(BackupOperation.WEBDAV_UPLOAD) },
+            OutlinedButton(onClick = onTestConnection, Modifier.weight(1f), !isTesting, BtnShape) { ProgressOrText(isTesting, "测试") }
+            Button(onClick = { onBackupOperation(BackupOperation.WEBDAV_UPLOAD) },
                 Modifier.weight(1f), !isLoading && webdavUrl.isNotBlank(), BtnShape) { ProgressOrText(isLoading, "备份") }
-            OutlinedButton(onClick = { onBackupOperation(BackupOperation.WEBDAV_DOWNLOAD) },
+            Button(onClick = { onBackupOperation(BackupOperation.WEBDAV_DOWNLOAD) },
                 Modifier.weight(1f), !isLoading && webdavUrl.isNotBlank(), BtnShape) { ProgressOrText(isLoading, "恢复") }
         }
         AnimatedVisibility(isConfigModified, enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
