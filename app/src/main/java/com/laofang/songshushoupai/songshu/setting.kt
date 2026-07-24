@@ -204,7 +204,7 @@ fun SettingsPage(
                 Text("欢迎通过以下渠道赞助", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                 Spacer(Modifier.height(16.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Button(onClick = { openUrl(ctx, "https://www.ifdian.net/a/laofang") }, Modifier.weight(1f), shape = BtnShape) { Text("爱发电") }
+                    OutlinedButton(onClick = { openUrl(ctx, "https://www.ifdian.net/a/laofang") }, Modifier.weight(1f), shape = BtnShape) { Text("爱发电") }
                     OutlinedButton(onClick = { openUrl(ctx, "https://ko-fi.com/laofang") }, Modifier.weight(1f), shape = BtnShape) { Text("Ko-fi") }
                 }
             }
