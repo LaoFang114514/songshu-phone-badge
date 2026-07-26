@@ -66,6 +66,7 @@ fun AboutSettingsCard() {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             LinkBtn("QQ群", "https://qun.qq.com/universal-pop/pop.html?ucid=JxRTxJmIQfa8p4d0_U_TyZyEn&gc=&sign=dc86ae0ca4700c5dbc23894f0fdb82fccfd937cd0fe5edec4afa9472c7300d07&external=&_type=gp&o&_client=yqq&hash=-")
             LinkBtn("GitHub", "https://github.com/LaoFang114514/songshu-phone-badge")
+            LinkBtn("GitCode", "https://gitcode.com/LaoFang233/songshu-phone-badge")
             LinkBtn("官网", "https://songshushoupai.mysxl.cn/")
         }
     }
