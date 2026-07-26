@@ -1,6 +1,8 @@
 #  松鼠兽牌
 
 [![官方网站](https://img.shields.io/badge/官网-访问-blue.svg)](https://songshushoupai.mysxl.cn/)
+[![GitHub](https://img.shields.io/badge/GitHub-仓库-181717?logo=github)](https://github.com/LaoFang114514/songshu-phone-badge)
+[![GitCode](https://img.shields.io/badge/GitCode-仓库-C71D23?logo=git)](https://gitcode.com/LaoFang233/songshu-phone-badge)
 [![爱发电赞助](https://img.shields.io/badge/赞助-爱发电-orange.svg)](https://www.ifdian.net/a/laofang)
 [![Ko-fi赞助](https://img.shields.io/badge/赞助-Ko--fi-red.svg)](https://ko-fi.com/laofang)
 [![开源协议](https://img.shields.io/badge/协议-GPL--3.0-green.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
