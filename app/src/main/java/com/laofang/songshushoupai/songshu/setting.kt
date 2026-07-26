@@ -60,12 +60,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
+import java.util.Calendar
 import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 
 private val CardShape = RoundedCornerShape(16.dp)
 private val BtnShape = RoundedCornerShape(12.dp)
+
+private fun isAprilFools(): Boolean {
+    val cal = Calendar.getInstance()
+    return cal.get(Calendar.MONTH) == Calendar.APRIL && cal.get(Calendar.DAY_OF_MONTH) == 1
+}
 
 @Composable
 private fun cardBorder() = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
@@ -186,8 +192,10 @@ fun SettingsPage(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
+                val aprilFools = isAprilFools()
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("支持开发者", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                    // ... 试用版那个纯愚人节玩笑，别当真，各位扒源码看到这个的时候千万不要刀我.jpg ...
+                    Text(if (aprilFools) "此软件试用即将到期" else "支持开发者", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                     Surface(
                         color = MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
                         modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { doCheckUpdate(true) }
@@ -201,11 +209,11 @@ fun SettingsPage(
                     }
                 }
                 Spacer(Modifier.height(6.dp))
-                Text("欢迎通过以下渠道赞助", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                Text(if (aprilFools) "请购买正版" else "欢迎通过以下渠道赞助", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                 Spacer(Modifier.height(16.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedButton(onClick = { openUrl(ctx, "https://www.ifdian.net/a/laofang") }, Modifier.weight(1f), shape = BtnShape) { Text("爱发电") }
-                    OutlinedButton(onClick = { openUrl(ctx, "https://ko-fi.com/laofang") }, Modifier.weight(1f), shape = BtnShape) { Text("Ko-fi") }
+                    OutlinedButton(onClick = { openUrl(ctx, "https://www.ifdian.net/a/laofang") }, Modifier.weight(1f), shape = BtnShape) { Text(if (aprilFools) "购买渠道一" else "爱发电") }
+                    OutlinedButton(onClick = { openUrl(ctx, "https://ko-fi.com/laofang") }, Modifier.weight(1f), shape = BtnShape) { Text(if (aprilFools) "购买渠道二" else "Ko-fi") }
                 }
             }
         }
