@@ -1,7 +1,5 @@
 #  松鼠兽牌
 
-[English](README.en.md)
-
 [![官方网站](https://img.shields.io/badge/官网-访问-blue.svg)](https://songshushoupai.mysxl.cn/)
 [![GitHub](https://img.shields.io/badge/GitHub-仓库-181717?logo=github)](https://github.com/LaoFang114514/songshu-phone-badge) [![GitCode](https://img.shields.io/badge/GitCode-仓库-C71D23?logo=git)](https://gitcode.com/LaoFang233/songshu-phone-badge)
 [![爱发电](https://img.shields.io/badge/赞助-爱发电-orange.svg)](https://www.ifdian.net/a/laofang) [![Ko-fi](https://img.shields.io/badge/赞助-Ko--fi-red.svg)](https://ko-fi.com/laofang) [![协议](https://img.shields.io/badge/协议-GPL--3.0-green.svg)](https://www.gnu.org/licenses/gpl-3.0.html) [![QQ群](https://img.shields.io/badge/QQ交流群-465174613-blue)](https://qun.qq.com/universal-share/share?ac=1&authKey=EHQoZ%2BHU4s8taqGbkhUKrWY4FAq2vLB2LoPRNMO7jLkxGyyNLrnWCNmaZ7DuJTOx&busi_data=eyJncm91cENvZGUiOiI0NjUxNzQ2MTMiLCJ0b2tlbiI6IjlHTnZHTlhwMWVlN2VEYXJzTitoWkZxSlV1VUhadnNsYzJNVkE5b0tIcGZvQW00TGxOK0lQRGFMaEZjeU5GZWEiLCJ1aW4iOiIyOTA4ODA3NzYwIn0%3D&data=LITJR0_gfVVBcvQQSGd-RQZ7xQ39dz8b0w_wJzZ69Z-mCigq-1uJsrRMOstu12BG7-aKJJu0EhSDGJprd-kbKQ&svctype=4&tempid=h5_group_info)
@@ -63,3 +61,7 @@
 本项目基于 **GNU General Public License v3.0** 协议开源，详见 [LICENSE](LICENSE) 文件。
 
 Copyright (C) 2026 laofang
+
+---
+
+[English](README.en.md)
