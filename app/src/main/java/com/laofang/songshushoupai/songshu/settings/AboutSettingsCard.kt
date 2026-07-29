@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -36,9 +37,9 @@ fun AboutSettingsCard() {
                 clicks = 0
                 try {
                     (ctx as? Activity)?.startActivity(Intent(ctx, ColorSudokuActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                        ?: Toast.makeText(ctx, "无法访问页面", Toast.LENGTH_SHORT).show()
+                        ?: Toast.makeText(ctx, ctx.getString(R.string.cannot_access_page), Toast.LENGTH_SHORT).show()
                 } catch (e: Exception) {
-                    Toast.makeText(ctx, "跳转失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(ctx, ctx.getString(R.string.jump_failed, e.message), Toast.LENGTH_SHORT).show()
                 }
             }
         }, contentAlignment = Alignment.Center) {
@@ -53,21 +54,22 @@ fun AboutSettingsCard() {
             )
         }
         Spacer(Modifier.height(16.dp))
-        Text("松鼠兽牌", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(6.dp))
         Surface(shape = RoundedCornerShape(6.dp), color = cs.primary.copy(alpha = 0.12f)) {
             Text("V${BuildConfig.VERSION_NAME}", Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
                 style = MaterialTheme.typography.labelMedium, color = cs.primary)
         }
         Spacer(Modifier.height(16.dp))
-        Text("一款简单易用的旧手机变兽牌工具，帮助你使用旧手机快速创建和展示自己的兽牌图片，适合需要兽牌但经费不足的小伙伴。",
+        Text(stringResource(R.string.app_desc),
             style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(12.dp))
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            LinkBtn("QQ群", "https://qun.qq.com/universal-pop/pop.html?ucid=JxRTxJmIQfa8p4d0_U_TyZyEn&gc=&sign=dc86ae0ca4700c5dbc23894f0fdb82fccfd937cd0fe5edec4afa9472c7300d07&external=&_type=gp&o&_client=yqq&hash=-")
+            LinkBtn(stringResource(R.string.qq_group), "https://qm.qq.com/q/RbJoe54fEA")
+            LinkBtn(stringResource(R.string.discord), "https://discord.gg/vBNtab9yU")
             LinkBtn("GitHub", "https://github.com/LaoFang114514/songshu-phone-badge")
             LinkBtn("GitCode", "https://gitcode.com/LaoFang233/songshu-phone-badge")
-            LinkBtn("官网", "https://songshushoupai.mysxl.cn/")
+            LinkBtn(stringResource(R.string.official_site), "https://songshushoupai.mysxl.cn/")
         }
     }
 }

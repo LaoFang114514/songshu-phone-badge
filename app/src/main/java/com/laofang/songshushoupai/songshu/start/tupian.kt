@@ -2,6 +2,7 @@ package com.laofang.songshushoupai.songshu.start
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
@@ -34,6 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.laofang.songshushoupai.songshu.ImageDataManager
+import com.laofang.songshushoupai.songshu.LocaleHelper
 import com.laofang.songshushoupai.songshu.SettingsManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -43,6 +45,9 @@ import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
 class StartActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

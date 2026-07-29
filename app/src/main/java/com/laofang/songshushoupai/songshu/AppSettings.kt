@@ -2,6 +2,7 @@ package com.laofang.songshushoupai.songshu
 
 import android.content.Context
 import android.os.Build
+import android.os.LocaleList
 import androidx.core.content.edit
 import org.json.JSONArray
 import org.json.JSONObject
@@ -14,6 +15,7 @@ data class AppSettings(
     val lockOrientation: Boolean = false,
     val antiBurnIn: Boolean = false,
     val muteVideo: Boolean = false,
+    val languageIndex: Int = 0,
     val themeColorIndex: Int = 0,
     val customThemeColor: Long = 0xFF1E88E5,
     val darkMode: Int = 0,
@@ -28,7 +30,6 @@ object SettingsManager {
 
     fun loadSettings(context: Context): AppSettings {
         val p = prefs(context)
-        // 首次启动初始化主题色
         if (!p.getBoolean("has_initialized_theme", false)) {
             val defaultIndex = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) 8 else 0
             p.edit {
@@ -39,6 +40,14 @@ object SettingsManager {
             }
             return AppSettings(themeColorIndex = defaultIndex)
         }
+        val langIdx = if (p.contains("use_english")) {
+            val old = p.getBoolean("use_english", false)
+            val migrated = if (old) 1 else 0
+            p.edit { putInt("language_index", migrated); remove("use_english") }
+            migrated
+        } else {
+            p.getInt("language_index", 0)
+        }
         return AppSettings(
             defaultOrientation = p.getBoolean("default_orientation", false),
             keepScreenOn = p.getBoolean("keep_screen_on", false),
@@ -46,6 +55,7 @@ object SettingsManager {
             lockOrientation = p.getBoolean("lock_orientation", false),
             antiBurnIn = p.getBoolean("anti_burn_in", false),
             muteVideo = p.getBoolean("mute_video", false),
+            languageIndex = langIdx,
             themeColorIndex = p.getInt("theme_color_index", 0),
             customThemeColor = p.getLong("custom_theme_color", 0xFF1E88E5),
             darkMode = p.getInt("dark_mode", 0),
@@ -62,6 +72,7 @@ object SettingsManager {
             putBoolean("lock_orientation", s.lockOrientation)
             putBoolean("anti_burn_in", s.antiBurnIn)
             putBoolean("mute_video", s.muteVideo)
+            putInt("language_index", s.languageIndex)
             putInt("theme_color_index", s.themeColorIndex)
             putLong("custom_theme_color", s.customThemeColor)
             putInt("dark_mode", s.darkMode)
@@ -77,8 +88,8 @@ object ImageDataManager {
     private fun prefs(ctx: Context) = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun getImageList(context: Context): List<ImageItem> {
-        val raw = prefs(context).getString("image_list", null) ?: return defaultList()
-        if (raw.isEmpty()) return defaultList()
+        val raw = prefs(context).getString("image_list", null) ?: return defaultList(context)
+        if (raw.isEmpty()) return defaultList(context)
 
         return try {
             val arr = JSONArray(raw)
@@ -87,20 +98,19 @@ object ImageDataManager {
                 ImageItem(
                     index = i,
                     filePath = obj.optString("path", ""),
-                    name = obj.optString("name", "兽牌 ${i + 1}"),
+                    name = obj.optString("name", context.getString(R.string.badge_default_name, i + 1)),
                     type = obj.optString("type", "image"),
                     coverPath = obj.optString("cover", "")
                 )
             }
         } catch (_: Exception) {
-            // 兼容旧版 "|" 分隔符格式
             raw.split("|").mapIndexed { i, path ->
-                ImageItem(i, path, "兽牌 ${i + 1}", "image")
+                ImageItem(i, path, context.getString(R.string.badge_default_name, i + 1), "image")
             }
         }
     }
 
-    private fun defaultList() = listOf(ImageItem(0, "", "默认兽牌"))
+    private fun defaultList(ctx: Context) = listOf(ImageItem(0, "", ctx.getString(R.string.default_badge)))
 
     fun getSelectedIndex(context: Context) = prefs(context).getInt("selected_index", 0)
 
@@ -124,7 +134,7 @@ object ImageDataManager {
 
     private fun addItem(context: Context, item: ImageItem) {
         val list = getImageList(context).toMutableList()
-        val name = "兽牌 ${if (list.size == 1 && list[0].filePath.isEmpty()) 1 else list.size + 1}"
+        val name = context.getString(R.string.badge_default_name, if (list.size == 1 && list[0].filePath.isEmpty()) 1 else list.size + 1)
         val finalItem = item.copy(name = name)
         if (list.size == 1 && list[0].filePath.isEmpty()) list[0] = finalItem.copy(index = 0)
         else list.add(finalItem.copy(index = list.size))
@@ -138,7 +148,7 @@ object ImageDataManager {
         if (item.filePath.isNotEmpty()) File(item.filePath).delete()
         if (item.coverPath.isNotEmpty()) File(item.coverPath).delete()
         list.removeAt(index)
-        if (list.isEmpty()) list.add(ImageItem(0, "", "默认兽牌"))
+        if (list.isEmpty()) list.add(ImageItem(0, "", context.getString(R.string.default_badge)))
         reindex(list)
         saveList(context, list)
 
@@ -212,4 +222,19 @@ data class ImageItem(
     val coverPath: String = ""
 ) {
     val isVideo: Boolean get() = type == "video"
+}
+
+object LocaleHelper {
+    fun applyLocale(context: Context): Context {
+        val langIdx = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+            .getInt("language_index", 0)
+        val locale = if (langIdx == 1) java.util.Locale.ENGLISH else java.util.Locale.CHINESE
+        java.util.Locale.setDefault(locale)
+        val config = android.content.res.Configuration(context.resources.configuration)
+        config.setLocale(locale)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            config.setLocales(LocaleList(locale))
+        }
+        return context.createConfigurationContext(config)
+    }
 }

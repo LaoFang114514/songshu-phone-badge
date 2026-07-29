@@ -33,6 +33,22 @@ data class WebDavConfig(val url: String = "", val username: String = "", val pas
 object BackupManager {
     private const val TAG = "BackupManager"
 
+    const val ERR_AUTH_FAIL = "auth_fail"
+    const val ERR_NO_PERMISSION = "no_permission"
+    const val ERR_CONNECTION_FAILED = "conn_failed"
+    const val ERR_NETWORK_ERROR = "network_error"
+    const val ERR_UPLOAD_AUTH_FAIL = "upload_auth_fail"
+    const val ERR_UPLOAD_NO_PERMISSION = "upload_no_permission"
+    const val ERR_UPLOAD_FAILED = "upload_failed"
+    const val ERR_UPLOAD_FAILED_SIMPLE = "upload_failed_simple"
+    const val ERR_REDIRECT_NO_LOCATION = "redirect_no_location"
+    const val ERR_BACKUP_NOT_FOUND = "backup_not_found"
+    const val ERR_DOWNLOAD_NO_PERMISSION = "download_no_permission"
+    const val ERR_SERVER_RESPONSE = "server_response"
+    const val ERR_DOWNLOADED_EMPTY = "downloaded_empty"
+    const val ERR_NO_CONFIG_IN_ZIP = "no_config_in_zip"
+    const val ERR_UNKNOWN_ERROR = "unknown_error"
+
     init {
         CookieHandler.setDefault(CookieManager().apply { setCookiePolicy(CookiePolicy.ACCEPT_ALL) })
     }
@@ -123,7 +139,7 @@ object BackupManager {
         val newList = mutableListOf<ImageItem>()
         for (i in 0 until arr.length()) {
             val o = arr.getJSONObject(i)
-            val name = o.optString("name", "兽牌 ${i + 1}")
+            val name = o.optString("name", "badge_${i + 1}")
             val oldPath = o.optString("path", "")
             val type = o.optString("type", "image")
             val oldCover = o.optString("cover", "")
@@ -165,14 +181,14 @@ object BackupManager {
                 when (val code = conn.responseCode) {
                     in 200..299 -> null
                     301, 302 -> null
-                    401 -> "认证失败，请检查用户名和密码"
-                    403 -> "无权限访问 (403)，请检查服务器地址是否包含用户名路径"
+                    401 -> ERR_AUTH_FAIL
+                    403 -> ERR_NO_PERMISSION
                     404 -> null
                     405 -> null
-                    else -> "连接失败: $code ${conn.responseMessage}"
+                    else -> "$ERR_CONNECTION_FAILED:$code"
                 }
             } finally { conn.disconnect() }
-        } catch (e: Exception) { e.localizedMessage ?: "连接失败，请检查网络" }
+        } catch (_: Exception) { ERR_NETWORK_ERROR }
     }
 
     private fun httpConn(url: String): HttpURLConnection {
@@ -216,12 +232,12 @@ object BackupManager {
                 tmp.inputStream().use { it.copyTo(conn.outputStream) }
                 when (val code = conn.responseCode) {
                     in 200..299 -> null
-                    401 -> "上传认证失败，请检查用户名和密码"
-                    403 -> "上传无权限 (403)"
-                    else -> "上传失败: $code ${conn.responseMessage}"
+                    401 -> ERR_UPLOAD_AUTH_FAIL
+                    403 -> ERR_UPLOAD_NO_PERMISSION
+                    else -> "$ERR_UPLOAD_FAILED:$code"
                 }
             } finally { conn.disconnect() }
-        } catch (e: Exception) { Log.e(TAG, "Upload failed", e); e.localizedMessage ?: "上传失败" }
+        } catch (e: Exception) { Log.e(TAG, "Upload failed", e); ERR_UPLOAD_FAILED_SIMPLE }
         finally { tmp.delete() }
     }
 
@@ -233,13 +249,13 @@ object BackupManager {
             var conn = httpConn(url)
             try {
                 conn.requestMethod = "GET"; basicAuth(conn, cfg)
-                var code = conn.responseCode; var msg = conn.responseMessage
+                var code = conn.responseCode; val msg = conn.responseMessage
                 Log.d(TAG, "Download response: $code $msg")
                 val origHost = try { URI(url).host } catch (_: Exception) { "" }
                 var redirects = 0
                 while (code in listOf(301, 302, 307, 308) && redirects < 5) {
                     redirects++
-                    val loc = conn.getHeaderField("Location") ?: return "服务器重定向但未提供 Location 头"
+                    val loc = conn.getHeaderField("Location") ?: return ERR_REDIRECT_NO_LOCATION
                     conn.disconnect()
                     url = if (loc.startsWith("http")) loc else "${cfg.url.trimEnd('/')}${if (loc.startsWith("/")) "" else "/"}$loc"
                     Log.d(TAG, "Redirect ($redirects) to: $url")
@@ -247,30 +263,30 @@ object BackupManager {
                     val rHost = try { URI(url).host } catch (_: Exception) { "" }
                     if (rHost.isNotEmpty() && rHost == origHost) basicAuth(conn, cfg)
                     else { Log.d(TAG, "Redirect different host, skipping auth"); conn.setRequestProperty("Referer", cfg.url.trimEnd('/')) }
-                    code = conn.responseCode; msg = conn.responseMessage
+                    code = conn.responseCode
                 }
                 if (code != 200) {
                     conn.disconnect()
                     return when (code) {
-                        401 -> "认证失败，请检查用户名和密码"
-                        404 -> "服务器上未找到备份文件，请先上传"
-                        403 -> "无权限下载 (403)"
-                        else -> "服务器返回 $code $msg"
+                        401 -> ERR_AUTH_FAIL
+                        404 -> ERR_BACKUP_NOT_FOUND
+                        403 -> ERR_DOWNLOAD_NO_PERMISSION
+                        else -> "$ERR_SERVER_RESPONSE:$code"
                     }
                 }
                 tmp.outputStream().use { out -> conn.inputStream.use { it.copyTo(out) } }
             } finally { conn.disconnect() }
 
-            if (tmp.length() == 0L) return "下载的文件为空"
+            if (tmp.length() == 0L) return ERR_DOWNLOADED_EMPTY
             saveToDownloads(ctx, tmp)
 
             val (configJson, imageMap, coverMap) = readZipEntries(FileInputStream(tmp))
-            if (configJson == null) return "ZIP文件中未找到配置文件 config.json"
+            if (configJson == null) return ERR_NO_CONFIG_IN_ZIP
 
             restoreFromEntries(ctx, configJson, imageMap, coverMap, "restore")
             Log.d(TAG, "Restore OK")
             null
-        } catch (e: Exception) { Log.e(TAG, "Download/Restore failed", e); e.localizedMessage ?: "未知错误" }
+        } catch (e: Exception) { Log.e(TAG, "Download/Restore failed", e); ERR_UNKNOWN_ERROR }
         finally { tmp.delete() }
     }
 

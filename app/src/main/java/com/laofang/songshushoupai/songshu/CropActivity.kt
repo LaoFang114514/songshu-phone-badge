@@ -1,6 +1,7 @@
 package com.laofang.songshushoupai.songshu
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -54,6 +55,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
@@ -69,6 +71,9 @@ import kotlinx.coroutines.withContext
 import com.laofang.songshushoupai.songshu.ui.theme.SongshushoupaiAutoTheme
 
 class CropActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
@@ -82,7 +87,7 @@ class CropActivity : ComponentActivity() {
     }
 }
 
-private fun loadBitmap(uri: android.net.Uri, ctx: android.content.Context): Bitmap? {
+private fun loadBitmap(uri: android.net.Uri, ctx: Context): Bitmap? {
     return try {
         val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         ctx.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) }
@@ -136,17 +141,17 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.align(Alignment.Center)) {
                 CircularProgressIndicator(modifier = Modifier.size(48.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 4.dp)
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("加载中...", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f), fontSize = 14.sp)
+                Text(stringResource(R.string.loading), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f), fontSize = 14.sp)
             }
             return@Box
         }
         if (bmp == null) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.align(Alignment.Center)) {
-                Text("未选择图片", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f), fontSize = 16.sp)
+                Text(stringResource(R.string.no_image_selected), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f), fontSize = 16.sp)
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(onClick = { picker.launch("image/*") }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), shape = RoundedCornerShape(24.dp)) {
                     Icon(painter = painterResource(android.R.drawable.ic_input_add), contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp)); Text("选择图片")
+                    Spacer(modifier = Modifier.width(8.dp)); Text(stringResource(R.string.select_image))
                 }
             }
             return@Box
@@ -159,9 +164,9 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
             Box(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).statusBarsPadding()) {
                 Row(modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     androidx.compose.material3.IconButton(onClick = { if (!processing) onFinish() }) {
-                        Icon(painter = painterResource(android.R.drawable.ic_menu_close_clear_cancel), contentDescription = "返回", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(26.dp))
+                        Icon(painter = painterResource(android.R.drawable.ic_menu_close_clear_cancel), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(26.dp))
                     }
-                    Text(if (editIndex >= 0) "编辑兽牌" else "新建兽牌", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Text(if (editIndex >= 0) stringResource(R.string.edit_badge) else stringResource(R.string.new_badge), color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 
@@ -199,7 +204,7 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
                 Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedButton(onClick = { if (editIndex >= 0) onFinish() else picker.launch("image/*") },
                         modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp), enabled = !processing,
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))) { Text(if (editIndex >= 0) "取消" else "重新选择", fontSize = 15.sp) }
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))) { Text(if (editIndex >= 0) stringResource(R.string.cancel) else stringResource(R.string.reselect), fontSize = 15.sp) }
                     Button(onClick = {
                         if (processing) return@Button
                         if (bmp != null && bw > 0 && bh > 0) {
@@ -236,7 +241,7 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
                             }
                         } else onFinish()
                     }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp), enabled = !processing,
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) { Text("确认裁剪", fontSize = 15.sp, color = MaterialTheme.colorScheme.onPrimary) }
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) { Text(stringResource(R.string.confirm_crop), fontSize = 15.sp, color = MaterialTheme.colorScheme.onPrimary) }
                 }
             }
         }
@@ -244,7 +249,7 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
             Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator(modifier = Modifier.size(48.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 4.dp)
-                    Spacer(modifier = Modifier.height(16.dp)); Text("处理中...", color = Color.White, fontSize = 16.sp)
+                    Spacer(modifier = Modifier.height(16.dp)); Text(stringResource(R.string.processing), color = Color.White, fontSize = 16.sp)
                 }
             }
         }

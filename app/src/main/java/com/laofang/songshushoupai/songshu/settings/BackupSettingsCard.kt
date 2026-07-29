@@ -16,8 +16,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.laofang.songshushoupai.songshu.R
 import java.io.File
 
 enum class BackupOperation { EXPORT, IMPORT, WEBDAV_UPLOAD, WEBDAV_DOWNLOAD }
@@ -51,37 +53,37 @@ fun BackupSettingsCard(
 ) {
     val cs = MaterialTheme.colorScheme
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("本地备份", style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
-        Text("将配置和所有图片导出为ZIP文件，或从ZIP文件恢复。", style = MaterialTheme.typography.bodySmall, color = cs.onSurface.copy(alpha = 0.7f))
+        Text(stringResource(R.string.local_backup), style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
+        Text(stringResource(R.string.local_backup_desc), style = MaterialTheme.typography.bodySmall, color = cs.onSurface.copy(alpha = 0.7f))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { onBackupOperation(BackupOperation.EXPORT) }, Modifier.weight(1f), !isLoading, BtnShape) { Text("导出配置") }
-            Button(onClick = { onBackupOperation(BackupOperation.IMPORT) }, Modifier.weight(1f), !isLoading, BtnShape) { Text("导入配置") }
+            Button(onClick = { onBackupOperation(BackupOperation.EXPORT) }, Modifier.weight(1f), !isLoading, BtnShape) { Text(stringResource(R.string.export_config)) }
+            Button(onClick = { onBackupOperation(BackupOperation.IMPORT) }, Modifier.weight(1f), !isLoading, BtnShape) { Text(stringResource(R.string.import_config)) }
         }
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
-        Text("WebDAV 备份", style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
-        Text("配置WebDAV服务器地址，将备份上传到服务器或从服务器恢复。", style = MaterialTheme.typography.bodySmall, color = cs.onSurface.copy(alpha = 0.7f))
-        OutlinedTextField(webdavUrl, onWebdavUrlChange, label = { Text("服务器地址") },
+        Text(stringResource(R.string.webdav_backup), style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
+        Text(stringResource(R.string.webdav_backup_desc), style = MaterialTheme.typography.bodySmall, color = cs.onSurface.copy(alpha = 0.7f))
+        OutlinedTextField(webdavUrl, onWebdavUrlChange, label = { Text(stringResource(R.string.server_address)) },
             placeholder = { Text("https://example.com/remote.php/dav/files/user/") },
             singleLine = true, modifier = Modifier.fillMaxWidth(), enabled = !isTesting)
-        OutlinedTextField(webdavUser, onWebdavUserChange, label = { Text("用户名") },
+        OutlinedTextField(webdavUser, onWebdavUserChange, label = { Text(stringResource(R.string.username)) },
             singleLine = true, modifier = Modifier.fillMaxWidth(), enabled = !isTesting)
-        OutlinedTextField(webdavPass, onWebdavPassChange, label = { Text("密码") },
+        OutlinedTextField(webdavPass, onWebdavPassChange, label = { Text(stringResource(R.string.password)) },
             singleLine = true, visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(), enabled = !isTesting)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = onTestConnection, Modifier.weight(1f), !isTesting, BtnShape) { ProgressOrText(isTesting, "测试") }
+            OutlinedButton(onClick = onTestConnection, Modifier.weight(1f), !isTesting, BtnShape) { ProgressOrText(isTesting, stringResource(R.string.test)) }
             Button(onClick = { onBackupOperation(BackupOperation.WEBDAV_UPLOAD) },
-                Modifier.weight(1f), !isLoading && webdavUrl.isNotBlank(), BtnShape) { ProgressOrText(isLoading, "备份") }
+                Modifier.weight(1f), !isLoading && webdavUrl.isNotBlank(), BtnShape) { ProgressOrText(isLoading, stringResource(R.string.backup)) }
             Button(onClick = { onBackupOperation(BackupOperation.WEBDAV_DOWNLOAD) },
-                Modifier.weight(1f), !isLoading && webdavUrl.isNotBlank(), BtnShape) { ProgressOrText(isLoading, "恢复") }
+                Modifier.weight(1f), !isLoading && webdavUrl.isNotBlank(), BtnShape) { ProgressOrText(isLoading, stringResource(R.string.restore)) }
         }
         AnimatedVisibility(isConfigModified, enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
-            Button(onSaveWebDavConfig, Modifier.fillMaxWidth(), !isTesting, BtnShape) { Text("保存配置") }
+            Button(onSaveWebDavConfig, Modifier.fillMaxWidth(), !isTesting, BtnShape) { Text(stringResource(R.string.save_config)) }
         }
-        if (webdavUrl.isBlank()) Text("请先配置 WebDAV 服务器地址", style = MaterialTheme.typography.bodySmall, color = cs.error.copy(alpha = 0.8f))
+        if (webdavUrl.isBlank()) Text(stringResource(R.string.config_webdav_first), style = MaterialTheme.typography.bodySmall, color = cs.error.copy(alpha = 0.8f))
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("要备份的数据大小", style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
+            Text(stringResource(R.string.data_size), style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
             Text(formatSize(calculateStorageUsed(context)), style = MaterialTheme.typography.bodyLarge, color = cs.primary)
         }
     }

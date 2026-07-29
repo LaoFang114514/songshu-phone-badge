@@ -2,6 +2,7 @@ package com.laofang.songshushoupai.songshu
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -70,6 +71,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -82,6 +84,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -113,6 +116,10 @@ import androidx.compose.ui.text.buildAnnotatedString
 private val DlgShape = RoundedCornerShape(12.dp)
 
 class MainActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
+
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -120,9 +127,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val ctx = LocalContext.current
-            val initSettings = remember { SettingsManager.loadSettings(ctx) }
-            var themeIdx by remember { mutableIntStateOf(initSettings.themeColorIndex) }
-            var darkMode by remember { mutableIntStateOf(initSettings.darkMode) }
+            val settings = remember { SettingsManager.loadSettings(ctx) }
+            var themeIdx by remember { mutableIntStateOf(settings.themeColorIndex) }
+            var darkMode by remember { mutableIntStateOf(settings.darkMode) }
+            var prevLangIdx by remember { mutableIntStateOf(settings.languageIndex) }
 
             val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
             DisposableEffect(owner) {
@@ -130,6 +138,10 @@ class MainActivity : ComponentActivity() {
                     if (e == Lifecycle.Event.ON_RESUME) {
                         val s = SettingsManager.loadSettings(ctx)
                         themeIdx = s.themeColorIndex; darkMode = s.darkMode
+                        if (s.languageIndex != prevLangIdx) {
+                            prevLangIdx = s.languageIndex
+                            (ctx as? android.app.Activity)?.recreate()
+                        }
                     }
                 }
                 owner.lifecycle.addObserver(obs)
@@ -174,12 +186,12 @@ fun SongshushoupaiApp(
     onThemeChanged: (Int) -> Unit = {},
     onDarkModeChanged: (Int) -> Unit = {}
 ) {
-    var dest by remember { mutableIntStateOf(0) }
+    var dest by rememberSaveable { mutableIntStateOf(0) }
     val ctx = LocalContext.current
     val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val imageList = remember { mutableStateOf(ImageDataManager.getImageList(ctx)) }
     var selIdx by remember { mutableIntStateOf(ImageDataManager.getSelectedIndex(ctx)) }
-    var settingsSub by remember { mutableStateOf<String?>(null) }
+    var settingsSub by rememberSaveable { mutableStateOf<String?>(null) }
     val listState = remember { LazyListState() }
     val scope = rememberCoroutineScope()
     var lastBack by remember { mutableLongStateOf(0L) }
@@ -205,7 +217,7 @@ fun SongshushoupaiApp(
     BackHandler(dest != 2 || settingsSub == null) {
         val now = System.currentTimeMillis()
         if (now - lastBack < 2000) (ctx as? android.app.Activity)?.finish()
-        else { lastBack = now; android.widget.Toast.makeText(ctx, "再按一次退出应用", android.widget.Toast.LENGTH_SHORT).show() }
+        else { lastBack = now; android.widget.Toast.makeText(ctx, ctx.getString(R.string.press_again_exit), android.widget.Toast.LENGTH_SHORT).show() }
     }
 
     fun refresh() {
@@ -252,9 +264,9 @@ fun SongshushoupaiApp(
         containerColor = colorScheme.background,
         topBar = {
             val title = if (dest == 2 && settingsSub != null) when (settingsSub) {
-                "basic" -> "基本设置"; "qrcode" -> "二维码设置"; "theme" -> "主题设置"
-                "backup" -> "数据备份"; "about" -> "关于软件"; else -> "松鼠兽牌"
-            } else "松鼠兽牌"
+                "basic" -> stringResource(R.string.basic_settings); "qrcode" -> stringResource(R.string.qrcode_settings); "theme" -> stringResource(R.string.theme_settings)
+                "backup" -> stringResource(R.string.backup_settings); "about" -> stringResource(R.string.about_settings); "tutorial" -> stringResource(R.string.tutorial_settings); else -> stringResource(R.string.app_name)
+            } else stringResource(R.string.app_name)
             TopAppBar(title = { Text(title) })
         },
         bottomBar = {
@@ -267,7 +279,7 @@ fun SongshushoupaiApp(
                 NavigationBar(containerColor = colorScheme.surface, tonalElevation = 0.dp, modifier = Modifier.height(70.dp)) {
                     AppDestinations.entries.forEach { d ->
                         NavigationBarItem(
-                            icon = { Icon(painterResource(d.icon), d.label, modifier = if (d == AppDestinations.FAVORITES) Modifier.size(40.dp) else Modifier.size(24.dp)) },
+                            icon = { Icon(painterResource(d.icon), stringResource(d.labelRes), modifier = if (d == AppDestinations.FAVORITES) Modifier.size(40.dp) else Modifier.size(24.dp)) },
                             selected = dest == d.ordinal,
                             onClick = {
                                 if (d == AppDestinations.FAVORITES) {
@@ -332,12 +344,14 @@ fun SongshushoupaiApp(
                             onNavigateToThemeSettings = { settingsSub = "theme" },
                             onNavigateToBackupSettings = { settingsSub = "backup" },
                             onNavigateToAboutSettings = { settingsSub = "about" },
+                            onNavigateToTutorial = { settingsSub = "tutorial" },
                             onUpdateClick = { updatePopupInfo = it })
                         "basic" -> BasicSettingsPage()
                         "qrcode" -> QrCodeSettingsPage()
                         "theme" -> ThemeSettingsPage(onThemeChanged, onDarkModeChanged)
                         "backup" -> BackupSettingsPage(onDataChanged = { refresh() })
                         "about" -> AboutSettingsPage()
+                        "tutorial" -> TutorialSettingsPage()
                     }
                 }
             }
@@ -346,7 +360,7 @@ fun SongshushoupaiApp(
                 val info = updatePopupInfo!!
                 AlertDialog(
                     onDismissRequest = { dismissUpdatePopup() },
-                    title = { Text("发现新版本 V ${info.version}") },
+                    title = { Text(stringResource(R.string.new_version_found, info.version)) },
                     text = {
                         if (info.description.isNotBlank()) {
                             HtmlDescriptionText(html = info.description)
@@ -359,10 +373,10 @@ fun SongshushoupaiApp(
                                 try { ctx.startActivity(Intent(Intent.ACTION_VIEW, info.link.toUri())) } catch (_: Exception) {}
                             },
                             shape = DlgShape
-                        ) { Text("查看更新") }
+                        ) { Text(stringResource(R.string.check_update)) }
                     },
                     dismissButton = {
-                        OutlinedButton(onClick = { dismissUpdatePopup() }, shape = DlgShape) { Text("稍后再说") }
+                        OutlinedButton(onClick = { dismissUpdatePopup() }, shape = DlgShape) { Text(stringResource(R.string.maybe_later)) }
                     }
                 )
             }
@@ -397,17 +411,17 @@ fun HomePage(
     }
 
     if (delIdx in imageList.indices) {
-        AlertDialog(onDismissRequest = { delIdx = -1 }, title = { Text("确认删除") },
-            text = { Text("确定要删除「${imageList[delIdx].name}」吗？") },
-            confirmButton = { Button(onClick = { onDelete(delIdx); delIdx = -1 }, shape = DlgShape) { Text("删除") } },
-            dismissButton = { OutlinedButton(onClick = { delIdx = -1 }, shape = DlgShape) { Text("取消") } })
+        AlertDialog(onDismissRequest = { delIdx = -1 }, title = { Text(stringResource(R.string.confirm_delete)) },
+            text = { Text(stringResource(R.string.confirm_delete_msg, imageList[delIdx].name)) },
+            confirmButton = { Button(onClick = { onDelete(delIdx); delIdx = -1 }, shape = DlgShape) { Text(stringResource(R.string.delete)) } },
+            dismissButton = { OutlinedButton(onClick = { delIdx = -1 }, shape = DlgShape) { Text(stringResource(R.string.cancel)) } })
     }
     if (renIdx in imageList.indices) {
         var txt by remember { mutableStateOf(imageList[renIdx].name) }
-        AlertDialog(onDismissRequest = { renIdx = -1 }, title = { Text("重命名") },
-            text = { OutlinedTextField(txt, { txt = it }, singleLine = true, label = { Text("名称") }) },
-            confirmButton = { Button(onClick = { if (txt.isNotBlank()) onRename(renIdx, txt.trim()); renIdx = -1 }, shape = DlgShape) { Text("确认") } },
-            dismissButton = { OutlinedButton(onClick = { renIdx = -1 }, shape = DlgShape) { Text("取消") } })
+        AlertDialog(onDismissRequest = { renIdx = -1 }, title = { Text(stringResource(R.string.rename)) },
+            text = { OutlinedTextField(txt, { txt = it }, singleLine = true, label = { Text(stringResource(R.string.name_label)) }) },
+            confirmButton = { Button(onClick = { if (txt.isNotBlank()) onRename(renIdx, txt.trim()); renIdx = -1 }, shape = DlgShape) { Text(stringResource(R.string.confirm)) } },
+            dismissButton = { OutlinedButton(onClick = { renIdx = -1 }, shape = DlgShape) { Text(stringResource(R.string.cancel)) } })
     }
 }
 
@@ -431,24 +445,24 @@ private fun AddImageCard(onImageClick: () -> Unit, onVideoClick: () -> Unit) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Icon(Icons.Filled.Add, null, Modifier.size(40.dp), colorScheme.primary)
             Spacer(Modifier.height(4.dp))
-            Text("添加兽牌", style = MaterialTheme.typography.bodyMedium, color = colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.add_badge), style = MaterialTheme.typography.bodyMedium, color = colorScheme.onSurfaceVariant)
         }
     }
 
     if (show) {
-        AlertDialog(onDismissRequest = { show = false }, title = { Text("请选择展示方式") },
+        AlertDialog(onDismissRequest = { show = false }, title = { Text(stringResource(R.string.pick_display_mode)) },
             text = {
                 Column {
                     Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(8.dp)) {
                         PickCard(onClick = { show = false; onImageClick() }, icon = Icons.Filled.Image,
-                            label = "图片", tint = colorScheme.primary, modifier = Modifier.weight(1f).height(120.dp))
+                            label = stringResource(R.string.image), tint = colorScheme.primary, modifier = Modifier.weight(1f).height(120.dp))
                         PickCard(onClick = { show = false; onVideoClick() }, icon = Icons.Filled.Videocam,
-                            label = "视频", tint = colorScheme.tertiary, modifier = Modifier.weight(1f).height(120.dp))
+                            label = stringResource(R.string.video), tint = colorScheme.tertiary, modifier = Modifier.weight(1f).height(120.dp))
                     }
                 }
             },
             confirmButton = {},
-            dismissButton = { Button(onClick = { show = false }, modifier = Modifier.fillMaxWidth(), shape = DlgShape) { Text("取消") } })
+            dismissButton = { Button(onClick = { show = false }, modifier = Modifier.fillMaxWidth(), shape = DlgShape) { Text(stringResource(R.string.cancel)) } })
     }
 }
 
@@ -492,19 +506,19 @@ fun ImageCard(
 
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
             Text(item.name, style = MaterialTheme.typography.titleMedium)
-            Text(if (isSelected) "当前使用中" else if (item.isVideo) "视频" else "图片",
+            Text(if (isSelected) stringResource(R.string.currently_in_use) else if (item.isVideo) stringResource(R.string.video) else stringResource(R.string.image),
                 style = MaterialTheme.typography.bodySmall,
                 color = if (isSelected) colorScheme.primary else colorScheme.onSurfaceVariant)
         }
 
         Box {
-            IconButton({ expanded = true }) { Icon(Icons.Filled.MoreVert, "更多选项") }
+            IconButton({ expanded = true }) { Icon(Icons.Filled.MoreVert, stringResource(R.string.more_options)) }
             DropdownMenu(expanded, { expanded = false }, shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.border(BorderStroke(1.dp, colorScheme.outlineVariant), RoundedCornerShape(12.dp))) {
-                DropdownMenuItem({ Text("重命名") }, onClick = { onRenameClick(); expanded = false })
-                DropdownMenuItem({ Text("上移") }, onClick = { onMoveUp(); expanded = false }, enabled = canMoveUp)
-                DropdownMenuItem({ Text("下移") }, onClick = { onMoveDown(); expanded = false }, enabled = canMoveDown)
-                DropdownMenuItem({ Text("删除") }, onClick = { onDelete(); expanded = false })
+                DropdownMenuItem({ Text(stringResource(R.string.rename)) }, onClick = { onRenameClick(); expanded = false })
+                DropdownMenuItem({ Text(stringResource(R.string.move_up)) }, onClick = { onMoveUp(); expanded = false }, enabled = canMoveUp)
+                DropdownMenuItem({ Text(stringResource(R.string.move_down)) }, onClick = { onMoveDown(); expanded = false }, enabled = canMoveDown)
+                DropdownMenuItem({ Text(stringResource(R.string.delete)) }, onClick = { onDelete(); expanded = false })
             }
         }
     }
@@ -518,10 +532,10 @@ fun ImageCard(
     }
 }
 
-enum class AppDestinations(val label: String, val icon: Int) {
-    HOME("主页", R.drawable.ic_home),
-    FAVORITES("启动", R.drawable.ic_favorite),
-    PROFILE("设置", R.drawable.ic_account_box),
+enum class AppDestinations(val labelRes: Int, val icon: Int) {
+    HOME(R.string.nav_home, R.drawable.ic_home),
+    FAVORITES(R.string.nav_start, R.drawable.ic_favorite),
+    PROFILE(R.string.nav_settings, R.drawable.ic_account_box),
 }
 
 @Composable

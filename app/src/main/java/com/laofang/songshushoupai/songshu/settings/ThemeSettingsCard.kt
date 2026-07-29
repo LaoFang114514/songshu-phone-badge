@@ -12,37 +12,39 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.laofang.songshushoupai.songshu.R
 import com.laofang.songshushoupai.songshu.ui.theme.*
 
 @Composable
 fun ThemeSettingsCard(currentDarkMode: Int, onDarkModeChange: (Int) -> Unit, currentThemeColorIndex: Int, onThemeColorIndexChange: (Int) -> Unit) {
     val cs = MaterialTheme.colorScheme
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("深色模式", style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
-        val darkOpts = remember { listOf(0 to "跟随系统", 1 to "浅色模式", 2 to "深色模式") }
+        Text(stringResource(R.string.dark_mode), style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
+        val darkOpts = remember { listOf(0 to R.string.follow_system, 1 to R.string.light_mode, 2 to R.string.dark_mode_label) }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            darkOpts.forEach { (mode, label) ->
+            darkOpts.forEach { (mode, labelRes) ->
                 val sel = currentDarkMode == mode
                 Box(Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
                     .background(if (sel) cs.primary else cs.surfaceVariant.copy(alpha = 0.5f))
                     .clickable { onDarkModeChange(mode) }.padding(vertical = 8.dp),
                     contentAlignment = Alignment.Center) {
-                    Text(label, style = MaterialTheme.typography.bodySmall,
+                    Text(stringResource(labelRes), style = MaterialTheme.typography.bodySmall,
                         color = if (sel) cs.onPrimary else cs.onSurfaceVariant)
                 }
             }
         }
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
-        Text("主题色彩", style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
+        Text(stringResource(R.string.theme_color), style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
         val themeOpts = remember {
             val monet = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
             buildList {
-                if (monet) add(8 to ("莫奈取色" to Color.Unspecified))
-                add(6 to ("红色" to RedPrimaryLight)); add(2 to ("橙色" to OrangePrimaryLight))
-                add(7 to ("黄色" to YellowPrimaryLight)); add(1 to ("绿色" to GreenPrimaryLight))
-                add(5 to ("青色" to TealPrimaryLight)); add(0 to ("蓝色" to BluePrimaryLight))
-                add(4 to ("紫色" to PurplePrimaryLight)); add(3 to ("粉色" to PinkPrimaryLight))
+                if (monet) add(8 to (R.string.monet_color to Color.Unspecified))
+                add(6 to (R.string.color_red to RedPrimaryLight)); add(2 to (R.string.color_orange to OrangePrimaryLight))
+                add(7 to (R.string.color_yellow to YellowPrimaryLight)); add(1 to (R.string.color_green to GreenPrimaryLight))
+                add(5 to (R.string.color_teal to TealPrimaryLight)); add(0 to (R.string.color_blue to BluePrimaryLight))
+                add(4 to (R.string.color_purple to PurplePrimaryLight)); add(3 to (R.string.color_pink to PinkPrimaryLight))
             }
         }
         themeOpts.forEach { (index, pair) ->
@@ -58,7 +60,7 @@ fun ThemeSettingsCard(currentDarkMode: Int, onDarkModeChange: (Int) -> Unit, cur
                     if (index == 8) Icon(painterResource(android.R.drawable.star_on), null, Modifier.size(16.dp), cs.onSurfaceVariant)
                 }
                 Spacer(Modifier.width(14.dp))
-                Text(label, style = MaterialTheme.typography.bodyLarge, color = cs.onSurface, modifier = Modifier.weight(1f))
+                Text(stringResource(label), style = MaterialTheme.typography.bodyLarge, color = cs.onSurface, modifier = Modifier.weight(1f))
                 if (sel) Text("✓", style = MaterialTheme.typography.bodyMedium, color = cs.primary)
             }
         }

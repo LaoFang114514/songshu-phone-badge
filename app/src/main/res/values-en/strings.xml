@@ -1,0 +1,232 @@
+<resources>
+    <string name="app_name">Songshu phone badge</string>
+
+    <!-- home.kt -->
+    <string name="press_again_exit">Press again to exit</string>
+    <string name="basic_settings">Basic Settings</string>
+    <string name="qrcode_settings">QR Code Settings</string>
+    <string name="theme_settings">Theme Settings</string>
+    <string name="backup_settings">Backup</string>
+    <string name="about_settings">About</string>
+    <string name="tutorial_settings">Tutorial</string>
+    <string name="new_version_found">New version %s found</string>
+    <string name="check_update">View Update</string>
+    <string name="maybe_later">Maybe Later</string>
+    <string name="confirm_delete">Confirm Delete</string>
+    <string name="confirm_delete_msg">Are you sure you want to delete \"%s\"?</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="rename">Rename</string>
+    <string name="name_label">Name</string>
+    <string name="confirm">Confirm</string>
+    <string name="currently_in_use">Currently in use</string>
+    <string name="video">Video</string>
+    <string name="image">Image</string>
+    <string name="more_options">More Options</string>
+    <string name="move_up">Move Up</string>
+    <string name="move_down">Move Down</string>
+    <string name="add_badge">Add Badge</string>
+    <string name="pick_display_mode">Select Display Mode</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_start">Start</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- CropActivity -->
+    <string name="loading">Loading…</string>
+    <string name="no_image_selected">No image selected</string>
+    <string name="select_image">Select Image</string>
+    <string name="edit_badge">Edit Badge</string>
+    <string name="new_badge">New Badge</string>
+    <string name="reselect">Reselect</string>
+    <string name="confirm_crop">Confirm Crop</string>
+    <string name="processing">Processing…</string>
+
+    <!-- AppSettings -->
+    <string name="badge_default_name">Badge %d</string>
+    <string name="default_badge">Default Badge</string>
+
+    <!-- setting.kt -->
+    <string name="tip">Notice</string>
+    <string name="ok">OK</string>
+    <string name="confirm_action">Confirm Action</string>
+    <string name="confirm_override_data">This will overwrite current data. Continue?</string>
+    <string name="support_developer">Support the Developer</string>
+    <string name="trial_expiring">Trial expiring soon</string>
+    <string name="sponsor_via">Sponsor via the following channels</string>
+    <string name="please_purchase">Please purchase the full version</string>
+    <string name="purchase_channel_1">Channel 1</string>
+    <string name="purchase_channel_2">Channel 2</string>
+    <string name="checking_update">Checking…</string>
+    <string name="ifdian">iFadian</string>
+    <string name="new_version_title">New version %s</string>
+    <string name="export_success">Export successful</string>
+    <string name="export_failed">Export failed: %s</string>
+    <string name="import_success">Import successful</string>
+    <string name="import_failed">Import failed</string>
+    <string name="config_server_first">Please configure server address first</string>
+    <string name="backup_success">Backup to server successful</string>
+    <string name="restore_success">Restore from server successful</string>
+    <string name="fill_server_address">Please enter server address first</string>
+    <string name="connection_success">Connected successfully</string>
+    <string name="webdav_config_saved">WebDAV config saved</string>
+    <string name="err_auth_fail">Authentication failed. Check username and password.</string>
+    <string name="err_no_permission">Access denied (403). Check if server address includes the correct path.</string>
+    <string name="err_connection_failed">Connection failed: %s</string>
+    <string name="err_network_error">Connection failed. Check your network.</string>
+    <string name="err_upload_auth_fail">Upload failed: authentication error. Check username and password.</string>
+    <string name="err_upload_no_permission">Upload denied (403)</string>
+    <string name="err_upload_failed">Upload failed: %s</string>
+    <string name="err_upload_failed_simple">Upload failed</string>
+    <string name="err_redirect_no_location">Server redirected but no Location header provided</string>
+    <string name="err_backup_not_found">Backup file not found on server. Upload first.</string>
+    <string name="err_download_no_permission">Download denied (403)</string>
+    <string name="err_server_response">Server responded with %s</string>
+    <string name="err_downloaded_empty">Downloaded file is empty</string>
+    <string name="err_no_config_in_zip">No config.json found in ZIP file</string>
+    <string name="err_unknown_error">Unknown error</string>
+
+    <!-- BasicSettingsCard -->
+    <string name="language">Language</string>
+    <string name="language_desc">Change display language</string>
+    <string name="lang_chinese">中文</string>
+    <string name="lang_english">English</string>
+    <string name="reverse_display">Reverse Display</string>
+    <string name="reverse_display_desc">Flip the badge 180° on launch</string>
+    <string name="keep_screen_on">Keep Screen On</string>
+    <string name="keep_screen_on_desc">Prevent screen from turning off during playback</string>
+    <string name="show_battery">Show Battery</string>
+    <string name="show_battery_desc">Display battery percentage at top during fullscreen</string>
+    <string name="lock_orientation">Lock Orientation</string>
+    <string name="lock_orientation_desc">Disable long-press rotation gesture</string>
+    <string name="anti_burn_in">Anti Burn-in</string>
+    <string name="anti_burn_in_desc">Shift display slightly every 5 minutes to prevent OLED burn-in</string>
+    <string name="mute_video">Mute Video</string>
+    <string name="mute_video_desc">Play video without sound by default</string>
+
+    <!-- ThemeSettingsCard -->
+    <string name="dark_mode">Dark Mode</string>
+    <string name="follow_system">Follow System</string>
+    <string name="light_mode">Light Mode</string>
+    <string name="dark_mode_label">Dark Mode</string>
+    <string name="theme_color">Theme Color</string>
+    <string name="monet_color">Monet</string>
+    <string name="color_red">Red</string>
+    <string name="color_orange">Orange</string>
+    <string name="color_yellow">Yellow</string>
+    <string name="color_green">Green</string>
+    <string name="color_teal">Teal</string>
+    <string name="color_blue">Blue</string>
+    <string name="color_purple">Purple</string>
+    <string name="color_pink">Pink</string>
+
+    <!-- QrCodeSettingsCard -->
+    <string name="swipe_show_qr">Swipe to Show QR Code</string>
+    <string name="swipe_show_qr_desc">Swipe up during fullscreen to display QR code</string>
+    <string name="custom_qr">Custom QR Code</string>
+    <string name="custom_qr_imported">Custom QR code imported</string>
+    <string name="custom_qr_default">Not imported, using default image</string>
+    <string name="import_qr">Import</string>
+    <string name="qr_preview">QR Code Preview</string>
+    <string name="default_qr">Default QR Code</string>
+
+    <!-- BackupSettingsCard -->
+    <string name="local_backup">Local Backup</string>
+    <string name="local_backup_desc">Export settings and all images as a ZIP file, or restore from one.</string>
+    <string name="export_config">Export</string>
+    <string name="import_config">Import</string>
+    <string name="webdav_backup">WebDAV Backup</string>
+    <string name="webdav_backup_desc">Configure a WebDAV server to upload or restore backups.</string>
+    <string name="server_address">Server Address</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="test">Test</string>
+    <string name="backup">Backup</string>
+    <string name="restore">Restore</string>
+    <string name="save_config">Save Config</string>
+    <string name="config_webdav_first">Please configure WebDAV server first</string>
+    <string name="data_size">Backup data size</string>
+
+    <!-- AboutSettingsCard -->
+    <string name="app_desc">A simple tool to turn your old phone into a fursuit badge. Create and display your own badge images — perfect for furry fans on a budget.</string>
+    <string name="qq_group">QQ Group</string>
+    <string name="discord">Discord</string>
+    <string name="official_site">Website</string>
+    <string name="cannot_access_page">Cannot open page</string>
+    <string name="jump_failed">Navigation failed: %s</string>
+
+    <!-- TutorialSettingsCard -->
+    <string name="tutorial_welcome_title">Welcome to SPB</string>
+    <string name="tutorial_welcome_desc">This is a quick guide to help you get started.</string>
+
+    <string name="step1_title">1. Add a Badge</string>
+    <string name="step1_desc">Tap \"Add Badge\" at the bottom of the home page, then choose an image to crop or a video as your badge content.</string>
+    <string name="step2_title">2. Select a Badge</string>
+    <string name="step2_desc">Tap a badge in the list to select it. The active badge shows a themed border and \"Currently in use\" label.</string>
+    <string name="step3_title">3. Start Display</string>
+    <string name="step3_desc">Tap the \"Start\" button in the bottom navigation bar to enter fullscreen mode and show your badge.</string>
+    <string name="step4_title">4. QR Code Settings</string>
+    <string name="step4_desc">In Settings → QR Code Settings, upload a QR code image. It will appear when you swipe during fullscreen.</string>
+    <string name="step5_title">5. More Settings</string>
+    <string name="step5_desc">In \"Basic Settings\" you can toggle reverse display, keep screen on, anti burn-in, and more.</string>
+
+    <string name="tutorial_section_basic">Basic Operations</string>
+    <string name="tutorial_section_display">Fullscreen Display</string>
+    <string name="tutorial_section_settings">Settings</string>
+    <string name="tutorial_section_advanced">Advanced</string>
+
+    <string name="tut_add_image_title">Add an Image Badge</string>
+    <string name="tut_add_image_desc">Tap \"Add Badge\" at the bottom of the home page, then select \"Image\" in the dialog. Crop and adjust the image area to your liking, then confirm to create the badge.</string>
+
+    <string name="tut_add_video_title">Add a Video Badge</string>
+    <string name="tut_add_video_desc">Tap \"Add Badge\" and select \"Video\", then pick a video from your gallery. The first frame is automatically saved as the cover. Videos loop continuously in fullscreen.</string>
+
+    <string name="tut_manage_title">Manage Your Badge List</string>
+    <string name="tut_manage_desc">Tap the menu button on any badge card to:\n• Rename — Change the badge name\n• Move Up / Down — Reorder badges\n• Delete — Remove a badge</string>
+
+    <string name="tut_select_title">Select and Switch</string>
+    <string name="tut_select_desc">Tap any badge card in the list to make it active. The selected badge gets a themed border and \"Currently in use\" indicator. Fullscreen display always uses the active badge.</string>
+
+    <string name="tut_start_title">Start Fullscreen</string>
+    <string name="tut_start_desc">Tap the \"Start\" button in the bottom navigation bar to enter fullscreen immersive mode. System bars hide automatically.</string>
+
+    <string name="tut_gesture_rotate_title">Long Press to Rotate</string>
+    <string name="tut_gesture_rotate_desc">In fullscreen, long press to flip the badge 180°. Useful when the phone is mounted upside down. Long press again to restore. If \"Lock Orientation\" is on, rotation is disabled.</string>
+
+    <string name="tut_gesture_exit_title">Pinch to Exit</string>
+    <string name="tut_gesture_exit_desc">In fullscreen, pinch with two fingers to exit and return to the main screen. A smooth fade transition plays on exit.</string>
+
+    <string name="tut_gesture_qr_title">Swipe for QR Code</string>
+    <string name="tut_gesture_qr_desc">In fullscreen, swipe up or down to show the QR code overlay (requires \"Swipe to Show QR Code\" enabled in settings). Tap the QR code area to dismiss.</string>
+
+    <string name="tut_battery_title">Battery Display</string>
+    <string name="tut_battery_desc">In fullscreen, the battery percentage is shown at the top (requires \"Show Battery\" enabled in settings).</string>
+
+    <string name="tut_reverse_title">Reverse Display</string>
+    <string name="tut_reverse_desc">Enable \"Reverse Display\" in Settings → Basic Settings to auto-rotate the badge 180° on launch. Ideal when the phone is mounted upside down in a fursuit head.</string>
+
+    <string name="tut_screen_on_title">Keep Screen On</string>
+    <string name="tut_screen_on_desc">When enabled, the screen stays on during fullscreen playback. Perfect for long-duration badge display.</string>
+
+    <string name="tut_anti_burnin_title">Anti Burn-in</string>
+    <string name="tut_anti_burnin_desc">When enabled, the image shifts slightly every 5 minutes during fullscreen to prevent OLED screen burn-in.</string>
+
+    <string name="tut_qr_code_title">Custom QR Code</string>
+    <string name="tut_qr_code_desc">In Settings → QR Code Settings:\n• Enable \"Swipe to Show QR Code\"\n• Tap \"Import\" to choose your QR code image\n• Preview it below after importing\n• Uses the default QR image if none is imported</string>
+
+    <string name="tut_theme_title">Theme and Appearance</string>
+    <string name="tut_theme_desc">In Settings → Theme Settings you can:\n• Switch between Dark / Light mode\n• Pick a theme color: Red, Orange, Yellow, Green, Teal, Blue, Purple, Pink\n• Android 12+ supports Monet, matching your wallpaper</string>
+
+    <string name="tut_backup_title">Backup and Restore</string>
+    <string name="tut_backup_desc">In Settings → Backup, two methods are supported:\n• Local Backup — Export settings and all images as a ZIP file, or restore from one\n• WebDAV Backup — Configure a server to upload or download backups\n\nGreat for switching devices or preventing data loss.</string>
+
+    <string name="tut_language_title">Language Support</string>
+    <string name="tut_language_desc">In Settings → Basic Settings → Language, you can switch between:\n• Chinese\n• English\n\nThe interface refreshes automatically after switching.</string>
+
+    <!-- SharedOverlays -->
+    <string name="battery_level">Battery: %d%%</string>
+    <string name="pinch_to_exit">Pinch to exit</string>
+    <string name="pinch_exit_rotate">Pinch to exit\nLong press to rotate</string>
+    <string name="badge_flipped">Badge Flipped</string>
+    <string name="qr_loading">Loading QR code…</string>
+    <string name="qr_code">QR Code</string>
+</resources>

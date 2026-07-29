@@ -5,6 +5,7 @@ package com.laofang.songshushoupai.songshu.start
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.pm.ActivityInfo
 import android.graphics.SurfaceTexture
 import android.os.Bundle
@@ -41,6 +42,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import androidx.media3.common.util.UnstableApi
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import com.laofang.songshushoupai.songshu.LocaleHelper
 import com.laofang.songshushoupai.songshu.R
 import com.laofang.songshushoupai.songshu.SettingsManager
 import kotlinx.coroutines.Dispatchers
@@ -48,6 +50,9 @@ import kotlinx.coroutines.Job
 import java.io.File
 
 class VideoPlayerActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT

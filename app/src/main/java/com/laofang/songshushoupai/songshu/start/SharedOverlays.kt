@@ -39,9 +39,12 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.graphics.Bitmap
+import com.laofang.songshushoupai.songshu.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -186,7 +189,7 @@ fun BoxScope.BatteryOverlay(level: Int, rotation: Float) {
     if (level < 0) return
     Box(Modifier.align(if (rotation == 0f) Alignment.TopCenter else Alignment.BottomCenter)
         .graphicsLayer(rotationZ = rotation).padding(top = 12.dp)) {
-        Text("电量：$level%", color = Color.White, fontSize = 13.sp,
+        Text(stringResource(R.string.battery_level, level), color = Color.White, fontSize = 13.sp,
             modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                 .padding(horizontal = 10.dp, vertical = 4.dp))
     }
@@ -198,8 +201,9 @@ fun BoxScope.InitialHintOverlay(lock: Boolean, rotation: Float, visible: Boolean
     Box(Modifier.align(if (rotation == 0f) Alignment.BottomCenter else Alignment.TopCenter)
         .graphicsLayer(rotationZ = rotation)) {
         Text(
-            if (lock) "双指捏合退出播放" else "双指捏合退出播放\n长按屏幕旋转兽牌",
+            if (lock) stringResource(R.string.pinch_to_exit) else stringResource(R.string.pinch_exit_rotate),
             color = Color.White,
+            textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 50.dp).background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         )
@@ -210,7 +214,7 @@ fun BoxScope.InitialHintOverlay(lock: Boolean, rotation: Float, visible: Boolean
 fun BoxScope.RotationHintOverlay(rotation: Float, visible: Boolean) {
     if (!visible) return
     Box(Modifier.align(Alignment.Center).graphicsLayer(rotationZ = rotation)) {
-        Text("已翻转兽牌", color = Color.White,
+        Text(stringResource(R.string.badge_flipped), color = Color.White,
             modifier = Modifier.background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
                 .padding(horizontal = 16.dp, vertical = 8.dp))
     }
@@ -226,11 +230,11 @@ fun QrOverlay(qr: QrAnims, qrBitmap: Bitmap?, rotation: Float, onTap: () -> Unit
         contentAlignment = Alignment.Center) {
         if (qrBitmap != null) Image(
             painter = BitmapPainter(qrBitmap.asImageBitmap()),
-            contentDescription = "二维码",
+            contentDescription = stringResource(R.string.qr_code),
             modifier = Modifier.fillMaxWidth(0.7f).heightIn(max = 400.dp).graphicsLayer {
                 scaleX = qr.cScale.value; scaleY = qr.cScale.value; alpha = qr.cAlpha.value
             },
             contentScale = ContentScale.Fit)
-        else Text("二维码加载中...", color = Color.White.copy(alpha = qr.cAlpha.value))
+        else Text(stringResource(R.string.qr_loading), color = Color.White.copy(alpha = qr.cAlpha.value))
     }
 }

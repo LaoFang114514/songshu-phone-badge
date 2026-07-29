@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -53,6 +54,7 @@ import com.laofang.songshushoupai.songshu.settings.QrCodeSettingsCard
 import com.laofang.songshushoupai.songshu.settings.ThemeSettingsCard
 import com.laofang.songshushoupai.songshu.settings.BackupSettingsCard
 import com.laofang.songshushoupai.songshu.settings.AboutSettingsCard
+import com.laofang.songshushoupai.songshu.settings.TutorialSettingsCard
 import android.content.Context
 import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
@@ -105,9 +107,9 @@ private fun NavRow(label: String, onClick: () -> Unit) {
 private fun StatusDialog(message: String, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("提示") },
+        title = { Text(stringResource(R.string.tip)) },
         text = { Text(message) },
-        confirmButton = { Button(onClick = onDismiss, shape = BtnShape) { Text("确定") } },
+        confirmButton = { Button(onClick = onDismiss, shape = BtnShape) { Text(stringResource(R.string.ok)) } },
         shape = BtnShape
     )
 }
@@ -116,12 +118,12 @@ private fun StatusDialog(message: String, onDismiss: () -> Unit) {
 private fun BackupConfirmDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("确认操作") },
-        text = { Text("此操作将覆盖当前数据，确定要继续吗？") },
+        title = { Text(stringResource(R.string.confirm_action)) },
+        text = { Text(stringResource(R.string.confirm_override_data)) },
         confirmButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = onDismiss, shape = BtnShape) { Text("取消") }
-                Button(onClick = onConfirm, shape = BtnShape) { Text("确定") }
+                OutlinedButton(onClick = onDismiss, shape = BtnShape) { Text(stringResource(R.string.cancel)) }
+                Button(onClick = onConfirm, shape = BtnShape) { Text(stringResource(R.string.ok)) }
             }
         },
         dismissButton = {},
@@ -140,6 +142,7 @@ fun SettingsPage(
     onNavigateToThemeSettings: () -> Unit = {},
     onNavigateToBackupSettings: () -> Unit = {},
     onNavigateToAboutSettings: () -> Unit = {},
+    onNavigateToTutorial: () -> Unit = {},
     onUpdateClick: (UpdateInfo) -> Unit = {}
 ) {
     val ctx = LocalContext.current
@@ -194,14 +197,13 @@ fun SettingsPage(
             Column(modifier = Modifier.padding(16.dp)) {
                 val aprilFools = isAprilFools()
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // ... 试用版那个纯愚人节玩笑，别当真，各位扒源码看到这个的时候千万不要刀我.jpg ...
-                    Text(if (aprilFools) "此软件试用即将到期" else "支持开发者", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                    Text(if (aprilFools) stringResource(R.string.trial_expiring) else stringResource(R.string.support_developer), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                     Surface(
                         color = MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
                         modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { doCheckUpdate(true) }
                     ) {
                         Text(
-                            if (checkingUpdate) "检查中..." else "V${BuildConfig.VERSION_NAME}",
+                            if (checkingUpdate) stringResource(R.string.checking_update) else "V${BuildConfig.VERSION_NAME}",
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.error
@@ -209,11 +211,12 @@ fun SettingsPage(
                     }
                 }
                 Spacer(Modifier.height(6.dp))
-                Text(if (aprilFools) "请购买正版" else "欢迎通过以下渠道赞助", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                Text(if (aprilFools) stringResource(R.string.please_purchase) else stringResource(R.string.sponsor_via), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                 Spacer(Modifier.height(16.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedButton(onClick = { openUrl(ctx, "https://www.ifdian.net/a/laofang") }, Modifier.weight(1f), shape = BtnShape) { Text(if (aprilFools) "购买渠道一" else "爱发电") }
-                    OutlinedButton(onClick = { openUrl(ctx, "https://ko-fi.com/laofang") }, Modifier.weight(1f), shape = BtnShape) { Text(if (aprilFools) "购买渠道二" else "Ko-fi") }
+                    OutlinedButton(onClick = { openUrl(ctx, "https://www.ifdian.net/a/laofang") }, Modifier.weight(1f), shape = BtnShape) { Text(if (aprilFools) stringResource(R.string.purchase_channel_1) else stringResource(R.string.ifdian)) }
+                    OutlinedButton(onClick = { openUrl(ctx, "https://ko-fi.com/laofang") }, Modifier.weight(1f), shape = BtnShape) { Text(if (aprilFools) stringResource(R.string.purchase_channel_2) else "Ko-fi") }
+
                 }
             }
         }
@@ -229,7 +232,7 @@ fun SettingsPage(
                     modifier = Modifier.fillMaxWidth().padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("发现新版本 ${info.version}", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                    Text(stringResource(R.string.new_version_title, info.version), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                     Text(" ▶", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -251,7 +254,7 @@ fun SettingsPage(
                     }.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("这是一条临时通知", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                    Text(stringResource(R.string.temp_notice), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                     Text(if (emergencyExpanded) "▲" else "▼", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 AnimatedVisibility(
@@ -268,10 +271,7 @@ fun SettingsPage(
                         )
                         Spacer(Modifier.height(12.dp))
                         Text(
-                            "大家好，我是呆龙，塔塔的cp，塔塔在得闲兽聚突发中风，目前的情况很危险，很多朋友在帮我们我非常感激各位，我知道他的性格不是很讨喜，可能很多人讨厌他，但是他的家庭并不是很富裕已经无力扶起高昂的医疗费用。\n" +
-                            "我记得第一次跟他参加展会，第一次一起在武汉聚会，我没法漠视他这样离开。\n" +
-                            "我作为他的对象如果放弃的话他会失去生命，如果病情继续恶化我会无力负担高额的治疗费用，但是我不愿意放弃他的生命，恳请各位提供力所能及的帮助，不胜感激。\n" +
-                            "量力而行，恳请各位转发谢谢。",
+                            stringResource(R.string.notice_content),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.fillMaxWidth()
@@ -281,24 +281,32 @@ fun SettingsPage(
                             onClick = { openUrl(ctx, "https://h5.qzone.qq.com/ugc/share/?sharetag=9653E56224DEB4DF2573CB788FF50CB2&subtype=&ciphertext=&sid=&blog_photo=&g=84&res_uin=2908807760&cellid=50e260ad98d85c6ac7a40a00&subid=&bp1=&bp2=&bp7=&appid=311#wechat_qqauth&wechat_redirect") },
                             modifier = Modifier.fillMaxWidth(),
                             shape = BtnShape
-                        ) { Text("前往了解详情") }
+                        ) { Text(stringResource(R.string.learn_more)) }
+
                     }
                 }
             }
         }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-        NavRow("基本设置") { onNavigateToBasicSettings() }
-        NavRow("二维码设置") { onNavigateToQrCodeSettings() }
-        NavRow("主题设置") { onNavigateToThemeSettings() }
-        NavRow("数据备份") { onNavigateToBackupSettings() }
-        NavRow("关于软件") { onNavigateToAboutSettings() }
+        NavRow(stringResource(R.string.basic_settings)) { onNavigateToBasicSettings() }
+        NavRow(stringResource(R.string.qrcode_settings)) { onNavigateToQrCodeSettings() }
+        NavRow(stringResource(R.string.theme_settings)) { onNavigateToThemeSettings() }
+        NavRow(stringResource(R.string.backup_settings)) { onNavigateToBackupSettings() }
+        NavRow(stringResource(R.string.tutorial_settings)) { onNavigateToTutorial() }
+        NavRow(stringResource(R.string.about_settings)) { onNavigateToAboutSettings() }
+
     }
 }
 
 @Composable
 fun AboutSettingsPage() {
     SettingsPageScaffold { AboutSettingsCard() }
+}
+
+@Composable
+fun TutorialSettingsPage() {
+    SettingsPageScaffold { TutorialSettingsCard() }
 }
 
 @Composable
@@ -322,13 +330,22 @@ fun BasicSettingsPage() = SettingsPageHost(
     load = { SettingsManager.loadSettings(it) },
     save = { ctx, s -> SettingsManager.saveSettings(ctx, s) }
 ) { s, update ->
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
     BasicSettingsCard(
         defaultOrientation = s.defaultOrientation, onDefaultOrientationChange = { update { copy(defaultOrientation = it) } },
         keepScreenOn = s.keepScreenOn, onKeepScreenOnChange = { update { copy(keepScreenOn = it) } },
         showBattery = s.showBattery, onShowBatteryChange = { update { copy(showBattery = it) } },
         lockOrientation = s.lockOrientation, onLockOrientationChange = { update { copy(lockOrientation = it) } },
         antiBurnIn = s.antiBurnIn, onAntiBurnInChange = { update { copy(antiBurnIn = it) } },
-        muteVideo = s.muteVideo, onMuteVideoChange = { update { copy(muteVideo = it) } }
+        muteVideo = s.muteVideo, onMuteVideoChange = { update { copy(muteVideo = it) } },
+        languageIndex = s.languageIndex, onLanguageChange = {
+            update { copy(languageIndex = it) }
+            scope.launch {
+                kotlinx.coroutines.delay(500.milliseconds)
+                (ctx as? android.app.Activity)?.recreate()
+            }
+        }
     )
 }
 
@@ -405,7 +422,7 @@ fun BackupSettingsPage(onDataChanged: () -> Unit = {}) {
         isLoading = true
         scope.launch {
             val msg = withContext(Dispatchers.IO) {
-                try { BackupManager.exportToZip(appCtx, uri); "导出成功" } catch (e: Exception) { "导出失败: ${e.localizedMessage}" }
+                try { BackupManager.exportToZip(appCtx, uri); ERR_EXPORT_SUCCESS } catch (e: Exception) { "$ERR_EXPORT_FAILED:${e.localizedMessage}" }
             }
             statusMsg = msg; isLoading = false
         }
@@ -416,7 +433,7 @@ fun BackupSettingsPage(onDataChanged: () -> Unit = {}) {
         isLoading = true
         scope.launch {
             val ok = withContext(Dispatchers.IO) { BackupManager.importFromZip(appCtx, uri) }
-            statusMsg = if (ok) "导入成功" else "导入失败"; isLoading = false
+            statusMsg = if (ok) ERR_IMPORT_SUCCESS else ERR_IMPORT_FAILED; isLoading = false
             if (ok) onDataChanged()
         }
     }
@@ -427,14 +444,14 @@ fun BackupSettingsPage(onDataChanged: () -> Unit = {}) {
             BackupOperation.IMPORT -> importLauncher.launch(arrayOf("application/zip", "application/octet-stream"))
             BackupOperation.WEBDAV_UPLOAD, BackupOperation.WEBDAV_DOWNLOAD -> {
                 val cfg = BackupManager.loadWebDavConfig(appCtx)
-                if (cfg.url.isBlank()) { statusMsg = "请先配置服务器地址"; return }
+                if (cfg.url.isBlank()) { statusMsg = ERR_CONFIG_SERVER_FIRST; return }
                 isLoading = true
                 scope.launch {
                     val result = withContext(Dispatchers.IO) {
                         if (op == BackupOperation.WEBDAV_UPLOAD) BackupManager.webdavUpload(appCtx, cfg)
                         else BackupManager.webdavDownload(appCtx, cfg)
                     }
-                    statusMsg = result ?: if (op == BackupOperation.WEBDAV_UPLOAD) "备份到服务器成功" else "从服务器恢复成功"
+                    statusMsg = result ?: if (op == BackupOperation.WEBDAV_UPLOAD) ERR_BACKUP_SUCCESS else ERR_RESTORE_SUCCESS
                     isLoading = false
                     if (result == null && op == BackupOperation.WEBDAV_DOWNLOAD) onDataChanged()
                 }
@@ -442,7 +459,7 @@ fun BackupSettingsPage(onDataChanged: () -> Unit = {}) {
         }
     }
 
-    statusMsg?.let { StatusDialog(message = it, onDismiss = { statusMsg = null }) }
+    statusMsg?.let { StatusDialog(message = backupErrorMsg(it), onDismiss = { statusMsg = null }) }
 
     SettingsPageScaffold {
         BackupSettingsCard(
@@ -454,18 +471,18 @@ fun BackupSettingsPage(onDataChanged: () -> Unit = {}) {
             onWebdavUserChange = { webdavUser = it },
             onWebdavPassChange = { webdavPass = it },
             onTestConnection = {
-                if (webdavUrl.isBlank()) { statusMsg = "请先填写服务器地址"; return@BackupSettingsCard }
+                if (webdavUrl.isBlank()) { statusMsg = ERR_FILL_SERVER; return@BackupSettingsCard }
                 isTesting = true
                 scope.launch {
                     val err = BackupManager.webdavTestConnection(WebDavConfig(webdavUrl, webdavUser, webdavPass))
-                    statusMsg = if (err == null) "连接成功!" else "连接失败: $err"
+                    statusMsg = err ?: ERR_CONNECTION_SUCCESS
                     isTesting = false
                 }
             },
             onSaveWebDavConfig = {
                 BackupManager.saveWebDavConfig(appCtx, WebDavConfig(webdavUrl, webdavUser, webdavPass))
                 savedUrl = webdavUrl; savedUser = webdavUser; savedPass = webdavPass
-                statusMsg = "WebDAV 配置已保存"
+                statusMsg = ERR_WEBDAV_CONFIG_SAVED
             },
             isTesting = isTesting,
             isConfigModified = isConfigModified
@@ -477,5 +494,65 @@ fun BackupSettingsPage(onDataChanged: () -> Unit = {}) {
             onDismiss = { showConfirm = false; pendingOp = null },
             onConfirm = { showConfirm = false; pendingOp?.let { exec(it) }; pendingOp = null }
         )
+    }
+}
+
+private const val ERR_EXPORT_SUCCESS = "_export_ok"
+private const val ERR_EXPORT_FAILED = "_export_fail"
+private const val ERR_IMPORT_SUCCESS = "_import_ok"
+private const val ERR_IMPORT_FAILED = "_import_fail"
+private const val ERR_CONFIG_SERVER_FIRST = "_config_server"
+private const val ERR_BACKUP_SUCCESS = "_backup_ok"
+private const val ERR_RESTORE_SUCCESS = "_restore_ok"
+private const val ERR_FILL_SERVER = "_fill_server"
+private const val ERR_CONNECTION_SUCCESS = "_conn_ok"
+private const val ERR_WEBDAV_CONFIG_SAVED = "_webdav_saved"
+
+@Composable
+private fun backupErrorMsg(code: String?): String {
+    if (code == null) return ""
+    val ctx = LocalContext.current
+    return when {
+        code == BackupManager.ERR_AUTH_FAIL -> ctx.getString(R.string.err_auth_fail)
+        code == BackupManager.ERR_NO_PERMISSION -> ctx.getString(R.string.err_no_permission)
+        code.startsWith(BackupManager.ERR_CONNECTION_FAILED) -> {
+            val parts = code.split(":", limit = 2)
+            val detail = if (parts.size > 1) parts[1] else code
+            ctx.getString(R.string.err_connection_failed, detail)
+        }
+        code == BackupManager.ERR_NETWORK_ERROR -> ctx.getString(R.string.err_network_error)
+        code == BackupManager.ERR_UPLOAD_AUTH_FAIL -> ctx.getString(R.string.err_upload_auth_fail)
+        code == BackupManager.ERR_UPLOAD_NO_PERMISSION -> ctx.getString(R.string.err_upload_no_permission)
+        code.startsWith(BackupManager.ERR_UPLOAD_FAILED) -> {
+            val parts = code.split(":", limit = 2)
+            val detail = if (parts.size > 1) parts[1] else code
+            ctx.getString(R.string.err_upload_failed, detail)
+        }
+        code == BackupManager.ERR_UPLOAD_FAILED_SIMPLE -> ctx.getString(R.string.err_upload_failed_simple)
+        code == BackupManager.ERR_REDIRECT_NO_LOCATION -> ctx.getString(R.string.err_redirect_no_location)
+        code == BackupManager.ERR_BACKUP_NOT_FOUND -> ctx.getString(R.string.err_backup_not_found)
+        code == BackupManager.ERR_DOWNLOAD_NO_PERMISSION -> ctx.getString(R.string.err_download_no_permission)
+        code.startsWith(BackupManager.ERR_SERVER_RESPONSE) -> {
+            val parts = code.split(":", limit = 2)
+            val detail = if (parts.size > 1) parts[1] else code
+            ctx.getString(R.string.err_server_response, detail)
+        }
+        code == BackupManager.ERR_DOWNLOADED_EMPTY -> ctx.getString(R.string.err_downloaded_empty)
+        code == BackupManager.ERR_NO_CONFIG_IN_ZIP -> ctx.getString(R.string.err_no_config_in_zip)
+        code == BackupManager.ERR_UNKNOWN_ERROR -> ctx.getString(R.string.err_unknown_error)
+        code == ERR_EXPORT_SUCCESS -> ctx.getString(R.string.export_success)
+        code.startsWith(ERR_EXPORT_FAILED) -> {
+            val detail = code.split(":", limit = 2).getOrElse(1) { "" }
+            ctx.getString(R.string.export_failed, detail)
+        }
+        code == ERR_IMPORT_SUCCESS -> ctx.getString(R.string.import_success)
+        code == ERR_IMPORT_FAILED -> ctx.getString(R.string.import_failed)
+        code == ERR_CONFIG_SERVER_FIRST -> ctx.getString(R.string.config_server_first)
+        code == ERR_BACKUP_SUCCESS -> ctx.getString(R.string.backup_success)
+        code == ERR_RESTORE_SUCCESS -> ctx.getString(R.string.restore_success)
+        code == ERR_FILL_SERVER -> ctx.getString(R.string.fill_server_address)
+        code == ERR_CONNECTION_SUCCESS -> ctx.getString(R.string.connection_success)
+        code == ERR_WEBDAV_CONFIG_SAVED -> ctx.getString(R.string.webdav_config_saved)
+        else -> code
     }
 }
