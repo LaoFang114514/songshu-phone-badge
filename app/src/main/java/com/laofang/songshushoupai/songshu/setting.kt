@@ -196,6 +196,7 @@ fun SettingsPage(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 val aprilFools = isAprilFools()
+                // 付费纯愚人节玩笑，请勿当真
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(if (aprilFools) stringResource(R.string.trial_expiring) else stringResource(R.string.support_developer), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                     Surface(
