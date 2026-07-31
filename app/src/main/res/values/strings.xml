@@ -1,0 +1,235 @@
+<resources>
+    <string name="app_name">松鼠兽牌</string>
+
+    <!-- home.kt -->
+    <string name="press_again_exit">再按一次退出应用</string>
+    <string name="basic_settings">基本设置</string>
+    <string name="qrcode_settings">二维码设置</string>
+    <string name="theme_settings">主题设置</string>
+    <string name="backup_settings">数据备份</string>
+    <string name="about_settings">关于软件</string>
+    <string name="tutorial_settings">使用教程</string>
+    <string name="new_version_found">发现新版本 V %s</string>
+    <string name="check_update">查看更新</string>
+    <string name="maybe_later">稍后再说</string>
+    <string name="confirm_delete">确认删除</string>
+    <string name="confirm_delete_msg">确定要删除「%s」吗？</string>
+    <string name="delete">删除</string>
+    <string name="cancel">取消</string>
+    <string name="rename">重命名</string>
+    <string name="name_label">名称</string>
+    <string name="confirm">确认</string>
+    <string name="currently_in_use">当前使用中</string>
+    <string name="video">视频</string>
+    <string name="image">图片</string>
+    <string name="more_options">更多选项</string>
+    <string name="move_up">上移</string>
+    <string name="move_down">下移</string>
+    <string name="add_badge">添加兽牌</string>
+    <string name="pick_display_mode">请选择展示方式</string>
+    <string name="nav_home">主页</string>
+    <string name="nav_start">启动</string>
+    <string name="nav_settings">设置</string>
+
+    <!-- CropActivity -->
+    <string name="loading">加载中...</string>
+    <string name="no_image_selected">未选择图片</string>
+    <string name="select_image">选择图片</string>
+    <string name="edit_badge">编辑兽牌</string>
+    <string name="new_badge">新建兽牌</string>
+    <string name="reselect">重新选择</string>
+    <string name="confirm_crop">确认裁剪</string>
+    <string name="processing">处理中...</string>
+
+    <!-- AppSettings -->
+    <string name="badge_default_name">兽牌 %d</string>
+    <string name="default_badge">默认兽牌</string>
+
+    <!-- setting.kt -->
+    <string name="tip">提示</string>
+    <string name="ok">确定</string>
+    <string name="confirm_action">确认操作</string>
+    <string name="confirm_override_data">此操作将覆盖当前数据，确定要继续吗？</string>
+    <string name="support_developer">支持开发者</string>
+    <string name="trial_expiring">此软件试用即将到期</string>
+    <string name="sponsor_via">欢迎通过以下渠道赞助</string>
+    <string name="please_purchase">请购买正版</string>
+    <string name="purchase_channel_1">购买渠道一</string>
+    <string name="purchase_channel_2">购买渠道二</string>
+    <string name="temp_notice" translatable="false">这是一条临时通知</string>
+    <string name="notice_content" translatable="false">大家好，我是呆龙，塔塔的cp，塔塔在得闲兽聚突发中风，目前的情况很危险，很多朋友在帮我们我非常感激各位，我知道他的性格不是很讨喜，可能很多人讨厌他，但是他的家庭并不是很富裕已经无力扶起高昂的医疗费用。\n我记得第一次跟他参加展会，第一次一起在武汉聚会，我没法漠视他这样离开。\n我作为他的对象如果放弃的话他会失去生命，如果病情继续恶化我会无力负担高额的治疗费用，但是我不愿意放弃他的生命，恳请各位提供力所能及的帮助，不胜感激。\n量力而行，恳请各位转发谢谢。</string>
+    <string name="learn_more" translatable="false">前往了解详情</string>
+    <string name="checking_update">检查中...</string>
+    <string name="ifdian">爱发电</string>
+    <string name="new_version_title">发现新版本 %s</string>
+    <string name="export_success">导出成功</string>
+    <string name="export_failed">导出失败: %s</string>
+    <string name="import_success">导入成功</string>
+    <string name="import_failed">导入失败</string>
+    <string name="config_server_first">请先配置服务器地址</string>
+    <string name="backup_success">备份到服务器成功</string>
+    <string name="restore_success">从服务器恢复成功</string>
+    <string name="fill_server_address">请先填写服务器地址</string>
+    <string name="connection_success">连接成功!</string>
+    <string name="webdav_config_saved">WebDAV 配置已保存</string>
+    <string name="err_auth_fail">认证失败，请检查用户名和密码</string>
+    <string name="err_no_permission">无权限访问 (403)，请检查服务器地址是否包含用户名路径</string>
+    <string name="err_connection_failed">连接失败: %s</string>
+    <string name="err_network_error">连接失败，请检查网络</string>
+    <string name="err_upload_auth_fail">上传认证失败，请检查用户名和密码</string>
+    <string name="err_upload_no_permission">上传无权限 (403)</string>
+    <string name="err_upload_failed">上传失败: %s</string>
+    <string name="err_upload_failed_simple">上传失败</string>
+    <string name="err_redirect_no_location">服务器重定向但未提供 Location 头</string>
+    <string name="err_backup_not_found">服务器上未找到备份文件，请先上传</string>
+    <string name="err_download_no_permission">无权限下载 (403)</string>
+    <string name="err_server_response">服务器返回 %s</string>
+    <string name="err_downloaded_empty">下载的文件为空</string>
+    <string name="err_no_config_in_zip">ZIP文件中未找到配置文件 config.json</string>
+    <string name="err_unknown_error">未知错误</string>
+
+    <!-- BasicSettingsCard -->
+    <string name="language">语言</string>
+    <string name="language_desc">更改语言</string>
+    <string name="lang_chinese">中文</string>
+    <string name="lang_english">English</string>
+    <string name="reverse_display">反向显示</string>
+    <string name="reverse_display_desc">打开此开关即为反向显示</string>
+    <string name="keep_screen_on">常亮显示</string>
+    <string name="keep_screen_on_desc">启动时屏幕保持常亮</string>
+    <string name="show_battery">显示电池电量</string>
+    <string name="show_battery_desc">在全屏播放时顶部显示电池电量</string>
+    <string name="lock_orientation">锁定方向</string>
+    <string name="lock_orientation_desc">锁定后长按不会旋转兽牌</string>
+    <string name="anti_burn_in">防烧屏</string>
+    <string name="anti_burn_in_desc">每隔5分钟轻微移动，防止屏幕残影</string>
+    <string name="mute_video">视频静音</string>
+    <string name="mute_video_desc">播放视频时默认静音</string>
+
+    <!-- ThemeSettingsCard -->
+    <string name="dark_mode">深色模式</string>
+    <string name="follow_system">跟随系统</string>
+    <string name="light_mode">浅色模式</string>
+    <string name="dark_mode_label">深色模式</string>
+    <string name="theme_color">主题色彩</string>
+    <string name="monet_color">莫奈取色</string>
+    <string name="color_red">红色</string>
+    <string name="color_orange">橙色</string>
+    <string name="color_yellow">黄色</string>
+    <string name="color_green">绿色</string>
+    <string name="color_teal">青色</string>
+    <string name="color_blue">蓝色</string>
+    <string name="color_purple">紫色</string>
+    <string name="color_pink">粉色</string>
+
+    <!-- QrCodeSettingsCard -->
+    <string name="swipe_show_qr">上划展示二维码</string>
+    <string name="swipe_show_qr_desc">打开上划屏幕展示二维码</string>
+    <string name="custom_qr">自定义二维码</string>
+    <string name="custom_qr_imported">已导入自定义二维码</string>
+    <string name="custom_qr_default">未导入，将使用默认示例图</string>
+    <string name="import_qr">导入</string>
+    <string name="qr_preview">二维码预览</string>
+    <string name="default_qr">默认二维码</string>
+
+    <!-- BackupSettingsCard -->
+    <string name="local_backup">本地备份</string>
+    <string name="local_backup_desc">将配置和所有图片导出为ZIP文件，或从ZIP文件恢复。</string>
+    <string name="export_config">导出配置</string>
+    <string name="import_config">导入配置</string>
+    <string name="webdav_backup">WebDAV 备份</string>
+    <string name="webdav_backup_desc">配置WebDAV服务器地址，将备份上传到服务器或从服务器恢复。</string>
+    <string name="server_address">服务器地址</string>
+    <string name="username">用户名</string>
+    <string name="password">密码</string>
+    <string name="test">测试</string>
+    <string name="backup">备份</string>
+    <string name="restore">恢复</string>
+    <string name="save_config">保存配置</string>
+    <string name="config_webdav_first">请先配置 WebDAV 服务器地址</string>
+    <string name="data_size">要备份的数据大小</string>
+
+    <!-- AboutSettingsCard -->
+    <string name="app_desc">一款简单易用的旧手机变兽牌工具，帮助你使用旧手机快速创建和展示自己的兽牌图片，适合需要兽牌但经费不足的小伙伴。</string>
+    <string name="qq_group">QQ群</string>
+    <string name="discord">Discord</string>
+    <string name="official_site">官网</string>
+    <string name="cannot_access_page">无法访问页面</string>
+    <string name="jump_failed">跳转失败: %s</string>
+
+    <!-- TutorialSettingsCard -->
+    <string name="step1_title">1. 添加兽牌</string>
+    <string name="step1_desc">在主页点击底部的「添加兽牌」按钮，选择图片裁切或视频作为兽牌内容。</string>
+    <string name="step2_title">2. 选择兽牌</string>
+    <string name="step2_desc">在列表中点击你想使用的兽牌，选中后底部会显示「当前使用中」。</string>
+    <string name="step3_title">3. 启动展示</string>
+    <string name="step3_desc">点击底部导航栏中间的「启动」按钮，即可全屏展示你选择的兽牌。</string>
+    <string name="step4_title">4. 设置二维码</string>
+    <string name="step4_desc">在设置 → 二维码设置中，可以上传二维码图片，展示时会显示在角落。</string>
+    <string name="step5_title">5. 更多设置</string>
+    <string name="step5_desc">在「基本设置」中可以调整反向显示、常亮、防烧屏等选项。</string>
+
+    <string name="tutorial_welcome_title">欢迎使用松鼠兽牌</string>
+    <string name="tutorial_welcome_desc">这是这个软件的教程</string>
+
+    <string name="tutorial_section_basic">基础操作</string>
+    <string name="tutorial_section_display">全屏展示</string>
+    <string name="tutorial_section_settings">功能设置</string>
+    <string name="tutorial_section_advanced">进阶功能</string>
+
+    <string name="tut_add_image_title">添加图片兽牌</string>
+    <string name="tut_add_image_desc">在主页点击底部「添加兽牌」按钮，在弹出的对话框中选择「图片」。随后会进入裁剪界面，你可以拖动和缩放图片来选择展示区域，确认后即可创建兽牌。</string>
+
+    <string name="tut_add_video_title">添加视频兽牌</string>
+    <string name="tut_add_video_desc">点击「添加兽牌」后选择「视频」，从相册中选取一段视频。系统会自动提取第一帧作为封面。视频兽牌在全屏播放时会循环播放。</string>
+
+    <string name="tut_manage_title">管理兽牌列表</string>
+    <string name="tut_manage_desc">点击兽牌卡片右侧的菜单按钮，可以进行以下操作：\n• 重命名 — 修改兽牌的显示名称\n• 上移 / 下移 — 调整兽牌在列表中的顺序\n• 删除 — 移除不需要的兽牌</string>
+
+    <string name="tut_select_title">选择与切换</string>
+    <string name="tut_select_desc">直接点击列表中的兽牌卡片即可选中，选中的兽牌会显示主题色边框和「当前使用中」标记。启动展示时会使用当前选中的兽牌。</string>
+
+    <string name="tut_start_title">启动全屏展示</string>
+    <string name="tut_start_desc">点击底部导航栏中间的「启动」按钮，应用会进入全屏模式展示当前选中的兽牌，系统栏自动隐藏，获得沉浸式体验。</string>
+
+    <string name="tut_gesture_rotate_title">长按旋转</string>
+    <string name="tut_gesture_rotate_desc">在全屏展示时，长按屏幕可以将兽牌旋转 180°，适合将手机倒置摆放时使用。再次长按可恢复原始方向。如果在基本设置中开启了「锁定方向」，则长按不会触发旋转。</string>
+
+    <string name="tut_gesture_exit_title">双指捏合退出</string>
+    <string name="tut_gesture_exit_desc">在全屏展示时，用双指捏合手势即可退出播放，返回主界面。操作时会显示淡入淡出的过渡动画。</string>
+
+    <string name="tut_gesture_qr_title">滑动展示二维码</string>
+    <string name="tut_gesture_qr_desc">在全屏展示时，向上或向下滑动屏幕可以弹出二维码覆盖层（需要在设置中开启「上划展示二维码」功能）。点击二维码区域任意位置即可关闭。</string>
+
+    <string name="tut_battery_title">电量显示</string>
+    <string name="tut_battery_desc">全屏展示时，屏幕顶部会显示当前电池电量百分比（需要在基本设置中开启「显示电池电量」）。方便你随时监控手机剩余电量。</string>
+
+    <string name="tut_reverse_title">反向显示</string>
+    <string name="tut_reverse_desc">在「设置 → 基本设置」中开启「反向显示」后，启动时兽牌会自动旋转 180°。适合将手机倒置安装在兽装头部时使用，无需手动旋转。</string>
+
+    <string name="tut_screen_on_title">常亮显示</string>
+    <string name="tut_screen_on_desc">开启「常亮显示」后，全屏播放时屏幕会保持常亮状态，不会自动熄灭。适合长时间展示兽牌的场景。</string>
+
+    <string name="tut_anti_burnin_title">防烧屏</string>
+    <string name="tut_anti_burnin_desc">开启后，全屏展示时画面会每隔 5 分钟轻微上下移动，防止 OLED 屏幕因长时间显示静态画面而产生残影（烧屏）现象。</string>
+
+    <string name="tut_qr_code_title">自定义二维码</string>
+    <string name="tut_qr_code_desc">在「设置 → 二维码设置」中：\n• 开启「上划展示二维码」功能\n• 点击「导入」按钮选择自定义二维码图片\n• 导入后可以在下方预览\n• 未导入时使用默认二维码图片</string>
+
+    <string name="tut_theme_title">主题与外观</string>
+    <string name="tut_theme_desc">在「设置 → 主题设置」中可以：\n• 切换深色 / 浅色模式\n• 选择主题颜色：红、橙、黄、绿、青、蓝、紫、粉\n• Android 12+ 支持莫奈取色，自动跟随壁纸配色</string>
+
+    <string name="tut_backup_title">数据备份与恢复</string>
+    <string name="tut_backup_desc">在「设置 → 数据备份」中支持两种方式：\n• 本地备份 — 将配置和所有图片打包为 ZIP 文件导出，也可从 ZIP 文件恢复\n• WebDAV 备份 — 配置服务器地址后，可将备份上传到云端或从云端恢复\n\n适合换机迁移或防止数据丢失。</string>
+
+    <string name="tut_language_title">多语言支持</string>
+    <string name="tut_language_desc">在「设置 → 基本设置 → 语言」中可以切换：\n• 中文\n• English\n\n切换后界面会自动刷新。</string>
+
+    <!-- SharedOverlays -->
+    <string name="battery_level">电量：%d%%</string>
+    <string name="pinch_to_exit">双指捏合退出播放</string>
+    <string name="pinch_exit_rotate">双指捏合退出播放\n长按屏幕旋转兽牌</string>
+    <string name="badge_flipped">已翻转兽牌</string>
+    <string name="qr_loading">二维码加载中...</string>
+    <string name="qr_code">二维码</string>
+</resources>
