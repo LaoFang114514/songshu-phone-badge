@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -60,7 +61,6 @@ import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 import java.util.Calendar
 import androidx.compose.runtime.DisposableEffect
@@ -313,7 +313,8 @@ fun LicenseSettingsPage() {
         Triple(R.string.lib_compose, R.string.lib_compose_desc, "https://github.com/JetBrains/compose-multiplatform"),
         Triple(R.string.lib_media3, R.string.lib_media3_desc, "https://github.com/androidx/media3"),
         Triple(R.string.lib_material, R.string.lib_material_desc, "https://github.com/material-components/material-components-android"),
-        Triple(R.string.lib_kotlin, R.string.lib_kotlin_desc, "https://github.com/JetBrains/kotlin")
+        Triple(R.string.lib_kotlin, R.string.lib_kotlin_desc, "https://github.com/JetBrains/kotlin"),
+        Triple(R.string.lib_zxing, R.string.lib_zxing_desc, "https://github.com/zxing/zxing")
     )
     SettingsPageScaffold {
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -395,27 +396,46 @@ fun BasicSettingsPage() = SettingsPageHost(
 fun QrCodeSettingsPage() {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
-    var state by remember { mutableStateOf(SettingsManager.loadSettings(ctx)) }
-    var qrPreviewBmp by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    var showQrCode by remember { mutableStateOf(SettingsManager.loadSettings(ctx).showQrCode) }
+    val qrList = remember { mutableStateOf(QrCodeDataManager.getQrList(ctx)) }
+    var selIdx by remember { mutableIntStateOf(QrCodeDataManager.getSelectedIndex(ctx)) }
 
-    LaunchedEffect(state.qrCodePath) {
-        qrPreviewBmp = withContext(Dispatchers.IO) {
-            if (state.qrCodePath.isNotEmpty() && File(state.qrCodePath).exists())
-                try { android.graphics.BitmapFactory.decodeFile(state.qrCodePath) } catch (_: Throwable) { null }
-            else null
+    fun refresh() {
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                qrList.value = QrCodeDataManager.getQrList(ctx)
+                selIdx = QrCodeDataManager.getSelectedIndex(ctx)
+            }
         }
-    }
-
-    fun update(transform: AppSettings.() -> AppSettings) {
-        state = state.transform()
-        scope.launch { withContext(Dispatchers.IO) { SettingsManager.saveSettings(ctx, state) } }
     }
 
     SettingsPageScaffold {
         QrCodeSettingsCard(
-            showQrCode = state.showQrCode, onShowQrCodeChange = { update { copy(showQrCode = it) } },
-            qrCodePath = state.qrCodePath, onQrCodePathChange = { update { copy(qrCodePath = it) } },
-            qrPreviewBmp = qrPreviewBmp, onQrPreviewBmpChange = { qrPreviewBmp = it }
+            showQrCode = showQrCode, onShowQrCodeChange = {
+                showQrCode = it
+                scope.launch { withContext(Dispatchers.IO) {
+                    val s = SettingsManager.loadSettings(ctx)
+                    SettingsManager.saveSettings(ctx, s.copy(showQrCode = it))
+                }}
+            },
+            qrList = qrList.value, selectedIndex = selIdx,
+            onSelect = { selIdx = it; QrCodeDataManager.setSelectedIndex(ctx, it) },
+            onAdd = { item ->
+                scope.launch(Dispatchers.IO) {
+                    val currentList = QrCodeDataManager.getQrList(ctx)
+                    val nextNum = currentList.size + 1
+                    val namedItem = if (item.name.isEmpty()) item.copy(name = ctx.getString(R.string.qr_default_name, nextNum)) else item
+                    QrCodeDataManager.addItem(ctx, namedItem)
+                    val newIdx = QrCodeDataManager.getQrList(ctx).size - 1
+                    QrCodeDataManager.setSelectedIndex(ctx, newIdx)
+                    qrList.value = QrCodeDataManager.getQrList(ctx)
+                    selIdx = QrCodeDataManager.getSelectedIndex(ctx)
+                }
+            },
+            onDelete = { QrCodeDataManager.deleteItem(ctx, it); refresh() },
+            onMoveUp = { if (it > 0) { QrCodeDataManager.moveItem(ctx, it, it - 1); refresh() } },
+            onMoveDown = { if (it < qrList.value.size - 1) { QrCodeDataManager.moveItem(ctx, it, it + 1); refresh() } },
+            onRename = { i, n -> QrCodeDataManager.renameItem(ctx, i, n); refresh() }
         )
     }
 }

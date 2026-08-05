@@ -19,8 +19,7 @@ data class AppSettings(
     val themeColorIndex: Int = 0,
     val customThemeColor: Long = 0xFF1E88E5,
     val darkMode: Int = 0,
-    val showQrCode: Boolean = false,
-    val qrCodePath: String = ""
+    val showQrCode: Boolean = false
 )
 
 object SettingsManager {
@@ -48,6 +47,18 @@ object SettingsManager {
         } else {
             p.getInt("language_index", 0)
         }
+        if (!p.getBoolean("qr_migrated", false)) {
+            val oldPath = p.getString("qr_code_path", "") ?: ""
+            val oldName = p.getString("qr_code_name", "") ?: ""
+            val oldLink = p.getString("qr_code_link", "") ?: ""
+            if (oldPath.isNotEmpty()) {
+                QrCodeDataManager.addItem(context, QrCodeItem(oldPath, oldName.ifEmpty { "二维码 1" }, oldLink))
+            }
+            p.edit {
+                remove("qr_code_path"); remove("qr_code_name"); remove("qr_code_link")
+                putBoolean("qr_migrated", true)
+            }
+        }
         return AppSettings(
             defaultOrientation = p.getBoolean("default_orientation", false),
             keepScreenOn = p.getBoolean("keep_screen_on", false),
@@ -59,8 +70,7 @@ object SettingsManager {
             themeColorIndex = p.getInt("theme_color_index", 0),
             customThemeColor = p.getLong("custom_theme_color", 0xFF1E88E5),
             darkMode = p.getInt("dark_mode", 0),
-            showQrCode = p.getBoolean("show_qr_code", false),
-            qrCodePath = p.getString("qr_code_path", "") ?: ""
+            showQrCode = p.getBoolean("show_qr_code", false)
         )
     }
 
@@ -77,7 +87,6 @@ object SettingsManager {
             putLong("custom_theme_color", s.customThemeColor)
             putInt("dark_mode", s.darkMode)
             putBoolean("show_qr_code", s.showQrCode)
-            putString("qr_code_path", s.qrCodePath)
         }
     }
 }
@@ -222,6 +231,93 @@ data class ImageItem(
     val coverPath: String = ""
 ) {
     val isVideo: Boolean get() = type == "video"
+}
+
+data class QrCodeItem(
+    val path: String,
+    val name: String,
+    val link: String = ""
+)
+
+object QrCodeDataManager {
+    private const val PREFS_NAME = "qr_code_data"
+    private fun prefs(ctx: Context) = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    fun getQrList(context: Context): List<QrCodeItem> {
+        val raw = prefs(context).getString("qr_list", null) ?: return emptyList()
+        return try {
+            val arr = JSONArray(raw)
+            (0 until arr.length()).map { i ->
+                val obj = arr.getJSONObject(i)
+                QrCodeItem(
+                    path = obj.optString("path", ""),
+                    name = obj.optString("name", "二维码 ${i + 1}"),
+                    link = obj.optString("link", "")
+                )
+            }
+        } catch (_: Exception) { emptyList() }
+    }
+
+    fun getSelectedIndex(context: Context): Int = prefs(context).getInt("selected_index", 0)
+
+    fun setSelectedIndex(context: Context, index: Int) {
+        prefs(context).edit { putInt("selected_index", index) }
+    }
+
+    fun addItem(context: Context, item: QrCodeItem) {
+        val list = getQrList(context).toMutableList()
+        list.add(item)
+        saveList(context, list)
+    }
+
+    fun deleteItem(context: Context, index: Int) {
+        val list = getQrList(context).toMutableList()
+        if (index !in list.indices) return
+        val item = list[index]
+        if (item.path.isNotEmpty()) File(item.path).delete()
+        list.removeAt(index)
+        saveList(context, list)
+        val sel = getSelectedIndex(context)
+        when {
+            sel == index -> setSelectedIndex(context, 0)
+            sel > index -> setSelectedIndex(context, sel - 1)
+        }
+    }
+
+    fun moveItem(context: Context, from: Int, to: Int) {
+        val list = getQrList(context).toMutableList()
+        if (from !in list.indices || to !in list.indices) return
+        val item = list.removeAt(from)
+        list.add(to, item)
+        saveList(context, list)
+        when (val sel = getSelectedIndex(context)) {
+            from -> setSelectedIndex(context, to)
+            in (from + 1)..to -> setSelectedIndex(context, sel - 1)
+            in to..<from -> setSelectedIndex(context, sel + 1)
+        }
+    }
+
+    fun renameItem(context: Context, index: Int, newName: String) {
+        val list = getQrList(context).toMutableList()
+        if (index !in list.indices) return
+        list[index] = list[index].copy(name = newName)
+        saveList(context, list)
+    }
+
+    fun restoreList(context: Context, list: List<QrCodeItem>, selectedIndex: Int) {
+        saveList(context, list)
+        setSelectedIndex(context, selectedIndex)
+    }
+
+    private fun saveList(context: Context, list: List<QrCodeItem>) {
+        val arr = JSONArray()
+        list.forEach {
+            arr.put(JSONObject().apply {
+                put("path", it.path); put("name", it.name); put("link", it.link)
+            })
+        }
+        prefs(context).edit { putString("qr_list", arr.toString()) }
+    }
 }
 
 object LocaleHelper {

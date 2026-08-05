@@ -122,12 +122,13 @@
     <!-- QrCodeSettingsCard -->
     <string name="swipe_show_qr">Swipe to Show QR Code</string>
     <string name="swipe_show_qr_desc">Swipe up during fullscreen to display QR code</string>
-    <string name="custom_qr">Custom QR Code</string>
-    <string name="custom_qr_imported">Custom QR code imported</string>
-    <string name="custom_qr_default">Not imported, using default image</string>
-    <string name="import_qr">Import</string>
-    <string name="qr_preview">QR Code Preview</string>
+    <string name="import_qr">Import Image</string>
     <string name="default_qr">Default QR Code</string>
+    <string name="qr_default_name">QR Code %d</string>
+    <string name="qr_from_link">Generate from Link</string>
+    <string name="qr_generate_from_link">Generate QR Code from Link</string>
+    <string name="qr_input_link">Enter URL</string>
+    <string name="confirm_delete_qr">Are you sure you want to delete this QR code?</string>
 
     <!-- BackupSettingsCard -->
     <string name="local_backup">Local Backup</string>
@@ -161,6 +162,8 @@
     <string name="lib_material_desc">Material Design component library</string>
     <string name="lib_kotlin">Kotlin</string>
     <string name="lib_kotlin_desc">Kotlin programming language and stdlib</string>
+    <string name="lib_zxing">ZXing</string>
+    <string name="lib_zxing_desc">QR code generation library</string>
     <string name="license_apache2">Used under Apache License 2.0</string>
     <string name="cannot_access_page">Cannot open page</string>
     <string name="jump_failed">Navigation failed: %s</string>
@@ -222,7 +225,7 @@
     <string name="tut_anti_burnin_desc">When enabled, the image shifts slightly every 5 minutes during fullscreen to prevent OLED screen burn-in.</string>
 
     <string name="tut_qr_code_title">Custom QR Code</string>
-    <string name="tut_qr_code_desc">In Settings → QR Code Settings:\n• Enable \"Swipe to Show QR Code\"\n• Tap \"Import\" to choose your QR code image\n• Preview it below after importing\n• Uses the default QR image if none is imported</string>
+    <string name="tut_qr_code_desc">In Settings → QR Code Settings:\n• Enable \"Swipe to Show QR Code\"\n• Tap the menu on the card to \"Generate from Link\" or \"Import Image\"\n• Generate from Link: Enter a URL and ZXing creates the QR code\n• Import Image: Pick a QR code image from your gallery\n• You can rename the QR code card\n• Uses the default QR image if none is set</string>
 
     <string name="tut_theme_title">Theme and Appearance</string>
     <string name="tut_theme_desc">In Settings → Theme Settings you can:\n• Switch between Dark / Light mode\n• Pick a theme color: Red, Orange, Yellow, Green, Teal, Blue, Purple, Pink\n• Android 12+ supports Monet, matching your wallpaper</string>

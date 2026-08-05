@@ -45,6 +45,7 @@ import android.graphics.BitmapFactory
 import com.laofang.songshushoupai.songshu.LocaleHelper
 import com.laofang.songshushoupai.songshu.R
 import com.laofang.songshushoupai.songshu.SettingsManager
+import com.laofang.songshushoupai.songshu.QrCodeDataManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import java.io.File
@@ -98,7 +99,9 @@ fun FullScreenVideoScreen(videoPath: String) {
         hideHintJob = launch { delay(2000.milliseconds); if (isActive) showInitialHint = false }
         if (s.showQrCode) {
             qrBitmap = withContext(Dispatchers.IO) {
-                val p = s.qrCodePath
+                val qrList = QrCodeDataManager.getQrList(context)
+                val qrSel = QrCodeDataManager.getSelectedIndex(context).coerceIn(0, (qrList.size - 1).coerceAtLeast(0))
+                val p = qrList.getOrNull(qrSel)?.path ?: ""
                 if (p.isNotEmpty() && File(p).exists())
                     try { BitmapFactory.decodeFile(p) } catch (_: Throwable) { null }
                 else try { BitmapFactory.decodeResource(context.resources, R.drawable.qr_zanzhu) } catch (_: Throwable) { null }

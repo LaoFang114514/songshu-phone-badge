@@ -74,10 +74,24 @@ object BackupManager {
                 put("type", item.type); put("cover", item.coverPath)
             })
         }
-        return JSONObject().apply { put("selected_index", sel); put("version", 2); put("images", arr) }.toString(2)
+        val qrList = QrCodeDataManager.getQrList(ctx)
+        val qrSel = QrCodeDataManager.getSelectedIndex(ctx)
+        val qrArr = JSONArray()
+        qrList.forEach { qr ->
+            qrArr.put(JSONObject().apply {
+                put("path", qr.path); put("name", qr.name); put("link", qr.link)
+            })
+        }
+        val s = SettingsManager.loadSettings(ctx)
+        return JSONObject().apply {
+            put("selected_index", sel); put("version", 2); put("images", arr)
+            put("show_qr_code", s.showQrCode)
+            put("qr_codes", qrArr)
+            put("qr_selected_index", qrSel)
+        }.toString(2)
     }
 
-    private fun writeImagesToZip(zos: ZipOutputStream, list: List<ImageItem>) {
+    private fun writeImagesToZip(zos: ZipOutputStream, ctx: Context, list: List<ImageItem>) {
         list.forEachIndexed { idx, item ->
             if (item.filePath.isNotEmpty()) {
                 val f = File(item.filePath)
@@ -94,6 +108,13 @@ object BackupManager {
                 }
             }
         }
+        val qrDir = File(ctx.filesDir, "qrcodes")
+        if (qrDir.exists()) {
+            qrDir.listFiles()?.filter { it.isFile }?.forEach { qr ->
+                zos.putNextEntry(ZipEntry("qrcodes/${qr.name}"))
+                qr.inputStream().use { it.copyTo(zos) }; zos.closeEntry()
+            }
+        }
     }
 
     fun exportToZip(ctx: Context, uri: Uri) {
@@ -103,15 +124,16 @@ object BackupManager {
                 zos.putNextEntry(ZipEntry("config.json"))
                 zos.write(buildConfigJson(ctx).toByteArray(Charsets.UTF_8))
                 zos.closeEntry()
-                writeImagesToZip(zos, list)
+                writeImagesToZip(zos, ctx, list)
             }
         }
     }
 
-    private fun readZipEntries(input: java.io.InputStream): Triple<String?, MutableMap<String, ByteArray>, MutableMap<String, ByteArray>> {
+    private fun readZipEntries(input: java.io.InputStream): Quad<String?, MutableMap<String, ByteArray>, MutableMap<String, ByteArray>, MutableMap<String, ByteArray>> {
         var configJson: String? = null
         val imageMap = mutableMapOf<String, ByteArray>()
         val coverMap = mutableMapOf<String, ByteArray>()
+        val qrMap = mutableMapOf<String, ByteArray>()
         ZipInputStream(BufferedInputStream(input)).use { zis ->
             var entry = zis.nextEntry
             while (entry != null) {
@@ -121,20 +143,22 @@ object BackupManager {
                         entry.name == "config.json" -> configJson = String(data, Charsets.UTF_8)
                         entry.name.startsWith("images/") -> imageMap[entry.name] = data
                         entry.name.startsWith("covers/") -> coverMap[entry.name] = data
+                        entry.name.startsWith("qrcodes/") -> qrMap[entry.name] = data
                     }
                 }
                 zis.closeEntry(); entry = zis.nextEntry
             }
         }
-        return Triple(configJson, imageMap, coverMap)
+        return Quad(configJson, imageMap, coverMap, qrMap)
     }
 
-    private fun restoreFromEntries(ctx: Context, configJson: String, imageMap: Map<String, ByteArray>, coverMap: Map<String, ByteArray>, prefix: String = "import"): Boolean {
+    private fun restoreFromEntries(ctx: Context, configJson: String, imageMap: Map<String, ByteArray>, coverMap: Map<String, ByteArray>, qrMap: Map<String, ByteArray>, prefix: String = "import"): Boolean {
         val cfg = JSONObject(configJson)
         val arr = cfg.getJSONArray("images")
         val sel = cfg.optInt("selected_index", 0)
         val imgDir = File(ctx.filesDir, "images").also { it.mkdirs() }
         val covDir = File(ctx.filesDir, "covers").also { it.mkdirs() }
+        val qrDir = File(ctx.filesDir, "qrcodes").also { it.mkdirs() }
         val ts = System.currentTimeMillis()
         val newList = mutableListOf<ImageItem>()
         for (i in 0 until arr.length()) {
@@ -158,15 +182,58 @@ object BackupManager {
             newList.add(ImageItem(i, newPath, name, type, newCoverPath))
         }
         ImageDataManager.restoreList(ctx, newList, sel)
+        qrMap.forEach { (entryName, data) ->
+            val fn = File(entryName).name
+            File(qrDir, "${prefix}_${ts}_$fn").writeBytes(data)
+        }
+        val qrArr = cfg.optJSONArray("qr_codes")
+        if (qrArr != null && qrArr.length() > 0) {
+            val qrSel = cfg.optInt("qr_selected_index", 0)
+            val restoredQrList = mutableListOf<QrCodeItem>()
+            for (i in 0 until qrArr.length()) {
+                val o = qrArr.getJSONObject(i)
+                val oldPath = o.optString("path", "")
+                val name = o.optString("name", "二维码 ${i + 1}")
+                val link = o.optString("link", "")
+                var newPath = ""
+                if (oldPath.isNotEmpty()) {
+                    val fn = File(oldPath).name
+                    val key = qrMap.keys.find { it.endsWith(fn) }
+                    if (key != null) {
+                        val f = File(qrDir, "${prefix}_${ts}_${i}_$fn")
+                        f.writeBytes(qrMap[key]!!); newPath = f.absolutePath
+                    }
+                }
+                restoredQrList.add(QrCodeItem(newPath, name, link))
+            }
+            QrCodeDataManager.restoreList(ctx, restoredQrList, qrSel)
+        } else {
+            val qrPath = cfg.optString("qr_code_path", "")
+            if (qrPath.isNotEmpty()) {
+                val fn = File(qrPath).name
+                val key = qrMap.keys.find { it.endsWith(fn) }
+                if (key != null) {
+                    val restored = File(qrDir, "${prefix}_${ts}_$fn")
+                    QrCodeDataManager.addItem(ctx, QrCodeItem(
+                        restored.absolutePath,
+                        cfg.optString("qr_code_name", ""),
+                        cfg.optString("qr_code_link", "")
+                    ))
+                }
+            }
+        }
+        ctx.getSharedPreferences("app_settings", Context.MODE_PRIVATE).edit {
+            putBoolean("show_qr_code", cfg.optBoolean("show_qr_code", false))
+        }
         return true
     }
 
     fun importFromZip(ctx: Context, uri: Uri): Boolean {
         return try {
-            val (configJson, imageMap, coverMap) = ctx.contentResolver.openInputStream(uri)?.use { readZipEntries(it) }
+            val (configJson, imageMap, coverMap, qrMap) = ctx.contentResolver.openInputStream(uri)?.use { readZipEntries(it) }
                 ?: return false
             if (configJson == null) return false
-            restoreFromEntries(ctx, configJson, imageMap, coverMap)
+            restoreFromEntries(ctx, configJson, imageMap, coverMap, qrMap)
         } catch (e: Exception) { Log.e(TAG, "Import failed", e); false }
     }
 
@@ -218,7 +285,7 @@ object BackupManager {
                 ZipOutputStream(BufferedOutputStream(fos)).use { zos ->
                     zos.putNextEntry(ZipEntry("config.json"))
                     zos.write(buildConfigJson(ctx).toByteArray(Charsets.UTF_8)); zos.closeEntry()
-                    writeImagesToZip(zos, list)
+                    writeImagesToZip(zos, ctx, list)
                 }
             }
             val url = fileUrl(cfg)
@@ -280,10 +347,10 @@ object BackupManager {
             if (tmp.length() == 0L) return ERR_DOWNLOADED_EMPTY
             saveToDownloads(ctx, tmp)
 
-            val (configJson, imageMap, coverMap) = readZipEntries(FileInputStream(tmp))
+            val (configJson, imageMap, coverMap, qrMap) = readZipEntries(FileInputStream(tmp))
             if (configJson == null) return ERR_NO_CONFIG_IN_ZIP
 
-            restoreFromEntries(ctx, configJson, imageMap, coverMap, "restore")
+            restoreFromEntries(ctx, configJson, imageMap, coverMap, qrMap, "restore")
             Log.d(TAG, "Restore OK")
             null
         } catch (e: Exception) { Log.e(TAG, "Download/Restore failed", e); ERR_UNKNOWN_ERROR }
@@ -316,3 +383,5 @@ object BackupManager {
         } catch (e: Exception) { Log.w(TAG, "Save to Downloads failed (non-fatal)", e) }
     }
 }
+
+private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)

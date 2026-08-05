@@ -125,12 +125,13 @@
     <!-- QrCodeSettingsCard -->
     <string name="swipe_show_qr">上划展示二维码</string>
     <string name="swipe_show_qr_desc">打开上划屏幕展示二维码</string>
-    <string name="custom_qr">自定义二维码</string>
-    <string name="custom_qr_imported">已导入自定义二维码</string>
-    <string name="custom_qr_default">未导入，将使用默认示例图</string>
-    <string name="import_qr">导入</string>
-    <string name="qr_preview">二维码预览</string>
+    <string name="import_qr">导入图片</string>
     <string name="default_qr">默认二维码</string>
+    <string name="qr_default_name">二维码 %d</string>
+    <string name="qr_from_link">从链接生成</string>
+    <string name="qr_generate_from_link">从链接生成二维码</string>
+    <string name="qr_input_link">输入链接地址</string>
+    <string name="confirm_delete_qr">确定要删除此二维码吗？</string>
 
     <!-- BackupSettingsCard -->
     <string name="local_backup">本地备份</string>
@@ -164,6 +165,8 @@
     <string name="lib_material_desc">Material Design 组件库</string>
     <string name="lib_kotlin">Kotlin</string>
     <string name="lib_kotlin_desc">Kotlin 编程语言及标准库</string>
+    <string name="lib_zxing">ZXing</string>
+    <string name="lib_zxing_desc">二维码生成库</string>
     <string name="license_apache2">基于 Apache License 2.0 授权使用</string>
     <string name="cannot_access_page">无法访问页面</string>
     <string name="jump_failed">跳转失败: %s</string>
@@ -225,7 +228,7 @@
     <string name="tut_anti_burnin_desc">开启后，全屏展示时画面会每隔 5 分钟轻微上下移动，防止 OLED 屏幕因长时间显示静态画面而产生残影（烧屏）现象。</string>
 
     <string name="tut_qr_code_title">自定义二维码</string>
-    <string name="tut_qr_code_desc">在「设置 → 二维码设置」中：\n• 开启「上划展示二维码」功能\n• 点击「导入」按钮选择自定义二维码图片\n• 导入后可以在下方预览\n• 未导入时使用默认二维码图片</string>
+    <string name="tut_qr_code_desc">在「设置 → 二维码设置」中：\n• 开启「上划展示二维码」功能\n• 点击卡片右上角菜单，选择「从链接生成」或「导入图片」\n• 从链接生成：输入网址，自动用 ZXing 生成二维码\n• 导入图片：从相册选择自定义二维码图片\n• 可以重命名二维码卡片\n• 未设置时使用默认二维码图片</string>
 
     <string name="tut_theme_title">主题与外观</string>
     <string name="tut_theme_desc">在「设置 → 主题设置」中可以：\n• 切换深色 / 浅色模式\n• 选择主题颜色：红、橙、黄、绿、青、蓝、紫、粉\n• Android 12+ 支持莫奈取色，自动跟随壁纸配色</string>

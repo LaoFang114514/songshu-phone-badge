@@ -37,6 +37,7 @@ import android.graphics.BitmapFactory
 import com.laofang.songshushoupai.songshu.ImageDataManager
 import com.laofang.songshushoupai.songshu.LocaleHelper
 import com.laofang.songshushoupai.songshu.SettingsManager
+import com.laofang.songshushoupai.songshu.QrCodeDataManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -132,7 +133,9 @@ fun FullScreenImageScreen() {
 
         if (appSettings.showQrCode) {
             qrBitmap = withContext(Dispatchers.IO) {
-                val path = appSettings.qrCodePath
+                val qrList = QrCodeDataManager.getQrList(context)
+                val qrSel = QrCodeDataManager.getSelectedIndex(context).coerceIn(0, (qrList.size - 1).coerceAtLeast(0))
+                val path = qrList.getOrNull(qrSel)?.path ?: ""
                 if (path.isNotEmpty() && File(path).exists())
                     try { BitmapFactory.decodeFile(path) } catch (_: Throwable) { null }
                 else try {
