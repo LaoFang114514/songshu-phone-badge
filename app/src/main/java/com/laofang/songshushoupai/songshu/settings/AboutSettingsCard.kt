@@ -25,7 +25,7 @@ import com.laofang.songshushoupai.songshu.start.egg.ColorSudokuActivity
 private val BtnShape = RoundedCornerShape(12.dp)
 
 @Composable
-fun AboutSettingsCard() {
+fun AboutSettingsCard(onOpenLicense: () -> Unit = {}) {
     val ctx = LocalContext.current
     var clicks by remember { mutableIntStateOf(0) }
     val cs = MaterialTheme.colorScheme
@@ -70,6 +70,10 @@ fun AboutSettingsCard() {
             LinkBtn("GitHub", "https://github.com/LaoFang114514/songshu-phone-badge")
             LinkBtn("GitCode", "https://gitcode.com/LaoFang233/songshu-phone-badge")
             LinkBtn(stringResource(R.string.official_site), "https://songshushoupai.mysxl.cn/")
+        }
+        Spacer(Modifier.height(16.dp))
+        OutlinedButton(onClick = onOpenLicense, Modifier.fillMaxWidth(), shape = BtnShape) {
+            Text(stringResource(R.string.open_source_license))
         }
     }
 }

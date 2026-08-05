@@ -301,8 +301,49 @@ fun SettingsPage(
 }
 
 @Composable
-fun AboutSettingsPage() {
-    SettingsPageScaffold { AboutSettingsCard() }
+fun AboutSettingsPage(onOpenLicense: () -> Unit = {}) {
+    SettingsPageScaffold { AboutSettingsCard(onOpenLicense = onOpenLicense) }
+}
+
+@Composable
+fun LicenseSettingsPage() {
+    val ctx = LocalContext.current
+    val cs = MaterialTheme.colorScheme
+    val libs = listOf(
+        Triple(R.string.lib_compose, R.string.lib_compose_desc, "https://github.com/JetBrains/compose-multiplatform"),
+        Triple(R.string.lib_media3, R.string.lib_media3_desc, "https://github.com/androidx/media3"),
+        Triple(R.string.lib_material, R.string.lib_material_desc, "https://github.com/material-components/material-components-android"),
+        Triple(R.string.lib_kotlin, R.string.lib_kotlin_desc, "https://github.com/JetBrains/kotlin")
+    )
+    SettingsPageScaffold {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            libs.forEach { (nameRes, descRes, url) ->
+                Card(
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable {
+                        try { ctx.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
+                        catch (_: Exception) {}
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = cs.surface)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(nameRes),
+                                style = MaterialTheme.typography.bodyLarge, color = cs.primary)
+                            Spacer(Modifier.height(2.dp))
+                            Text(stringResource(descRes),
+                                style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
+                        }
+                        Text("›", style = MaterialTheme.typography.titleLarge, color = cs.onSurfaceVariant)
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
 }
 
 @Composable

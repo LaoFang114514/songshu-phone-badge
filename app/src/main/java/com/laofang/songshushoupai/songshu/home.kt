@@ -208,6 +208,7 @@ fun SongshushoupaiApp(
     val imageList = remember { mutableStateOf(ImageDataManager.getImageList(ctx)) }
     var selIdx by remember { mutableIntStateOf(ImageDataManager.getSelectedIndex(ctx)) }
     var settingsSub by rememberSaveable { mutableStateOf<String?>(null) }
+    var settingsSubPrevious by rememberSaveable { mutableStateOf<String?>(null) }
     val listState = remember { LazyListState() }
     val scope = rememberCoroutineScope()
     var lastBack by remember { mutableLongStateOf(0L) }
@@ -229,7 +230,10 @@ fun SongshushoupaiApp(
         updatePopupInfo = null
     }
 
-    BackHandler(dest == 2 && settingsSub != null) { settingsSub = null }
+    BackHandler(dest == 2 && settingsSub != null) {
+        settingsSub = settingsSubPrevious
+        settingsSubPrevious = null
+    }
     BackHandler(dest != 2 || settingsSub == null) {
         val now = System.currentTimeMillis()
         if (now - lastBack < 2000) (ctx as? android.app.Activity)?.finish()
@@ -281,7 +285,8 @@ fun SongshushoupaiApp(
         topBar = {
             val title = if (dest == 2 && settingsSub != null) when (settingsSub) {
                 "basic" -> stringResource(R.string.basic_settings); "qrcode" -> stringResource(R.string.qrcode_settings); "theme" -> stringResource(R.string.theme_settings)
-                "backup" -> stringResource(R.string.backup_settings); "about" -> stringResource(R.string.about_settings); "tutorial" -> stringResource(R.string.tutorial_settings); else -> stringResource(R.string.app_name)
+                "backup" -> stringResource(R.string.backup_settings); "about" -> stringResource(R.string.about_settings); "tutorial" -> stringResource(R.string.tutorial_settings)
+                "license" -> stringResource(R.string.open_source_license); else -> stringResource(R.string.app_name)
             } else stringResource(R.string.app_name)
             TopAppBar(title = { Text(title) })
         },
@@ -342,8 +347,10 @@ fun SongshushoupaiApp(
             ) {
                 AnimatedContent(settingsSub,
                     transitionSpec = {
-                        val goingDeeper = initialState == null && targetState != null
-                        val goingBack = initialState != null && targetState == null
+                        val goingDeeper = (initialState == null && targetState != null) ||
+                                (initialState == "about" && targetState == "license")
+                        val goingBack = (initialState != null && targetState == null) ||
+                                (initialState == "license" && targetState == "about")
                         if (goingDeeper) {
                             slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
                         } else if (goingBack) {
@@ -366,8 +373,12 @@ fun SongshushoupaiApp(
                         "qrcode" -> QrCodeSettingsPage()
                         "theme" -> ThemeSettingsPage(onThemeChanged, onDarkModeChanged)
                         "backup" -> BackupSettingsPage(onDataChanged = { refresh() })
-                        "about" -> AboutSettingsPage()
+                        "about" -> AboutSettingsPage(onOpenLicense = {
+                            settingsSubPrevious = "about"
+                            settingsSub = "license"
+                        })
                         "tutorial" -> TutorialSettingsPage()
+                        "license" -> LicenseSettingsPage()
                     }
                 }
             }

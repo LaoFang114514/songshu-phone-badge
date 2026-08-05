@@ -151,6 +151,17 @@
     <string name="qq_group">QQ Group</string>
     <string name="discord">Discord</string>
     <string name="official_site">Website</string>
+    <string name="open_source_license">Open Source License</string>
+    <string name="third_party_libs">Third-party Libraries</string>
+    <string name="lib_compose">Jetpack Compose</string>
+    <string name="lib_compose_desc">Modern Android UI toolkit</string>
+    <string name="lib_media3">AndroidX Media3 (ExoPlayer)</string>
+    <string name="lib_media3_desc">Media playback framework</string>
+    <string name="lib_material">Material Components for Android</string>
+    <string name="lib_material_desc">Material Design component library</string>
+    <string name="lib_kotlin">Kotlin</string>
+    <string name="lib_kotlin_desc">Kotlin programming language and stdlib</string>
+    <string name="license_apache2">Used under Apache License 2.0</string>
     <string name="cannot_access_page">Cannot open page</string>
     <string name="jump_failed">Navigation failed: %s</string>
 
