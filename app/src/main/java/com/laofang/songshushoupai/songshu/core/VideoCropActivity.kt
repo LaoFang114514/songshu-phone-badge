@@ -64,6 +64,7 @@ import androidx.media3.transformer.Effects
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.Transformer
 import androidx.core.net.toUri
+import androidx.core.graphics.scale
 
 class VideoCropActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: Context) {
@@ -234,9 +235,10 @@ fun VideoCropScreen(editIndex: Int, videoUri: String?, onFinish: () -> Unit) {
                                 } else {
                                     cropVideoFile(tempFilePath, nL, nT, nR, nB, ctx) { resultPath ->
                                         if (resultPath.isNotEmpty()) {
+                                            val newCover = generateVideoCover(resultPath, ctx)
                                             val old = ImageDataManager.getImageList(ctx)[editIndex]
                                             if (old.filePath.isNotEmpty() && old.filePath != resultPath) File(old.filePath).delete()
-                                            ImageDataManager.replaceImage(ctx, editIndex, resultPath)
+                                            ImageDataManager.replaceImage(ctx, editIndex, resultPath, newCover)
                                         }
                                         onFinish()
                                     }
@@ -248,7 +250,9 @@ fun VideoCropScreen(editIndex: Int, videoUri: String?, onFinish: () -> Unit) {
                                 } else {
                                     cropVideoFile(tempFilePath, nL, nT, nR, nB, ctx) { resultPath ->
                                         if (resultPath.isNotEmpty()) {
-                                            ImageDataManager.addVideoToList(ctx, resultPath, videoCoverPath)
+                                            val newCover = generateVideoCover(resultPath, ctx)
+                                            ImageDataManager.addVideoToList(ctx, resultPath, newCover)
+                                            if (videoCoverPath.isNotEmpty() && videoCoverPath != newCover) File(videoCoverPath).delete()
                                         }
                                         onFinish()
                                     }
@@ -303,6 +307,31 @@ private fun processVideo(uri: Uri, ctx: Context, onResult: (Bitmap?, Int, Int, S
             withContext(Dispatchers.Main) { onResult(null, 0, 0, "", "") }
         }
     }
+}
+
+@Suppress("DEPRECATION")
+private fun generateVideoCover(videoPath: String, ctx: Context): String {
+    return try {
+        val r = MediaMetadataRetriever()
+        r.setDataSource(videoPath)
+        val bmp = r.getFrameAtTime(0)
+        r.release()
+        if (bmp == null) return ""
+        val scaled = try {
+            val maxDim = 1920
+            if (bmp.width > maxDim || bmp.height > maxDim) {
+                val s = minOf(maxDim.toFloat() / bmp.width, maxDim.toFloat() / bmp.height)
+                bmp.scale(
+                    (bmp.width * s).toInt().coerceAtLeast(1),
+                    (bmp.height * s).toInt().coerceAtLeast(1)
+                )
+            } else bmp
+        } catch (_: Throwable) { bmp }
+        val covDir = File(ctx.filesDir, "covers").also { it.mkdirs() }
+        val cf = File(covDir, "cover_${System.currentTimeMillis()}.jpg")
+        FileOutputStream(cf).use { out -> scaled.compress(Bitmap.CompressFormat.JPEG, 90, out) }
+        cf.absolutePath
+    } catch (_: Throwable) { "" }
 }
 
 @Suppress("DEPRECATION")

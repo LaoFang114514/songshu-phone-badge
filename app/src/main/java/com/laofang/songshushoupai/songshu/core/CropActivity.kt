@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.BitmapRegionDecoder
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -73,6 +75,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.laofang.songshushoupai.songshu.ui.theme.SongshushoupaiAutoTheme
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 
 class CropActivity : ComponentActivity() {
@@ -92,17 +95,65 @@ class CropActivity : ComponentActivity() {
     }
 }
 
-private fun loadBitmap(uri: Uri, ctx: Context): Bitmap? {
+private data class LoadedImage(val bitmap: Bitmap, val originalWidth: Int, val originalHeight: Int)
+
+private fun loadBitmap(uri: Uri, ctx: Context): LoadedImage? {
     return try {
         val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         ctx.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) }
         if (opts.outWidth <= 0 || opts.outHeight <= 0) return null
         val dec = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
-        ctx.contentResolver.openInputStream(uri)?.use {
-            try { BitmapFactory.decodeStream(it, null, dec) } catch (_: Throwable) {
-                dec.inSampleSize *= 2
-                ctx.contentResolver.openInputStream(uri)?.use { s -> try { BitmapFactory.decodeStream(s, null, dec) } catch (_: Throwable) { null } }
-            }
+        var bitmap: Bitmap? = null
+        try {
+            bitmap = ctx.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, dec) }
+        } catch (_: Throwable) {}
+        if (bitmap == null) {
+            dec.inSampleSize = 2
+            try { bitmap = ctx.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, dec) } } catch (_: Throwable) {}
+        }
+        bitmap?.let { LoadedImage(it, opts.outWidth, opts.outHeight) }
+    } catch (_: Throwable) { null }
+}
+
+private fun loadImageFromFile(path: String): LoadedImage? {
+    return try {
+        val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(path, opts)
+        if (opts.outWidth <= 0 || opts.outHeight <= 0) return null
+        val dec = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
+        var ss = 1
+        while (opts.outWidth / ss > 2048 || opts.outHeight / ss > 2048) ss *= 2
+        dec.inSampleSize = ss
+        val bitmap = try { BitmapFactory.decodeFile(path, dec) } catch (_: Throwable) {
+            dec.inSampleSize *= 2
+            try { BitmapFactory.decodeFile(path, dec) } catch (_: Throwable) { null }
+        } ?: return null
+        LoadedImage(bitmap, opts.outWidth, opts.outHeight)
+    } catch (_: Throwable) { null }
+}
+
+private const val MAX_CROP_DIM = 4096
+
+@Suppress("DEPRECATION")
+private fun decodeCropRegion(uri: Uri?, path: String, l: Int, t: Int, r: Int, b: Int, ctx: Context): Bitmap? {
+    val opts = BitmapFactory.Options().apply {
+        inPreferredConfig = Bitmap.Config.ARGB_8888
+        val maxDim = maxOf(r - l, b - t)
+        var ss = 1
+        while (maxDim / ss > MAX_CROP_DIM) ss *= 2
+        inSampleSize = ss
+    }
+    return try {
+        val ins = if (path.isNotEmpty()) FileInputStream(path) else ctx.contentResolver.openInputStream(uri!!)
+        ins?.use { input ->
+            val decoder = BitmapRegionDecoder.newInstance(input, false)
+            if (decoder != null) {
+                try {
+                    decoder.decodeRegion(Rect(l, t, r, b), opts)
+                } finally {
+                    decoder.recycle()
+                }
+            } else null
         }
     } catch (_: Throwable) { null }
 }
@@ -115,7 +166,9 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
     val sw = dm.widthPixels.toFloat()
     val sh = dm.heightPixels.toFloat()
 
-    var bmp by remember { mutableStateOf<Bitmap?>(null) }
+    var loadedImage by remember { mutableStateOf<LoadedImage?>(null) }
+    var originalUri by remember { mutableStateOf<Uri?>(null) }
+    var originalPath by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(true) }
     var bw by remember { mutableFloatStateOf(0f) }
     var bh by remember { mutableFloatStateOf(0f) }
@@ -126,7 +179,12 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
     var processing by remember { mutableStateOf(false) }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) { try { bmp = loadBitmap(uri, ctx) } catch (_: Throwable) {}; loading = false }
+        if (uri != null) {
+            originalUri = uri
+            originalPath = ""
+            try { loadedImage = loadBitmap(uri, ctx) } catch (_: Throwable) {}
+            loading = false
+        }
         else loading = false
     }
 
@@ -134,11 +192,12 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
         if (editIndex >= 0) {
             val list = ImageDataManager.getImageList(ctx)
             if (editIndex < list.size && list[editIndex].filePath.isNotEmpty()) {
-                try { bmp = loadBitmapFromFile(list[editIndex].filePath) } catch (_: Throwable) {}
+                originalPath = list[editIndex].filePath
+                try { loadedImage = withContext(Dispatchers.IO) { loadImageFromFile(list[editIndex].filePath) } } catch (_: Throwable) {}
                 loading = false
             }
         }
-        if (bmp == null) { loading = false; picker.launch("image/*") }
+        if (loadedImage == null) { loading = false; picker.launch("image/*") }
     }
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -150,7 +209,7 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
             }
             return@Box
         }
-        if (bmp == null) {
+        if (loadedImage == null) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.align(Alignment.Center)) {
                 Text(stringResource(R.string.no_image_selected), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f), fontSize = 16.sp)
                 Spacer(modifier = Modifier.height(20.dp))
@@ -162,7 +221,7 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
             return@Box
         }
 
-        val bitmap = bmp!!
+        val bitmap = loadedImage!!.bitmap
         val fitScale = minOf(bw / bitmap.width.toFloat(), bh / bitmap.height.toFloat())
 
         Column(modifier = Modifier.fillMaxSize()) {
@@ -214,8 +273,10 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
                         R.string.cancel) else stringResource(R.string.reselect), fontSize = 15.sp) }
                     Button(onClick = {
                         if (processing) return@Button
-                        if (bmp != null && bw > 0 && bh > 0) {
+                        val img = loadedImage
+                        if (img != null && bw > 0 && bh > 0) {
                             processing = true
+                            val bitmap = img.bitmap
                             scope.launch {
                                 try {
                                     val ts = fitScale * scale; val cx = bw / 2f; val cy = bh / 2f
@@ -232,7 +293,13 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
                                     var saved: String? = null
                                     if (fw > 0 && fh > 0) {
                                         saved = withContext(Dispatchers.IO) {
-                                            val cropped = Bitmap.createBitmap(bitmap, fl, ft, fw, fh)
+                                            val sxr = img.originalWidth.toFloat() / bitmap.width
+                                            val syr = img.originalHeight.toFloat() / bitmap.height
+                                            val oL = (fl * sxr).toInt().coerceIn(0, img.originalWidth - 1)
+                                            val oT = (ft * syr).toInt().coerceIn(0, img.originalHeight - 1)
+                                            val oR = ((fl + fw) * sxr).toInt().coerceIn(oL + 1, img.originalWidth)
+                                            val oB = ((ft + fh) * syr).toInt().coerceIn(oT + 1, img.originalHeight)
+                                            val cropped = decodeCropRegion(originalUri, originalPath, oL, oT, oR, oB, ctx) ?: return@withContext null
                                             val dir = File(ctx.filesDir, "images").also { it.mkdirs() }
                                             val f = File(dir, "img_${System.currentTimeMillis()}.png")
                                             FileOutputStream(f).use { cropped.compress(Bitmap.CompressFormat.PNG, 100, it) }
@@ -278,5 +345,3 @@ fun decodeBitmapSampled(path: String, maxDim: Int = 2048, config: Bitmap.Config 
         }
     } catch (_: Throwable) { null }
 }
-
-fun loadBitmapFromFile(path: String): Bitmap? = decodeBitmapSampled(path)

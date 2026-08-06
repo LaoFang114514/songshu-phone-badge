@@ -190,13 +190,13 @@ object ImageDataManager {
         }
     }
 
-    fun replaceImage(context: Context, index: Int, newFilePath: String) {
+    fun replaceImage(context: Context, index: Int, newFilePath: String, newCoverPath: String = "") {
         val list = getImageList(context).toMutableList()
         if (index !in list.indices) return
         val old = list[index]
         if (old.filePath.isNotEmpty()) File(old.filePath).delete()
         if (old.coverPath.isNotEmpty()) File(old.coverPath).delete()
-        list[index] = ImageItem(index, newFilePath, old.name)
+        list[index] = ImageItem(index, newFilePath, old.name, coverPath = newCoverPath)
         saveList(context, list)
     }
 

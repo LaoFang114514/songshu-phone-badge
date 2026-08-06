@@ -108,13 +108,13 @@ object BackupManager {
                 }
             }
         }
-        val qrDir = File(ctx.filesDir, "qrcodes")
-        if (qrDir.exists()) {
-            qrDir.listFiles()?.filter { it.isFile }?.forEach { qr ->
+        val qrList = QrCodeDataManager.getQrList(ctx)
+        qrList.mapNotNull { it.path.takeIf { p -> p.isNotEmpty() }?.let(::File)?.takeIf { f -> f.exists() } }
+            .distinctBy { it.absolutePath }
+            .forEach { qr ->
                 zos.putNextEntry(ZipEntry("qrcodes/${qr.name}"))
                 qr.inputStream().use { it.copyTo(zos) }; zos.closeEntry()
             }
-        }
     }
 
     fun exportToZip(ctx: Context, uri: Uri) {
@@ -159,6 +159,7 @@ object BackupManager {
         val imgDir = File(ctx.filesDir, "images").also { it.mkdirs() }
         val covDir = File(ctx.filesDir, "covers").also { it.mkdirs() }
         val qrDir = File(ctx.filesDir, "qrcodes").also { it.mkdirs() }
+        qrDir.listFiles()?.filter { it.isFile }?.forEach { it.delete() }
         val ts = System.currentTimeMillis()
         val newList = mutableListOf<ImageItem>()
         for (i in 0 until arr.length()) {
@@ -170,13 +171,13 @@ object BackupManager {
             var newPath = ""
             if (oldPath.isNotEmpty()) {
                 val fn = File(oldPath).name
-                val key = imageMap.keys.find { it.endsWith(fn) }
+                val key = imageMap.keys.firstOrNull { it == "images/$fn" } ?: imageMap.keys.find { it.endsWith(fn) }
                 if (key != null) { val f = File(imgDir, "${prefix}_${ts}_${i}_$fn"); f.writeBytes(imageMap[key]!!); newPath = f.absolutePath }
             }
             var newCoverPath = ""
             if (oldCover.isNotEmpty()) {
                 val fn = File(oldCover).name
-                val key = coverMap.keys.find { it.endsWith(fn) }
+                val key = coverMap.keys.firstOrNull { it == "covers/$fn" } ?: coverMap.keys.find { it.endsWith(fn) }
                 if (key != null) { val f = File(covDir, "${prefix}_${ts}_${i}_$fn"); f.writeBytes(coverMap[key]!!); newCoverPath = f.absolutePath }
             }
             newList.add(ImageItem(i, newPath, name, type, newCoverPath, o.optString("crop", "")))
@@ -184,9 +185,10 @@ object BackupManager {
         }
         ImageDataManager.restoreList(ctx, newList, sel)
         val qrArr = cfg.optJSONArray("qr_codes")
-        if (qrArr != null && qrArr.length() > 0) {
-            val qrSel = cfg.optInt("qr_selected_index", 0)
-            val restoredQrList = mutableListOf<QrCodeItem>()
+        val hasQrData = qrArr != null && qrArr.length() > 0
+        val qrSel = if (hasQrData) cfg.optInt("qr_selected_index", 0) else 0
+        val restoredQrList = mutableListOf<QrCodeItem>()
+        if (hasQrData) {
             for (i in 0 until qrArr.length()) {
                 val o = qrArr.getJSONObject(i)
                 val oldPath = o.optString("path", "")
@@ -195,7 +197,7 @@ object BackupManager {
                 var newPath = ""
                 if (oldPath.isNotEmpty()) {
                     val fn = File(oldPath).name
-                    val key = qrMap.keys.find { it.endsWith(fn) }
+                    val key = qrMap.keys.firstOrNull { it == "qrcodes/$fn" } ?: qrMap.keys.find { it.endsWith(fn) }
                     if (key != null) {
                         val f = File(qrDir, "${prefix}_${ts}_${i}_$fn")
                         f.writeBytes(qrMap[key]!!); newPath = f.absolutePath
@@ -203,23 +205,19 @@ object BackupManager {
                 }
                 restoredQrList.add(QrCodeItem(newPath, name, link))
             }
-            QrCodeDataManager.restoreList(ctx, restoredQrList, qrSel)
         } else {
             val qrPath = cfg.optString("qr_code_path", "")
             if (qrPath.isNotEmpty()) {
                 val fn = File(qrPath).name
-                val key = qrMap.keys.find { it.endsWith(fn) }
+                val key = qrMap.keys.firstOrNull { it == "qrcodes/$fn" } ?: qrMap.keys.find { it.endsWith(fn) }
                 if (key != null) {
                     val restored = File(qrDir, "${prefix}_${ts}_$fn")
-                    QrCodeDataManager.addItem(ctx, QrCodeItem(
-                        restored.absolutePath,
-                        cfg.optString("qr_code_name", ""),
-                        cfg.optString("qr_code_link", "")
-                    )
-                    )
+                    restored.writeBytes(qrMap[key]!!)
+                    restoredQrList.add(QrCodeItem(restored.absolutePath, cfg.optString("qr_code_name", ""), cfg.optString("qr_code_link", "")))
                 }
             }
         }
+        QrCodeDataManager.restoreList(ctx, restoredQrList, qrSel)
         ctx.getSharedPreferences("app_settings", Context.MODE_PRIVATE).edit {
             putBoolean("show_qr_code", cfg.optBoolean("show_qr_code", false))
         }
