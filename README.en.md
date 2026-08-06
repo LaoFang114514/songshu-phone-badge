@@ -21,6 +21,7 @@ A simple and easy-to-use phone badge creation tool that turns your idle old phon
 - **Immersive Experience** — Fullscreen badge display with auto-hidden system bars
 - **Gesture Controls** — Long press to rotate badge (180° flip), pinch to exit playback
 - **QR Code Display** — Swipe up to show a QR code popup, supports custom QR code images
+- **QR Code Switching** — Enable swipe-to-switch to cycle through multiple QR codes with left/right swipes during display
 
 ### ⚙️ Practical Settings
 - **Reverse Display** — Auto-flip 180° on launch, suitable for inverted placement

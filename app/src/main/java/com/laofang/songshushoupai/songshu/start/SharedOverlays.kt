@@ -20,8 +20,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -29,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -250,21 +249,107 @@ fun BoxScope.RotationHintOverlay(rotation: Float, visible: Boolean) {
     }
 }
 
+@SuppressLint("LocalContextResourcesRead")
 @Composable
-fun QrOverlay(qr: QrAnims, qrBitmap: Bitmap?, rotation: Float, onTap: () -> Unit) {
+fun QrOverlay(qr: QrAnims, qrBitmap: Bitmap?, rotation: Float, qrSwipeSwitch: Boolean, qrCount: Int, onQrIndexChange: (Int) -> Unit, onTap: () -> Unit) {
     if (!qr.inComp) return
+    val context = LocalContext.current
+    var currentIndex by remember(qrBitmap) { mutableIntStateOf(QrCodeDataManager.getSelectedIndex(context).coerceIn(0, (qrCount - 1).coerceAtLeast(0))) }
+    var currentBitmap by remember(currentIndex) { mutableStateOf<Bitmap?>(null) }
+    val slideAnim = remember { Animatable(0f) }
+    var slideDirection by remember { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(currentIndex) {
+        currentBitmap = withContext(Dispatchers.IO) {
+            val qrList = QrCodeDataManager.getQrList(context)
+            if (qrList.isEmpty()) return@withContext qrBitmap
+            val idx = currentIndex.coerceIn(0, (qrList.size - 1).coerceAtLeast(0))
+            val path = qrList.getOrNull(idx)?.path ?: ""
+            if (path.isNotEmpty() && File(path).exists())
+                try { BitmapFactory.decodeFile(path) } catch (_: Throwable) { null }
+            else try { BitmapFactory.decodeResource(context.resources, R.drawable.qr_zanzhu) } catch (_: Throwable) { null }
+        }
+    }
+
+    LaunchedEffect(qrBitmap) {
+        currentIndex = QrCodeDataManager.getSelectedIndex(context).coerceIn(0, (qrCount - 1).coerceAtLeast(0))
+        currentBitmap = qrBitmap
+        slideAnim.snapTo(0f)
+        slideDirection = 0f
+    }
+
+    LaunchedEffect(slideDirection) {
+        if (slideDirection != 0f) {
+            slideAnim.snapTo(slideDirection)
+            slideAnim.animateTo(0f, tween(300))
+            slideDirection = 0f
+        }
+    }
+
     Box(Modifier.fillMaxSize()
         .background(Color.Black.copy(alpha = 0.85f * qr.bgAlpha.value))
         .graphicsLayer(rotationZ = rotation)
-        .pointerInput(Unit) { detectTapGestures(onTap = { onTap() }) },
+        .pointerInput(qrSwipeSwitch, qrCount) {
+            if (qrSwipeSwitch && qrCount > 1) {
+                var startX: Float
+                awaitEachGesture {
+                    val down = awaitFirstDown()
+                    startX = down.position.x
+                    var moved = false
+                    var endX = startX
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val changes = event.changes.filter { it.pressed }
+                        if (changes.isEmpty()) break
+                        val change = changes.first()
+                        endX = change.position.x
+                        if (abs(endX - startX) > 20f) moved = true
+                        change.consume()
+                    }
+                    val dx = endX - startX
+                    if (moved && abs(dx) > 80f) {
+                        val newIndex = if (dx < 0) {
+                            (currentIndex + 1) % qrCount
+                        } else {
+                            (currentIndex - 1 + qrCount) % qrCount
+                        }
+                        val dir = if (dx < 0) 1f else -1f
+                        currentIndex = newIndex
+                        QrCodeDataManager.setSelectedIndex(context, newIndex)
+                        onQrIndexChange(newIndex)
+                        slideDirection = dir * 0.35f
+                    } else if (!moved) {
+                        onTap()
+                    }
+                }
+            } else {
+                detectTapGestures(onTap = { onTap() })
+            }
+        },
         contentAlignment = Alignment.Center) {
-        if (qrBitmap != null) Image(
-            painter = BitmapPainter(qrBitmap.asImageBitmap()),
-            contentDescription = stringResource(R.string.qr_code),
-            modifier = Modifier.fillMaxWidth(0.7f).heightIn(max = 400.dp).graphicsLayer {
-                scaleX = qr.cScale.value; scaleY = qr.cScale.value; alpha = qr.cAlpha.value
-            },
-            contentScale = ContentScale.Fit)
-        else Text(stringResource(R.string.qr_loading), color = Color.White.copy(alpha = qr.cAlpha.value))
+        val progress = slideAnim.value
+        val absProgress = abs(progress)
+        val showTransition = absProgress > 0.01f
+
+        if (showTransition) {
+            Image(
+                painter = BitmapPainter((currentBitmap ?: qrBitmap)!!.asImageBitmap()),
+                contentDescription = stringResource(R.string.qr_code),
+                modifier = Modifier.fillMaxSize(0.85f).graphicsLayer {
+                    translationX = -progress * size.width
+                    scaleX = qr.cScale.value; scaleY = qr.cScale.value; alpha = qr.cAlpha.value
+                },
+                contentScale = ContentScale.Fit)
+        } else {
+            val bmp = currentBitmap ?: qrBitmap
+            if (bmp != null) Image(
+                painter = BitmapPainter(bmp.asImageBitmap()),
+                contentDescription = stringResource(R.string.qr_code),
+                modifier = Modifier.fillMaxSize(0.85f).graphicsLayer {
+                    scaleX = qr.cScale.value; scaleY = qr.cScale.value; alpha = qr.cAlpha.value
+                },
+                contentScale = ContentScale.Fit)
+            else Text(stringResource(R.string.qr_loading), color = Color.White.copy(alpha = qr.cAlpha.value))
+        }
     }
 }

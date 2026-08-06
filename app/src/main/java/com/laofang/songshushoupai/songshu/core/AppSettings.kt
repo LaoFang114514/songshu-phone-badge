@@ -22,7 +22,8 @@ data class AppSettings(
     val themeColorIndex: Int = 0,
     val customThemeColor: Long = 0xFF1E88E5,
     val darkMode: Int = 0,
-    val showQrCode: Boolean = false
+    val showQrCode: Boolean = false,
+    val qrSwipeSwitch: Boolean = false
 )
 
 object SettingsManager {
@@ -73,7 +74,8 @@ object SettingsManager {
             themeColorIndex = p.getInt("theme_color_index", 0),
             customThemeColor = p.getLong("custom_theme_color", 0xFF1E88E5),
             darkMode = p.getInt("dark_mode", 0),
-            showQrCode = p.getBoolean("show_qr_code", false)
+            showQrCode = p.getBoolean("show_qr_code", false),
+            qrSwipeSwitch = p.getBoolean("qr_swipe_switch", false)
         )
     }
 
@@ -90,6 +92,7 @@ object SettingsManager {
             putLong("custom_theme_color", s.customThemeColor)
             putInt("dark_mode", s.darkMode)
             putBoolean("show_qr_code", s.showQrCode)
+            putBoolean("qr_swipe_switch", s.qrSwipeSwitch)
         }
     }
 }

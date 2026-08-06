@@ -35,6 +35,7 @@ import android.graphics.BitmapFactory
 import com.laofang.songshushoupai.songshu.core.ImageDataManager
 import com.laofang.songshushoupai.songshu.core.LocaleHelper
 import com.laofang.songshushoupai.songshu.core.SettingsManager
+import com.laofang.songshushoupai.songshu.core.QrCodeDataManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -102,6 +103,7 @@ fun FullScreenImageScreen() {
 
     var showQrOverlay by remember { mutableStateOf(false) }
     val qrOverlay = rememberQrOverlay(appSettings.showQrCode)
+    val qrList = remember { QrCodeDataManager.getQrList(context) }
 
     val exitAlpha = remember { Animatable(1f) }
     var gestureScale by remember { mutableFloatStateOf(1f) }
@@ -183,6 +185,6 @@ fun FullScreenImageScreen() {
             BatteryOverlay(batteryLevel, rotation, appSettings.showBattery)
             InitialHintOverlay(appSettings.lockOrientation, rotation, showInitialHint)
             RotationHintOverlay(rotation, showRotationHint)
-            QrOverlay(rememberQrAnim(showQrOverlay), qrOverlay.qrBitmap, rotation) { showQrOverlay = false }
+            QrOverlay(rememberQrAnim(showQrOverlay), qrOverlay.qrBitmap, rotation, appSettings.qrSwipeSwitch, qrList.size, { }) { showQrOverlay = false }
         }
 }

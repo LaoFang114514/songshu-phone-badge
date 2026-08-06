@@ -1,3 +1,19 @@
+// 松鼠兽牌 一款旧手机变兽牌的软件
+// Copyright (C) 2026  laofang
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 package com.laofang.songshushoupai.songshu
 
 import android.content.Intent
@@ -403,6 +419,7 @@ fun QrCodeSettingsPage() {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var showQrCode by remember { mutableStateOf(SettingsManager.loadSettings(ctx).showQrCode) }
+    var qrSwipeSwitch by remember { mutableStateOf(SettingsManager.loadSettings(ctx).qrSwipeSwitch) }
     val qrList = remember { mutableStateOf(QrCodeDataManager.getQrList(ctx)) }
     var selIdx by remember { mutableIntStateOf(QrCodeDataManager.getSelectedIndex(ctx)) }
 
@@ -422,6 +439,13 @@ fun QrCodeSettingsPage() {
                 scope.launch { withContext(Dispatchers.IO) {
                     val s = SettingsManager.loadSettings(ctx)
                     SettingsManager.saveSettings(ctx, s.copy(showQrCode = it))
+                }}
+            },
+            qrSwipeSwitch = qrSwipeSwitch, onQrSwipeSwitchChange = {
+                qrSwipeSwitch = it
+                scope.launch { withContext(Dispatchers.IO) {
+                    val s = SettingsManager.loadSettings(ctx)
+                    SettingsManager.saveSettings(ctx, s.copy(qrSwipeSwitch = it))
                 }}
             },
             qrList = qrList.value, selectedIndex = selIdx,

@@ -42,6 +42,7 @@ import androidx.media3.common.util.UnstableApi
 import com.laofang.songshushoupai.songshu.core.LocaleHelper
 import com.laofang.songshushoupai.songshu.R
 import com.laofang.songshushoupai.songshu.core.SettingsManager
+import com.laofang.songshushoupai.songshu.core.QrCodeDataManager
 import kotlinx.coroutines.Job
 
 class VideoPlayerActivity : ComponentActivity() {
@@ -86,6 +87,7 @@ fun FullScreenVideoScreen(videoPath: String) {
     var gestureResetJob by remember { mutableStateOf<Job?>(null) }
     var showQrOverlay by remember { mutableStateOf(false) }
     val qrOverlay = rememberQrOverlay(s.showQrCode)
+    val qrList = remember { QrCodeDataManager.getQrList(context) }
 
     LaunchedEffect(Unit) {
         if (s.defaultOrientation) rotation = 180f
@@ -175,7 +177,7 @@ fun FullScreenVideoScreen(videoPath: String) {
         BatteryOverlay(batteryLevel, rotation, s.showBattery)
         InitialHintOverlay(s.lockOrientation, rotation, showInitialHint)
         RotationHintOverlay(rotation, showRotationHint)
-        QrOverlay(rememberQrAnim(showQrOverlay), qrOverlay.qrBitmap, rotation) { showQrOverlay = false }
+        QrOverlay(rememberQrAnim(showQrOverlay), qrOverlay.qrBitmap, rotation, s.qrSwipeSwitch, qrList.size, { }) { showQrOverlay = false }
     }
 }
 

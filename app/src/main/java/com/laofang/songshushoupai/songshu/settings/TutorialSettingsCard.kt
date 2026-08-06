@@ -41,6 +41,7 @@ fun TutorialSettingsCard() {
             TutorialStep(stringResource(R.string.tut_gesture_rotate_title), stringResource(R.string.tut_gesture_rotate_desc))
             TutorialStep(stringResource(R.string.tut_gesture_exit_title), stringResource(R.string.tut_gesture_exit_desc))
             TutorialStep(stringResource(R.string.tut_gesture_qr_title), stringResource(R.string.tut_gesture_qr_desc))
+            TutorialStep(stringResource(R.string.tut_qr_swipe_title), stringResource(R.string.tut_qr_swipe_desc))
             TutorialStep(stringResource(R.string.tut_battery_title), stringResource(R.string.tut_battery_desc))
         }
 

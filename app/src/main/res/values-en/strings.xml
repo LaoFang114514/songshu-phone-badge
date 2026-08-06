@@ -122,6 +122,8 @@
     <!-- QrCodeSettingsCard -->
     <string name="swipe_show_qr">Swipe to Show QR Code</string>
     <string name="swipe_show_qr_desc">Swipe up during fullscreen to display QR code</string>
+    <string name="qr_swipe_switch">Swipe to Switch QR Code</string>
+    <string name="qr_swipe_switch_desc">Swipe left/right to switch between QR codes when displayed</string>
     <string name="import_qr">Import Image</string>
     <string name="default_qr">Default QR Code</string>
     <string name="qr_default_name">QR Code %d</string>
@@ -212,6 +214,9 @@
     <string name="tut_gesture_qr_title">Swipe for QR Code</string>
     <string name="tut_gesture_qr_desc">In fullscreen, swipe up or down to show the QR code overlay (requires \"Swipe to Show QR Code\" enabled in settings). Tap the QR code area to dismiss.</string>
 
+    <string name="tut_qr_swipe_title">Swipe to Switch QR Code</string>
+    <string name="tut_qr_swipe_desc">When the QR code is displayed, swipe left or right to switch between multiple QR codes (requires \"Swipe to Switch QR Code\" enabled in Settings → QR Code Settings). Supports circular switching — swiping right on the last QR code wraps back to the first.</string>
+
     <string name="tut_battery_title">Battery Display</string>
     <string name="tut_battery_desc">In fullscreen, the battery percentage is shown at the top (requires \"Show Battery\" enabled in settings).</string>
 
@@ -225,7 +230,7 @@
     <string name="tut_anti_burnin_desc">When enabled, the image shifts slightly every 5 minutes during fullscreen to prevent OLED screen burn-in.</string>
 
     <string name="tut_qr_code_title">Custom QR Code</string>
-    <string name="tut_qr_code_desc">In Settings → QR Code Settings:\n• Enable \"Swipe to Show QR Code\"\n• Tap the menu on the card to \"Generate from Link\" or \"Import Image\"\n• Generate from Link: Enter a URL and ZXing creates the QR code\n• Import Image: Pick a QR code image from your gallery\n• You can rename the QR code card\n• Uses the default QR image if none is set</string>
+    <string name="tut_qr_code_desc">In Settings → QR Code Settings:\n• Enable \"Swipe to Show QR Code\"\n• Optionally enable \"Swipe to Switch QR Code\" to swipe left/right between QR codes during display\n• Tap the menu on the card to \"Generate from Link\" or \"Import Image\"\n• Generate from Link: Enter a URL and ZXing creates the QR code\n• Import Image: Pick a QR code image from your gallery\n• You can rename the QR code card\n• Uses the default QR image if none is set</string>
 
     <string name="tut_theme_title">Theme and Appearance</string>
     <string name="tut_theme_desc">In Settings → Theme Settings you can:\n• Switch between Dark / Light mode\n• Pick a theme color: Red, Orange, Yellow, Green, Teal, Blue, Purple, Pink\n• Android 12+ supports Monet, matching your wallpaper</string>

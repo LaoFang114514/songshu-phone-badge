@@ -125,6 +125,8 @@
     <!-- QrCodeSettingsCard -->
     <string name="swipe_show_qr">上划展示二维码</string>
     <string name="swipe_show_qr_desc">打开上划屏幕展示二维码</string>
+    <string name="qr_swipe_switch">左右滑动切换二维码</string>
+    <string name="qr_swipe_switch_desc">在二维码展示时左右滑动切换不同二维码</string>
     <string name="import_qr">导入图片</string>
     <string name="default_qr">默认二维码</string>
     <string name="qr_default_name">二维码 %d</string>
@@ -215,6 +217,9 @@
     <string name="tut_gesture_qr_title">滑动展示二维码</string>
     <string name="tut_gesture_qr_desc">在全屏展示时，向上或向下滑动屏幕可以弹出二维码覆盖层（需要在设置中开启「上划展示二维码」功能）。点击二维码区域任意位置即可关闭。</string>
 
+    <string name="tut_qr_swipe_title">二维码左右滑动切换</string>
+    <string name="tut_qr_swipe_desc">在二维码展示时，左右滑动可以在多个二维码之间切换（需要在「设置 → 二维码设置」中开启「左右滑动切换二维码」功能）。支持循环切换，从最后一个二维码右滑可回到第一个。</string>
+
     <string name="tut_battery_title">电量显示</string>
     <string name="tut_battery_desc">全屏展示时，屏幕顶部会显示当前电池电量百分比（需要在基本设置中开启「显示电池电量」）。方便你随时监控手机剩余电量。</string>
 
@@ -228,7 +233,7 @@
     <string name="tut_anti_burnin_desc">开启后，全屏展示时画面会每隔 5 分钟轻微上下移动，防止 OLED 屏幕因长时间显示静态画面而产生残影（烧屏）现象。</string>
 
     <string name="tut_qr_code_title">自定义二维码</string>
-    <string name="tut_qr_code_desc">在「设置 → 二维码设置」中：\n• 开启「上划展示二维码」功能\n• 点击卡片右上角菜单，选择「从链接生成」或「导入图片」\n• 从链接生成：输入网址，自动用 ZXing 生成二维码\n• 导入图片：从相册选择自定义二维码图片\n• 可以重命名二维码卡片\n• 未设置时使用默认二维码图片</string>
+    <string name="tut_qr_code_desc">在「设置 → 二维码设置」中：\n• 开启「上划展示二维码」功能\n• 可选开启「左右滑动切换二维码」，展示时左右滑动切换不同二维码\n• 点击卡片右上角菜单，选择「从链接生成」或「导入图片」\n• 从链接生成：输入网址，自动用 ZXing 生成二维码\n• 导入图片：从相册选择自定义二维码图片\n• 可以重命名二维码卡片\n• 未设置时使用默认二维码图片</string>
 
     <string name="tut_theme_title">主题与外观</string>
     <string name="tut_theme_desc">在「设置 → 主题设置」中可以：\n• 切换深色 / 浅色模式\n• 选择主题颜色：红、橙、黄、绿、青、蓝、紫、粉\n• Android 12+ 支持莫奈取色，自动跟随壁纸配色</string>
