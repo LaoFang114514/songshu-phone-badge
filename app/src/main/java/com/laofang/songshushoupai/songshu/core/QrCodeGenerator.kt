@@ -1,12 +1,13 @@
-package com.laofang.songshushoupai.songshu
+package com.laofang.songshushoupai.songshu.core
 
 import android.graphics.Bitmap
+import android.graphics.Color
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.set
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
-import androidx.core.graphics.set
-import androidx.core.graphics.createBitmap
 
 object QrCodeGenerator {
     fun generate(content: String, size: Int = 512): Bitmap? {
@@ -21,7 +22,7 @@ object QrCodeGenerator {
             for (x in 0 until size) {
                 for (y in 0 until size) {
                     bitmap[x, y] =
-                        if (matrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE
+                        if (matrix[x, y]) Color.BLACK else Color.WHITE
                 }
             }
             bitmap

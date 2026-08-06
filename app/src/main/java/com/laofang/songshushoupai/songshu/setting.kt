@@ -66,6 +66,12 @@ import java.util.Calendar
 import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.laofang.songshushoupai.songshu.core.BackupManager
+import com.laofang.songshushoupai.songshu.core.QrCodeDataManager
+import com.laofang.songshushoupai.songshu.core.SettingsManager
+import com.laofang.songshushoupai.songshu.core.UpdateChecker
+import com.laofang.songshushoupai.songshu.core.UpdateInfo
+import com.laofang.songshushoupai.songshu.core.WebDavConfig
 
 private val CardShape = RoundedCornerShape(16.dp)
 private val BtnShape = RoundedCornerShape(12.dp)
@@ -536,13 +542,21 @@ fun BackupSettingsPage(onDataChanged: () -> Unit = {}) {
                 if (webdavUrl.isBlank()) { statusMsg = ERR_FILL_SERVER; return@BackupSettingsCard }
                 isTesting = true
                 scope.launch {
-                    val err = BackupManager.webdavTestConnection(WebDavConfig(webdavUrl, webdavUser, webdavPass))
+                    val err = BackupManager.webdavTestConnection(
+                        WebDavConfig(
+                            webdavUrl,
+                            webdavUser,
+                            webdavPass
+                        )
+                    )
                     statusMsg = err ?: ERR_CONNECTION_SUCCESS
                     isTesting = false
                 }
             },
             onSaveWebDavConfig = {
-                BackupManager.saveWebDavConfig(appCtx, WebDavConfig(webdavUrl, webdavUser, webdavPass))
+                BackupManager.saveWebDavConfig(appCtx,
+                    WebDavConfig(webdavUrl, webdavUser, webdavPass)
+                )
                 savedUrl = webdavUrl; savedUser = webdavUser; savedPass = webdavPass
                 statusMsg = ERR_WEBDAV_CONFIG_SAVED
             },

@@ -32,7 +32,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.withContext
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -40,15 +39,10 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.laofang.songshushoupai.songshu.ui.theme.SongshushoupaiAutoTheme
 import kotlin.time.Duration.Companion.milliseconds
 import androidx.media3.common.util.UnstableApi
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import com.laofang.songshushoupai.songshu.LocaleHelper
+import com.laofang.songshushoupai.songshu.core.LocaleHelper
 import com.laofang.songshushoupai.songshu.R
-import com.laofang.songshushoupai.songshu.SettingsManager
-import com.laofang.songshushoupai.songshu.QrCodeDataManager
-import kotlinx.coroutines.Dispatchers
+import com.laofang.songshushoupai.songshu.core.SettingsManager
 import kotlinx.coroutines.Job
-import java.io.File
 
 class VideoPlayerActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: Context) {
@@ -91,22 +85,11 @@ fun FullScreenVideoScreen(videoPath: String) {
     var gestureScale by remember { mutableFloatStateOf(1f) }
     var gestureResetJob by remember { mutableStateOf<Job?>(null) }
     var showQrOverlay by remember { mutableStateOf(false) }
-    var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    val qr = rememberQrAnim(showQrOverlay)
+    val qrOverlay = rememberQrOverlay(s.showQrCode)
 
     LaunchedEffect(Unit) {
         if (s.defaultOrientation) rotation = 180f
         hideHintJob = launch { delay(2000.milliseconds); if (isActive) showInitialHint = false }
-        if (s.showQrCode) {
-            qrBitmap = withContext(Dispatchers.IO) {
-                val qrList = QrCodeDataManager.getQrList(context)
-                val qrSel = QrCodeDataManager.getSelectedIndex(context).coerceIn(0, (qrList.size - 1).coerceAtLeast(0))
-                val p = qrList.getOrNull(qrSel)?.path ?: ""
-                if (p.isNotEmpty() && File(p).exists())
-                    try { BitmapFactory.decodeFile(p) } catch (_: Throwable) { null }
-                else try { BitmapFactory.decodeResource(context.resources, R.drawable.qr_zanzhu) } catch (_: Throwable) { null }
-            }
-        }
     }
 
     val exoPlayer = remember {
@@ -192,7 +175,7 @@ fun FullScreenVideoScreen(videoPath: String) {
         BatteryOverlay(batteryLevel, rotation, s.showBattery)
         InitialHintOverlay(s.lockOrientation, rotation, showInitialHint)
         RotationHintOverlay(rotation, showRotationHint)
-        QrOverlay(qr, qrBitmap, rotation) { showQrOverlay = false }
+        QrOverlay(rememberQrAnim(showQrOverlay), qrOverlay.qrBitmap, rotation) { showQrOverlay = false }
     }
 }
 

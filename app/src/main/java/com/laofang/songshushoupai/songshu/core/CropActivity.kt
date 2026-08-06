@@ -1,11 +1,13 @@
-package com.laofang.songshushoupai.songshu
+package com.laofang.songshushoupai.songshu.core
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -63,12 +65,16 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import com.laofang.songshushoupai.songshu.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.laofang.songshushoupai.songshu.ui.theme.SongshushoupaiAutoTheme
+import java.io.File
+import java.io.FileOutputStream
 
 class CropActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: Context) {
@@ -83,11 +89,11 @@ class CropActivity : ComponentActivity() {
             setContent {
                 SongshushoupaiAutoTheme { CropScreen(editIndex = idx, onFinish = { finish() }) }
             }
-        } catch (e: Throwable) { android.util.Log.e("CropActivity", "onCreate error", e); finish() }
+        } catch (e: Throwable) { Log.e("CropActivity", "onCreate error", e); finish() }
     }
 }
 
-private fun loadBitmap(uri: android.net.Uri, ctx: Context): Bitmap? {
+private fun loadBitmap(uri: Uri, ctx: Context): Bitmap? {
     return try {
         val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         ctx.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) }
@@ -163,10 +169,11 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
         Column(modifier = Modifier.fillMaxSize()) {
             Box(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).statusBarsPadding()) {
                 Row(modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    androidx.compose.material3.IconButton(onClick = { if (!processing) onFinish() }) {
+                    IconButton(onClick = { if (!processing) onFinish() }) {
                         Icon(painter = painterResource(android.R.drawable.ic_menu_close_clear_cancel), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(26.dp))
                     }
-                    Text(if (editIndex >= 0) stringResource(R.string.edit_badge) else stringResource(R.string.new_badge), color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Text(if (editIndex >= 0) stringResource(R.string.edit_badge) else stringResource(
+                        R.string.new_badge), color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 
@@ -204,7 +211,8 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
                 Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedButton(onClick = { if (editIndex >= 0) onFinish() else picker.launch("image/*") },
                         modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp), enabled = !processing,
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))) { Text(if (editIndex >= 0) stringResource(R.string.cancel) else stringResource(R.string.reselect), fontSize = 15.sp) }
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))) { Text(if (editIndex >= 0) stringResource(
+                        R.string.cancel) else stringResource(R.string.reselect), fontSize = 15.sp) }
                     Button(onClick = {
                         if (processing) return@Button
                         if (bmp != null && bw > 0 && bh > 0) {
@@ -226,9 +234,9 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
                                     if (fw > 0 && fh > 0) {
                                         saved = withContext(Dispatchers.IO) {
                                             val cropped = Bitmap.createBitmap(bitmap, fl, ft, fw, fh)
-                                            val dir = java.io.File(ctx.filesDir, "images").also { it.mkdirs() }
-                                            val f = java.io.File(dir, "img_${System.currentTimeMillis()}.png")
-                                            java.io.FileOutputStream(f).use { cropped.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                                            val dir = File(ctx.filesDir, "images").also { it.mkdirs() }
+                                            val f = File(dir, "img_${System.currentTimeMillis()}.png")
+                                            FileOutputStream(f).use { cropped.compress(Bitmap.CompressFormat.PNG, 100, it) }
                                             cropped.recycle(); f.absolutePath
                                         }
                                     }
@@ -236,12 +244,13 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
                                         if (editIndex >= 0) ImageDataManager.replaceImage(ctx, editIndex, saved)
                                         else ImageDataManager.addImageToList(ctx, saved)
                                     }
-                                } catch (e: Throwable) { android.util.Log.e("CropActivity", "Crop failed", e) }
+                                } catch (e: Throwable) { Log.e("CropActivity", "Crop failed", e) }
                                 finally { onFinish() }
                             }
                         } else onFinish()
                     }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp), enabled = !processing,
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) { Text(stringResource(R.string.confirm_crop), fontSize = 15.sp, color = MaterialTheme.colorScheme.onPrimary) }
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) { Text(stringResource(
+                        R.string.confirm_crop), fontSize = 15.sp, color = MaterialTheme.colorScheme.onPrimary) }
                 }
             }
         }

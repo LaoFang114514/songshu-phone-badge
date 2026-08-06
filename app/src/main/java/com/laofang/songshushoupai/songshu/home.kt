@@ -20,6 +20,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.Context
 import android.content.pm.ActivityInfo
+import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -127,6 +128,14 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.core.view.WindowCompat
 import androidx.core.net.toUri
 import androidx.compose.ui.text.buildAnnotatedString
+import com.laofang.songshushoupai.songshu.core.CropActivity
+import com.laofang.songshushoupai.songshu.core.ImageDataManager
+import com.laofang.songshushoupai.songshu.core.ImageItem
+import com.laofang.songshushoupai.songshu.core.LocaleHelper
+import com.laofang.songshushoupai.songshu.core.SettingsManager
+import com.laofang.songshushoupai.songshu.core.UpdateChecker
+import com.laofang.songshushoupai.songshu.core.UpdateInfo
+import com.laofang.songshushoupai.songshu.core.decodeBitmapSampled
 
 
 private val DlgShape = RoundedCornerShape(12.dp)
@@ -264,7 +273,7 @@ fun SongshushoupaiApp(
                         r.setDataSource(file.absolutePath)
                         r.getFrameAtTime(0)?.let { frame ->
                             val cf = File(File(ctx.filesDir, "covers").also { it.mkdirs() }, "cover_${System.currentTimeMillis()}.jpg")
-                            FileOutputStream(cf).use { out -> frame.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, out) }
+                            FileOutputStream(cf).use { out -> frame.compress(Bitmap.CompressFormat.JPEG, 80, out) }
                             ImageDataManager.addVideoToList(ctx, file.absolutePath, cf.absolutePath)
                             frame.recycle()
                         } ?: ImageDataManager.addVideoToList(ctx, file.absolutePath, "")
@@ -515,7 +524,7 @@ fun ImageCard(
     canMoveUp: Boolean, canMoveDown: Boolean
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var bitmap by remember(item.filePath) { mutableStateOf<android.graphics.Bitmap?>(null) }
+    var bitmap by remember(item.filePath) { mutableStateOf<Bitmap?>(null) }
     val borderWidth by animateFloatAsState(if (isSelected) 2f else 1f, tween(250), label = "borderWidth")
 
     Row(Modifier.fillMaxWidth().height(100.dp).clip(RoundedCornerShape(16.dp))
@@ -554,7 +563,7 @@ fun ImageCard(
         bitmap = withContext(Dispatchers.IO) {
             val path = if (item.isVideo) item.coverPath else item.filePath
             if (path.isEmpty()) return@withContext null
-            decodeBitmapSampled(path, 256, android.graphics.Bitmap.Config.RGB_565)
+            decodeBitmapSampled(path, 256, Bitmap.Config.RGB_565)
         }
     }
 }

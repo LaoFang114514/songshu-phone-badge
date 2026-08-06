@@ -1,12 +1,15 @@
-package com.laofang.songshushoupai.songshu
+package com.laofang.songshushoupai.songshu.core
 
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
 import android.os.LocaleList
 import androidx.core.content.edit
+import com.laofang.songshushoupai.songshu.R
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.util.Locale
 
 data class AppSettings(
     val defaultOrientation: Boolean = false,
@@ -324,9 +327,9 @@ object LocaleHelper {
     fun applyLocale(context: Context): Context {
         val langIdx = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
             .getInt("language_index", 0)
-        val locale = if (langIdx == 1) java.util.Locale.ENGLISH else java.util.Locale.CHINESE
-        java.util.Locale.setDefault(locale)
-        val config = android.content.res.Configuration(context.resources.configuration)
+        val locale = if (langIdx == 1) Locale.ENGLISH else Locale.CHINESE
+        Locale.setDefault(locale)
+        val config = Configuration(context.resources.configuration)
         config.setLocale(locale)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             config.setLocales(LocaleList(locale))

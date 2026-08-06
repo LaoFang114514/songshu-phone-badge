@@ -1,4 +1,4 @@
-package com.laofang.songshushoupai.songshu
+package com.laofang.songshushoupai.songshu.core
 
 import android.content.ContentValues
 import android.content.Context
@@ -27,6 +27,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import androidx.core.content.edit
+import java.io.InputStream
 
 data class WebDavConfig(val url: String = "", val username: String = "", val password: String = "")
 
@@ -129,7 +130,7 @@ object BackupManager {
         }
     }
 
-    private fun readZipEntries(input: java.io.InputStream): Quad<String?, MutableMap<String, ByteArray>, MutableMap<String, ByteArray>, MutableMap<String, ByteArray>> {
+    private fun readZipEntries(input: InputStream): Quad<String?, MutableMap<String, ByteArray>, MutableMap<String, ByteArray>, MutableMap<String, ByteArray>> {
         var configJson: String? = null
         val imageMap = mutableMapOf<String, ByteArray>()
         val coverMap = mutableMapOf<String, ByteArray>()
@@ -218,7 +219,8 @@ object BackupManager {
                         restored.absolutePath,
                         cfg.optString("qr_code_name", ""),
                         cfg.optString("qr_code_link", "")
-                    ))
+                    )
+                    )
                 }
             }
         }

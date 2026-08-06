@@ -33,7 +33,7 @@
             android:theme="@style/Theme.Songshushoupai.App" />
 
         <activity
-            android:name=".CropActivity"
+            android:name=".core.CropActivity"
             android:exported="false"
             android:theme="@style/Theme.Songshushoupai.App" />
 

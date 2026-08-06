@@ -30,19 +30,15 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.Dispatchers
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import com.laofang.songshushoupai.songshu.ImageDataManager
-import com.laofang.songshushoupai.songshu.LocaleHelper
-import com.laofang.songshushoupai.songshu.SettingsManager
-import com.laofang.songshushoupai.songshu.QrCodeDataManager
+import com.laofang.songshushoupai.songshu.core.ImageDataManager
+import com.laofang.songshushoupai.songshu.core.LocaleHelper
+import com.laofang.songshushoupai.songshu.core.SettingsManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
 class StartActivity : ComponentActivity() {
@@ -105,8 +101,7 @@ fun FullScreenImageScreen() {
     val batteryLevel = rememberBatteryLevel()
 
     var showQrOverlay by remember { mutableStateOf(false) }
-    var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    val qr = rememberQrAnim(showQrOverlay)
+    val qrOverlay = rememberQrOverlay(appSettings.showQrCode)
 
     val exitAlpha = remember { Animatable(1f) }
     var gestureScale by remember { mutableFloatStateOf(1f) }
@@ -130,19 +125,6 @@ fun FullScreenImageScreen() {
             } catch (_: Throwable) { null }
         } else null
         isLoaded = true
-
-        if (appSettings.showQrCode) {
-            qrBitmap = withContext(Dispatchers.IO) {
-                val qrList = QrCodeDataManager.getQrList(context)
-                val qrSel = QrCodeDataManager.getSelectedIndex(context).coerceIn(0, (qrList.size - 1).coerceAtLeast(0))
-                val path = qrList.getOrNull(qrSel)?.path ?: ""
-                if (path.isNotEmpty() && File(path).exists())
-                    try { BitmapFactory.decodeFile(path) } catch (_: Throwable) { null }
-                else try {
-                    BitmapFactory.decodeResource(context.resources, com.laofang.songshushoupai.songshu.R.drawable.qr_zanzhu)
-                } catch (_: Throwable) { null }
-            }
-        }
 
         hideInitialHintJob = launch { delay(2000.milliseconds); if (isActive) showInitialHint = false }
     }
@@ -201,6 +183,6 @@ fun FullScreenImageScreen() {
             BatteryOverlay(batteryLevel, rotation, appSettings.showBattery)
             InitialHintOverlay(appSettings.lockOrientation, rotation, showInitialHint)
             RotationHintOverlay(rotation, showRotationHint)
-            QrOverlay(qr, qrBitmap, rotation) { showQrOverlay = false }
+            QrOverlay(rememberQrAnim(showQrOverlay), qrOverlay.qrBitmap, rotation) { showQrOverlay = false }
         }
 }

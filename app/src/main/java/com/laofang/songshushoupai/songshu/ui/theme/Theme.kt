@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.ColorScheme
+import com.laofang.songshushoupai.songshu.core.SettingsManager
 
 private fun Color.luminance(): Float {
     fun linearize(c: Float) = if (c <= 0.04045f) c / 12.92f else ((c + 0.055f) / 1.055f).let { it * it * it }
@@ -109,9 +110,9 @@ fun SongshushoupaiTheme(
 @Composable
 fun SongshushoupaiAutoTheme(content: @Composable () -> Unit) {
     val ctx = LocalContext.current
-    var s by remember { mutableStateOf(com.laofang.songshushoupai.songshu.SettingsManager.loadSettings(ctx)) }
+    var s by remember { mutableStateOf(SettingsManager.loadSettings(ctx)) }
     LaunchedEffect(Unit) {
-        s = com.laofang.songshushoupai.songshu.SettingsManager.loadSettings(ctx)
+        s = SettingsManager.loadSettings(ctx)
     }
     val dark = when (s.darkMode) { 1 -> false; 2 -> true; else -> isSystemInDarkTheme() }
     SongshushoupaiTheme(darkTheme = dark, themeColorIndex = s.themeColorIndex, content = content)

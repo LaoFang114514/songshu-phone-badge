@@ -1,4 +1,4 @@
-package com.laofang.songshushoupai.songshu
+package com.laofang.songshushoupai.songshu.core
 
 import android.content.Context
 import androidx.core.content.edit

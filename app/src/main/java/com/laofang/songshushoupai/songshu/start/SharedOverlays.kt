@@ -1,9 +1,12 @@
 package com.laofang.songshushoupai.songshu.start
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.BatteryManager
 import android.os.Build
 import androidx.compose.animation.core.Animatable
@@ -43,15 +46,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.graphics.Bitmap
 import com.laofang.songshushoupai.songshu.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.math.abs
 import kotlin.math.sqrt
+import java.io.File
+import com.laofang.songshushoupai.songshu.core.QrCodeDataManager
 
 data class GestureCallbacks(
     val onSwipeDown: () -> Unit,
@@ -182,6 +188,30 @@ fun rememberQrAnim(show: Boolean): QrAnims {
         }
     }
     return QrAnims(ic, ba, cs, ca)
+}
+
+data class QrOverlayState(
+    val qrBitmap: Bitmap?,
+    val showQrCode: Boolean
+)
+
+@SuppressLint("LocalContextResourcesRead")
+@Composable
+fun rememberQrOverlay(enabled: Boolean): QrOverlayState {
+    val context = LocalContext.current
+    var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(enabled) {
+        if (!enabled) { qrBitmap = null; return@LaunchedEffect }
+        qrBitmap = withContext(Dispatchers.IO) {
+            val qrList = QrCodeDataManager.getQrList(context)
+            val qrSel = QrCodeDataManager.getSelectedIndex(context).coerceIn(0, (qrList.size - 1).coerceAtLeast(0))
+            val path = qrList.getOrNull(qrSel)?.path ?: ""
+            if (path.isNotEmpty() && File(path).exists())
+                try { BitmapFactory.decodeFile(path) } catch (_: Throwable) { null }
+            else try { BitmapFactory.decodeResource(context.resources, R.drawable.qr_zanzhu) } catch (_: Throwable) { null }
+        }
+    }
+    return QrOverlayState(qrBitmap, enabled)
 }
 
 @Composable
