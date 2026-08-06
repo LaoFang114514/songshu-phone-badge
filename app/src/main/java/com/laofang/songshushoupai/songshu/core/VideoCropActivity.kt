@@ -8,6 +8,7 @@ import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -50,14 +51,18 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.MediaItem
 import androidx.media3.effect.Crop
+import androidx.media3.transformer.Composition
 import androidx.media3.transformer.EditedMediaItem
+import androidx.media3.transformer.EditedMediaItemSequence
 import androidx.media3.transformer.Effects
-import androidx.media3.transformer.Transformer
 import androidx.media3.transformer.ExportException
+import androidx.media3.transformer.Transformer
 import androidx.core.net.toUri
 
 class VideoCropActivity : ComponentActivity() {
@@ -98,14 +103,12 @@ fun VideoCropScreen(editIndex: Int, videoUri: String?, onFinish: () -> Unit) {
     var processing by remember { mutableStateOf(false) }
     var tempFilePath by remember { mutableStateOf("") }
     var videoCoverPath by remember { mutableStateOf("") }
-    var videoRotation by remember { mutableIntStateOf(0) }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
-            processVideo(uri, ctx) { bmp, w, h, path, cover, rot ->
+            processVideo(uri, ctx) { bmp, w, h, path, cover ->
                 frame = bmp; vidW = w; vidH = h
                 tempFilePath = path; videoCoverPath = cover
-                videoRotation = rot
                 loading = false
             }
         } else loading = false
@@ -121,15 +124,14 @@ fun VideoCropScreen(editIndex: Int, videoUri: String?, onFinish: () -> Unit) {
                     try {
                         val r = MediaMetadataRetriever()
                         r.setDataSource(list[editIndex].filePath)
-                        val rawBmp = r.getFrameAtTime(0)
+                        val bmp = r.getFrameAtTime(0)
                         val vw = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 0
                         val vh = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
                         val rot = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
                         vidW = if (rot == 90 || rot == 270) vh else vw
                         vidH = if (rot == 90 || rot == 270) vw else vh
-                        videoRotation = rot
                         r.release()
-                        frame = rotateToEncoded(rawBmp, rot)
+                        frame = bmp
                     } catch (_: Throwable) {}
                 }
                 loading = false
@@ -137,10 +139,9 @@ fun VideoCropScreen(editIndex: Int, videoUri: String?, onFinish: () -> Unit) {
         }
         if (frame == null && videoUri != null) {
             val uri = videoUri.toUri()
-            processVideo(uri, ctx) { bmp, w, h, path, cover, rot ->
+            processVideo(uri, ctx) { bmp, w, h, path, cover ->
                 frame = bmp; vidW = w; vidH = h
                 tempFilePath = path; videoCoverPath = cover
-                videoRotation = rot
                 loading = false
             }
         }
@@ -272,7 +273,7 @@ fun VideoCropScreen(editIndex: Int, videoUri: String?, onFinish: () -> Unit) {
 
 @kotlin.OptIn(DelicateCoroutinesApi::class)
 @Suppress("DEPRECATION")
-private fun processVideo(uri: Uri, ctx: Context, onResult: (Bitmap?, Int, Int, String, String, Int) -> Unit) {
+private fun processVideo(uri: Uri, ctx: Context, onResult: (Bitmap?, Int, Int, String, String) -> Unit) {
     GlobalScope.launch(Dispatchers.IO) {
         try {
             val tmpFile = File(ctx.cacheDir, "tmp_vid_${System.currentTimeMillis()}.mp4")
@@ -281,13 +282,12 @@ private fun processVideo(uri: Uri, ctx: Context, onResult: (Bitmap?, Int, Int, S
             }
             val r = MediaMetadataRetriever()
             r.setDataSource(tmpFile.absolutePath)
-            val rawBmp = r.getFrameAtTime(0)
+            val bmp = r.getFrameAtTime(0)
             val vw = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 0
             val vh = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
             val rot = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
             val realW = if (rot == 90 || rot == 270) vh else vw
             val realH = if (rot == 90 || rot == 270) vw else vh
-            val bmp = rotateToEncoded(rawBmp, rot)
             var coverPath = ""
             try {
                 bmp?.let { frame ->
@@ -298,34 +298,19 @@ private fun processVideo(uri: Uri, ctx: Context, onResult: (Bitmap?, Int, Int, S
                 }
             } catch (_: Throwable) {}
             r.release()
-            withContext(Dispatchers.Main) { onResult(bmp, realW, realH, tmpFile.absolutePath, coverPath, rot) }
+            withContext(Dispatchers.Main) { onResult(bmp, realW, realH, tmpFile.absolutePath, coverPath) }
         } catch (_: Throwable) {
-            withContext(Dispatchers.Main) { onResult(null, 0, 0, "", "", 0) }
+            withContext(Dispatchers.Main) { onResult(null, 0, 0, "", "") }
         }
     }
 }
 
-private fun rotateToEncoded(bmp: Bitmap?, rotation: Int): Bitmap? {
-    if (bmp == null || rotation == 0) return bmp
-    val matrix = android.graphics.Matrix()
-    when (rotation) {
-        90 -> matrix.postRotate(-90f)
-        180 -> matrix.postRotate(180f)
-        270 -> matrix.postRotate(-270f)
-    }
-    return try {
-        Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, matrix, true)
-    } catch (_: Exception) { bmp }
-}
-
-@kotlin.OptIn(DelicateCoroutinesApi::class)
 @Suppress("DEPRECATION")
 private fun cropVideoFile(
     inputPath: String, nL: Float, nT: Float, nR: Float, nB: Float,
     ctx: Context,
     onResult: (String) -> Unit
 ) {
-
     val cropW = nR - nL
     val cropH = nB - nT
     if (cropW < 0.01f || cropH < 0.01f) {
@@ -333,45 +318,77 @@ private fun cropVideoFile(
         return
     }
 
+    val mainHandler = Handler(Looper.getMainLooper())
     val outputPath = File(
         File(ctx.filesDir, "videos").also { it.mkdirs() },
         "vid_${System.currentTimeMillis()}.mp4"
     ).absolutePath
 
-    val cropEffect = Crop(
-        nL * 2f - 1f,
-        nR * 2f - 1f,
-        1f - nB * 2f,
-        1f - nT * 2f
-    )
+    val r = MediaMetadataRetriever()
+    val (encW, encH, rot) = try {
+        r.setDataSource(inputPath)
+        val vw = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 0
+        val vh = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
+        val ro = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
+        Triple(vw, vh, ro)
+    } catch (_: Exception) {
+        Triple(0, 0, 0)
+    } finally {
+        try { r.release() } catch (_: Exception) {}
+    }
 
+    val frameW = if (rot == 90 || rot == 270) encH else encW
+    val frameH = if (rot == 90 || rot == 270) encW else encH
+    if (frameW <= 0 || frameH <= 0) {
+        onResult("")
+        return
+    }
+
+    var pixL = ((nL * frameW).toInt() / 2) * 2
+    var pixT = ((nT * frameH).toInt() / 2) * 2
+    var pixR = (((nR * frameW).toInt() + 1) / 2) * 2
+    var pixB = (((nB * frameH).toInt() + 1) / 2) * 2
+    pixL = pixL.coerceIn(0, frameW - 2)
+    pixT = pixT.coerceIn(0, frameH - 2)
+    pixR = pixR.coerceIn(pixL + 2, frameW)
+    pixB = pixB.coerceIn(pixT + 2, frameH)
+    if ((pixR - pixL) % 2 != 0) pixR -= 1
+    if ((pixB - pixT) % 2 != 0) pixB -= 1
+    pixR = pixR.coerceAtLeast(pixL + 2)
+    pixB = pixB.coerceAtLeast(pixT + 2)
+    val cropEffect = Crop(
+        pixL * 2f / frameW - 1f,
+        pixR * 2f / frameW - 1f,
+        1f - pixB * 2f / frameH,
+        1f - pixT * 2f / frameH
+    )
     val editedItem = EditedMediaItem.Builder(MediaItem.fromUri(inputPath))
         .setEffects(Effects(listOf(), listOf(cropEffect)))
         .build()
 
+    val composition = if (Build.VERSION.SDK_INT >= 29) {
+        Composition.Builder(EditedMediaItemSequence(editedItem))
+            .setHdrMode(Composition.HDR_MODE_TONE_MAP_HDR_TO_SDR_USING_OPEN_GL)
+            .build()
+    } else {
+        Composition.Builder(EditedMediaItemSequence(editedItem)).build()
+    }
+
     val transformer = Transformer.Builder(ctx)
         .addListener(object : Transformer.Listener {
-            override fun onCompleted(
-                composition: androidx.media3.transformer.Composition,
-                exportResult: androidx.media3.transformer.ExportResult
-            ) {
+            override fun onCompleted(composition: Composition, exportResult: androidx.media3.transformer.ExportResult) {
                 if (inputPath != outputPath) File(inputPath).delete()
-                GlobalScope.launch(Dispatchers.Main) { onResult(outputPath) }
+                mainHandler.post { onResult(outputPath) }
             }
-
-            override fun onError(
-                composition: androidx.media3.transformer.Composition,
-                exportResult: androidx.media3.transformer.ExportResult,
-                e: ExportException
-            ) {
-                GlobalScope.launch(Dispatchers.Main) { onResult("") }
+            override fun onError(composition: Composition, exportResult: androidx.media3.transformer.ExportResult, e: ExportException) {
+                mainHandler.post { onResult("") }
             }
         })
         .build()
-
     try {
-        transformer.start(editedItem, outputPath)
+        transformer.start(composition, outputPath)
     } catch (_: Exception) {
         onResult("")
     }
 }
+
