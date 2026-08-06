@@ -26,8 +26,8 @@ android {
         applicationId = "com.laofang.songshushoupai.songshu"
         minSdk = 21
         targetSdk = 37
-        versionCode = 21
-        versionName = "1.0.1"
+        versionCode = 22
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

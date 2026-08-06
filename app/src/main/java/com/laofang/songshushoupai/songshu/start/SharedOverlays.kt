@@ -258,6 +258,7 @@ fun QrOverlay(qr: QrAnims, qrBitmap: Bitmap?, rotation: Float, qrSwipeSwitch: Bo
     var currentBitmap by remember(currentIndex) { mutableStateOf<Bitmap?>(null) }
     val slideAnim = remember { Animatable(0f) }
     var slideDirection by remember { mutableFloatStateOf(0f) }
+    var slideTrigger by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(currentIndex) {
         currentBitmap = withContext(Dispatchers.IO) {
@@ -276,13 +277,13 @@ fun QrOverlay(qr: QrAnims, qrBitmap: Bitmap?, rotation: Float, qrSwipeSwitch: Bo
         currentBitmap = qrBitmap
         slideAnim.snapTo(0f)
         slideDirection = 0f
+        slideTrigger = 0
     }
 
-    LaunchedEffect(slideDirection) {
-        if (slideDirection != 0f) {
+    LaunchedEffect(slideTrigger) {
+        if (slideTrigger > 0) {
             slideAnim.snapTo(slideDirection)
             slideAnim.animateTo(0f, tween(300))
-            slideDirection = 0f
         }
     }
 
@@ -318,6 +319,7 @@ fun QrOverlay(qr: QrAnims, qrBitmap: Bitmap?, rotation: Float, qrSwipeSwitch: Bo
                         QrCodeDataManager.setSelectedIndex(context, newIndex)
                         onQrIndexChange(newIndex)
                         slideDirection = dir * 0.35f
+                        slideTrigger++
                     } else if (!moved) {
                         onTap()
                     }

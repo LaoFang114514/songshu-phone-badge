@@ -4,11 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -72,6 +67,9 @@ import java.io.FileOutputStream
 private val DlgShape = RoundedCornerShape(12.dp)
 
 @Composable
+private fun Divider() = HorizontalDivider()
+
+@Composable
 fun QrCodeSettingsCard(
     showQrCode: Boolean, onShowQrCodeChange: (Boolean) -> Unit,
     qrSwipeSwitch: Boolean, onQrSwipeSwitchChange: (Boolean) -> Unit,
@@ -103,17 +101,13 @@ fun QrCodeSettingsCard(
 
     SettingsSwitchRow(stringResource(R.string.swipe_show_qr), stringResource(R.string.swipe_show_qr_desc), showQrCode, onShowQrCodeChange)
 
-    AnimatedVisibility(
-        visible = showQrCode,
-        enter = fadeIn() + expandVertically(),
-        exit = fadeOut() + shrinkVertically()
-    ) {
-        SettingsSwitchRow(stringResource(R.string.qr_swipe_switch), stringResource(R.string.qr_swipe_switch_desc), qrSwipeSwitch, onQrSwipeSwitchChange)
-    }
+    Divider()
 
-    HorizontalDivider(Modifier.padding(top = 8.dp))
+    SettingsSwitchRow(stringResource(R.string.qr_swipe_switch), stringResource(R.string.qr_swipe_switch_desc), qrSwipeSwitch, onQrSwipeSwitchChange, enabled = showQrCode)
 
-    Row(Modifier.fillMaxWidth().padding(top = 8.dp).graphicsLayer { this.alpha = if (showQrCode) 1f else 0.70f },
+    Divider()
+
+    Row(Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(
             onClick = { linkInput = ""; showLinkDialog = true },
@@ -125,7 +119,7 @@ fun QrCodeSettingsCard(
         ) { Text(stringResource(R.string.import_qr)) }
     }
 
-    Column(Modifier.fillMaxWidth().padding(top = 12.dp).graphicsLayer { this.alpha = if (showQrCode) 1f else 0.70f },
+    Column(Modifier.fillMaxWidth().padding(top = 12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (qrList.isEmpty()) {
             DefaultQrCard(enabled = showQrCode)
@@ -214,7 +208,9 @@ private fun QrCard(
     Row(Modifier.fillMaxWidth().height(100.dp).clip(RoundedCornerShape(16.dp))
         .background(cs.surface)
         .border(BorderStroke(borderWidth.dp, if (isSelected) cs.primary else cs.primary.copy(alpha = 0.3f)), RoundedCornerShape(16.dp))
-        .clickable(enabled = enabled) { onSelect() }.padding(12.dp),
+        .clickable(enabled = enabled) { onSelect() }
+        .graphicsLayer { this.alpha = if (enabled) 1f else 0.70f }
+        .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
 
         Box(Modifier.size(76.dp).clip(RoundedCornerShape(12.dp)).background(cs.surfaceVariant)) {
@@ -254,7 +250,9 @@ private fun DefaultQrCard(enabled: Boolean = true) {
     Row(Modifier.fillMaxWidth().height(100.dp).clip(RoundedCornerShape(16.dp))
         .background(cs.surface)
         .border(BorderStroke(1.dp, cs.primary.copy(alpha = 0.3f)), RoundedCornerShape(16.dp))
-        .clickable(enabled = enabled) { }.padding(12.dp),
+        .clickable(enabled = enabled) { }
+        .graphicsLayer { this.alpha = if (enabled) 1f else 0.70f }
+        .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
 
         Box(Modifier.size(76.dp).clip(RoundedCornerShape(12.dp)).background(cs.surfaceVariant)) {
