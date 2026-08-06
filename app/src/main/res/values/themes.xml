@@ -13,4 +13,8 @@
     <style name="Theme.Songshushoupai.App" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowDisablePreview">true</item>
     </style>
+
+    <style name="VideoPlayerView">
+        <item name="surface_type">texture_view</item>
+    </style>
 </resources>

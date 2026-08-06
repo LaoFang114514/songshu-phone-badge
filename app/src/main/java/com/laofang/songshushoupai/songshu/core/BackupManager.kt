@@ -7,7 +7,6 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Base64
-import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -32,7 +31,6 @@ import java.io.InputStream
 data class WebDavConfig(val url: String = "", val username: String = "", val password: String = "")
 
 object BackupManager {
-    private const val TAG = "BackupManager"
 
     const val ERR_AUTH_FAIL = "auth_fail"
     const val ERR_NO_PERMISSION = "no_permission"
@@ -73,6 +71,7 @@ object BackupManager {
             arr.put(JSONObject().apply {
                 put("index", i); put("name", item.name); put("path", item.filePath)
                 put("type", item.type); put("cover", item.coverPath)
+                put("crop", item.cropRect)
             })
         }
         val qrList = QrCodeDataManager.getQrList(ctx)
@@ -180,13 +179,10 @@ object BackupManager {
                 val key = coverMap.keys.find { it.endsWith(fn) }
                 if (key != null) { val f = File(covDir, "${prefix}_${ts}_${i}_$fn"); f.writeBytes(coverMap[key]!!); newCoverPath = f.absolutePath }
             }
-            newList.add(ImageItem(i, newPath, name, type, newCoverPath))
+            newList.add(ImageItem(i, newPath, name, type, newCoverPath, o.optString("crop", "")))
+
         }
         ImageDataManager.restoreList(ctx, newList, sel)
-        qrMap.forEach { (entryName, data) ->
-            val fn = File(entryName).name
-            File(qrDir, "${prefix}_${ts}_$fn").writeBytes(data)
-        }
         val qrArr = cfg.optJSONArray("qr_codes")
         if (qrArr != null && qrArr.length() > 0) {
             val qrSel = cfg.optInt("qr_selected_index", 0)
@@ -236,7 +232,7 @@ object BackupManager {
                 ?: return false
             if (configJson == null) return false
             restoreFromEntries(ctx, configJson, imageMap, coverMap, qrMap)
-        } catch (e: Exception) { Log.e(TAG, "Import failed", e); false }
+        } catch (_: Exception) { false }
     }
 
     fun webdavUpload(ctx: Context, cfg: WebDavConfig): String? = uploadZip(ctx, cfg)
@@ -291,7 +287,6 @@ object BackupManager {
                 }
             }
             val url = fileUrl(cfg)
-            Log.d(TAG, "Upload to: $url, size=${tmp.length()}")
             val conn = httpConn(url)
             try {
                 conn.requestMethod = "PUT"; conn.doOutput = true
@@ -306,7 +301,7 @@ object BackupManager {
                     else -> "$ERR_UPLOAD_FAILED:$code"
                 }
             } finally { conn.disconnect() }
-        } catch (e: Exception) { Log.e(TAG, "Upload failed", e); ERR_UPLOAD_FAILED_SIMPLE }
+        } catch (_: Exception) { ERR_UPLOAD_FAILED_SIMPLE }
         finally { tmp.delete() }
     }
 
@@ -314,12 +309,10 @@ object BackupManager {
         val tmp = File(ctx.cacheDir, "download_${System.currentTimeMillis()}.zip")
         return try {
             var url = fileUrl(cfg)
-            Log.d(TAG, "Download from: $url")
             var conn = httpConn(url)
             try {
                 conn.requestMethod = "GET"; basicAuth(conn, cfg)
-                var code = conn.responseCode; val msg = conn.responseMessage
-                Log.d(TAG, "Download response: $code $msg")
+                var code = conn.responseCode
                 val origHost = try { URI(url).host } catch (_: Exception) { "" }
                 var redirects = 0
                 while (code in listOf(301, 302, 307, 308) && redirects < 5) {
@@ -327,11 +320,10 @@ object BackupManager {
                     val loc = conn.getHeaderField("Location") ?: return ERR_REDIRECT_NO_LOCATION
                     conn.disconnect()
                     url = if (loc.startsWith("http")) loc else "${cfg.url.trimEnd('/')}${if (loc.startsWith("/")) "" else "/"}$loc"
-                    Log.d(TAG, "Redirect ($redirects) to: $url")
                     conn = httpConn(url); conn.requestMethod = "GET"
                     val rHost = try { URI(url).host } catch (_: Exception) { "" }
                     if (rHost.isNotEmpty() && rHost == origHost) basicAuth(conn, cfg)
-                    else { Log.d(TAG, "Redirect different host, skipping auth"); conn.setRequestProperty("Referer", cfg.url.trimEnd('/')) }
+                    else { conn.setRequestProperty("Referer", cfg.url.trimEnd('/')) }
                     code = conn.responseCode
                 }
                 if (code != 200) {
@@ -353,9 +345,8 @@ object BackupManager {
             if (configJson == null) return ERR_NO_CONFIG_IN_ZIP
 
             restoreFromEntries(ctx, configJson, imageMap, coverMap, qrMap, "restore")
-            Log.d(TAG, "Restore OK")
             null
-        } catch (e: Exception) { Log.e(TAG, "Download/Restore failed", e); ERR_UNKNOWN_ERROR }
+        } catch (_: Exception) { ERR_UNKNOWN_ERROR }
         finally { tmp.delete() }
     }
 
@@ -376,13 +367,14 @@ object BackupManager {
                     ctx.contentResolver.update(uri, cv, null, null)
                 }
             } else {
-                val dl = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val dl = ctx.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return
                 if (dl.exists() || dl.mkdirs()) {
                     val dest = File(dl, src.name)
                     src.inputStream().use { ins -> dest.outputStream().use { out -> ins.copyTo(out) } }
                 }
             }
-        } catch (e: Exception) { Log.w(TAG, "Save to Downloads failed (non-fatal)", e) }
+        } catch (_: Exception) {}
+
     }
 }
 

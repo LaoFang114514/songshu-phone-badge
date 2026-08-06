@@ -11,7 +11,6 @@ import android.graphics.SurfaceTexture
 import android.os.Bundle
 import android.view.TextureView
 import android.view.WindowManager
-import android.view.Surface
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -21,7 +20,6 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,21 +27,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.isActive
-import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
+import com.laofang.songshushoupai.songshu.core.LocaleHelper
+import com.laofang.songshushoupai.songshu.core.QrCodeDataManager
+import com.laofang.songshushoupai.songshu.core.SettingsManager
 import com.laofang.songshushoupai.songshu.ui.theme.SongshushoupaiAutoTheme
 import kotlin.time.Duration.Companion.milliseconds
 import androidx.media3.common.util.UnstableApi
-import com.laofang.songshushoupai.songshu.core.LocaleHelper
-import com.laofang.songshushoupai.songshu.R
-import com.laofang.songshushoupai.songshu.core.SettingsManager
-import com.laofang.songshushoupai.songshu.core.QrCodeDataManager
-import kotlinx.coroutines.Job
 
 class VideoPlayerActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: Context) {
@@ -75,17 +73,16 @@ fun FullScreenVideoScreen(videoPath: String) {
     var rotation by remember { mutableFloatStateOf(0f) }
     val scope = rememberCoroutineScope()
     val dm = context.resources.displayMetrics
-    val screenAR = dm.widthPixels.toFloat() / dm.heightPixels.toFloat()
 
     val antiBurnInOffset = rememberAntiBurnInOffset(s.antiBurnIn, dm.heightPixels.toFloat())
     var showInitialHint by remember { mutableStateOf(true) }
     var hideHintJob by remember { mutableStateOf<Job?>(null) }
     var showRotationHint by remember { mutableStateOf(false) }
     val batteryLevel = rememberBatteryLevel()
-    var videoAspectRatio by remember { mutableFloatStateOf(0f) }
     var gestureScale by remember { mutableFloatStateOf(1f) }
     var gestureResetJob by remember { mutableStateOf<Job?>(null) }
     var showQrOverlay by remember { mutableStateOf(false) }
+    var videoAspectRatio by remember { mutableFloatStateOf(0f) }
     val qrOverlay = rememberQrOverlay(s.showQrCode)
     val qrList = remember { QrCodeDataManager.getQrList(context) }
 
@@ -102,43 +99,59 @@ fun FullScreenVideoScreen(videoPath: String) {
             volume = if (s.muteVideo) 0f else 1f
         }
     }
-    var playerRef by remember { mutableStateOf<ExoPlayer?>(null) }
     DisposableEffect(Unit) {
         onDispose { exoPlayer.release() }
+    }
+
+    DisposableEffect(exoPlayer) {
+        val listener = object : Player.Listener {
+            override fun onVideoSizeChanged(videoSize: VideoSize) {
+                val w = videoSize.width
+                val h = videoSize.height
+                if (w > 0 && h > 0) {
+                    val rot = videoSize.unappliedRotationDegrees
+                    videoAspectRatio = if (rot == 90 || rot == 270) {
+                        h.toFloat() / w.toFloat()
+                    } else {
+                        (w.toFloat() * videoSize.pixelWidthHeightRatio) / h.toFloat()
+                    }
+                }
+            }
+        }
+        exoPlayer.addListener(listener)
+        if (exoPlayer.videoSize.width > 0) listener.onVideoSizeChanged(exoPlayer.videoSize)
+        onDispose { exoPlayer.removeListener(listener) }
     }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         AndroidView(
             factory = { ctx ->
-                TextureView(ctx).apply {
-                    surfaceTextureListener = object : TextureView.SurfaceTextureListener {
-                        override fun onSurfaceTextureAvailable(surface: SurfaceTexture, w: Int, h: Int) {
-                            val sf = Surface(surface); setTag(R.id.tag_surface, sf); playerRef?.setVideoSurface(sf)
-                        }
-                        override fun onSurfaceTextureSizeChanged(s: SurfaceTexture, w: Int, h: Int) {}
-                        override fun onSurfaceTextureDestroyed(s: SurfaceTexture): Boolean {
-                            (getTag(R.id.tag_surface) as? Surface)?.release(); setTag(R.id.tag_surface, null)
-                            playerRef?.setVideoSurface(null); return true
-                        }
-                        override fun onSurfaceTextureUpdated(s: SurfaceTexture) {}
+                AspectRatioFrameLayout(ctx).apply {
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIXED_WIDTH
+                    val textureView = TextureView(ctx).apply {
+                        layoutParams = android.view.ViewGroup.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                        )
                     }
+                    textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+                        override fun onSurfaceTextureAvailable(surface: SurfaceTexture, w: Int, h: Int) {
+                            exoPlayer.setVideoTextureView(textureView)
+                        }
+                        override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+                            exoPlayer.setVideoTextureView(null)
+                            return true
+                        }
+                        override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, w: Int, h: Int) {}
+                        override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {}
+                    }
+                    addView(textureView)
                 }
             },
-            update = { view ->
-                playerRef = exoPlayer
-                if (view.isAvailable && view.surfaceTexture != null && view.getTag(R.id.tag_surface) == null) {
-                    val sf = Surface(view.surfaceTexture); view.setTag(R.id.tag_surface, sf); exoPlayer.setVideoSurface(sf)
-                }
-                val tg = exoPlayer.currentTracks.groups.firstOrNull { it.type == C.TRACK_TYPE_VIDEO }
-                if (tg != null) for (i in 0 until tg.length) {
-                    if (tg.isTrackSupported(i)) {
-                        val f = tg.getTrackFormat(i)
-                        if (f.width > 0 && f.height > 0) { videoAspectRatio = f.width.toFloat() / f.height; break }
-                    }
-                }
+            update = { frame: AspectRatioFrameLayout ->
+                if (videoAspectRatio > 0f) frame.setAspectRatio(videoAspectRatio)
             },
             modifier = Modifier.align(Alignment.Center).fillMaxSize()
-                .aspectRatio(if (videoAspectRatio > 0f) videoAspectRatio else screenAR)
                 .graphicsLayer { rotationZ = rotation; translationY = antiBurnInOffset.value }
         )
 

@@ -40,6 +40,9 @@
     <string name="reselect">重新选择</string>
     <string name="confirm_crop">确认裁剪</string>
     <string name="processing">处理中...</string>
+    <string name="video_crop_title">裁切视频</string>
+    <string name="no_video_selected">未选择视频</string>
+    <string name="select_video">选择视频</string>
 
     <!-- AppSettings -->
     <string name="badge_default_name">兽牌 %d</string>
@@ -168,7 +171,7 @@
     <string name="lib_kotlin">Kotlin</string>
     <string name="lib_kotlin_desc">Kotlin 编程语言及标准库</string>
     <string name="lib_zxing">ZXing</string>
-    <string name="lib_zxing_desc">二维码生成库</string>
+    <string name="lib_zxing_desc">二维码生成库，基于 Apache License 2.0 授权使用</string>
     <string name="license_apache2">基于 Apache License 2.0 授权使用</string>
     <string name="cannot_access_page">无法访问页面</string>
     <string name="jump_failed">跳转失败: %s</string>

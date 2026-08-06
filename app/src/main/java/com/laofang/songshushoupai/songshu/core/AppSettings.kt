@@ -115,7 +115,8 @@ object ImageDataManager {
                     filePath = obj.optString("path", ""),
                     name = obj.optString("name", context.getString(R.string.badge_default_name, i + 1)),
                     type = obj.optString("type", "image"),
-                    coverPath = obj.optString("cover", "")
+                    coverPath = obj.optString("cover", ""),
+                    cropRect = obj.optString("crop", "")
                 )
             }
         } catch (_: Exception) {
@@ -147,7 +148,7 @@ object ImageDataManager {
         addItem(context, ImageItem(0, filePath, "", "video", coverPath))
     }
 
-    private fun addItem(context: Context, item: ImageItem) {
+    internal fun addItem(context: Context, item: ImageItem) {
         val list = getImageList(context).toMutableList()
         val name = context.getString(R.string.badge_default_name, if (list.size == 1 && list[0].filePath.isEmpty()) 1 else list.size + 1)
         val finalItem = item.copy(name = name)
@@ -223,6 +224,7 @@ object ImageDataManager {
                 put("name", it.name)
                 put("type", it.type)
                 put("cover", it.coverPath)
+                put("crop", it.cropRect)
             })
         }
         prefs(context).edit { putString("image_list", arr.toString()) }
@@ -234,7 +236,8 @@ data class ImageItem(
     val filePath: String,
     val name: String,
     val type: String = "image",
-    val coverPath: String = ""
+    val coverPath: String = "",
+    val cropRect: String = ""
 ) {
     val isVideo: Boolean get() = type == "video"
 }

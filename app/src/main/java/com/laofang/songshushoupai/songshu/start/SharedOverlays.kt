@@ -255,21 +255,24 @@ fun QrOverlay(qr: QrAnims, qrBitmap: Bitmap?, rotation: Float, qrSwipeSwitch: Bo
     if (!qr.inComp) return
     val context = LocalContext.current
     var currentIndex by remember(qrBitmap) { mutableIntStateOf(QrCodeDataManager.getSelectedIndex(context).coerceIn(0, (qrCount - 1).coerceAtLeast(0))) }
-    var currentBitmap by remember(currentIndex) { mutableStateOf<Bitmap?>(null) }
+    var currentBitmap by remember { mutableStateOf<Bitmap?>(null) }
     val slideAnim = remember { Animatable(0f) }
     var slideDirection by remember { mutableFloatStateOf(0f) }
     var slideTrigger by remember { mutableIntStateOf(0) }
 
+    fun loadBitmapForIndex(idx: Int): Bitmap? {
+        val qrList = QrCodeDataManager.getQrList(context)
+        if (qrList.isEmpty()) return qrBitmap
+        val safeIdx = idx.coerceIn(0, (qrList.size - 1).coerceAtLeast(0))
+        val path = qrList.getOrNull(safeIdx)?.path ?: ""
+        return if (path.isNotEmpty() && File(path).exists())
+            try { BitmapFactory.decodeFile(path) } catch (_: Throwable) { null }
+        else try { BitmapFactory.decodeResource(context.resources, R.drawable.qr_zanzhu) } catch (_: Throwable) { null }
+    }
+
     LaunchedEffect(currentIndex) {
-        currentBitmap = withContext(Dispatchers.IO) {
-            val qrList = QrCodeDataManager.getQrList(context)
-            if (qrList.isEmpty()) return@withContext qrBitmap
-            val idx = currentIndex.coerceIn(0, (qrList.size - 1).coerceAtLeast(0))
-            val path = qrList.getOrNull(idx)?.path ?: ""
-            if (path.isNotEmpty() && File(path).exists())
-                try { BitmapFactory.decodeFile(path) } catch (_: Throwable) { null }
-            else try { BitmapFactory.decodeResource(context.resources, R.drawable.qr_zanzhu) } catch (_: Throwable) { null }
-        }
+        val loaded = withContext(Dispatchers.IO) { loadBitmapForIndex(currentIndex) }
+        currentBitmap = loaded
     }
 
     LaunchedEffect(qrBitmap) {
@@ -283,7 +286,8 @@ fun QrOverlay(qr: QrAnims, qrBitmap: Bitmap?, rotation: Float, qrSwipeSwitch: Bo
     LaunchedEffect(slideTrigger) {
         if (slideTrigger > 0) {
             slideAnim.snapTo(slideDirection)
-            slideAnim.animateTo(0f, tween(300))
+            slideAnim.animateTo(0f, tween(150))
+            slideDirection = 0f
         }
     }
 
@@ -308,13 +312,15 @@ fun QrOverlay(qr: QrAnims, qrBitmap: Bitmap?, rotation: Float, qrSwipeSwitch: Bo
                         change.consume()
                     }
                     val dx = endX - startX
-                    if (moved && abs(dx) > 80f) {
+                    if (moved && abs(dx) > 80f && slideDirection == 0f) {
                         val newIndex = if (dx < 0) {
                             (currentIndex + 1) % qrCount
                         } else {
                             (currentIndex - 1 + qrCount) % qrCount
                         }
                         val dir = if (dx < 0) 1f else -1f
+                        val newBitmap = loadBitmapForIndex(newIndex)
+                        currentBitmap = newBitmap
                         currentIndex = newIndex
                         QrCodeDataManager.setSelectedIndex(context, newIndex)
                         onQrIndexChange(newIndex)

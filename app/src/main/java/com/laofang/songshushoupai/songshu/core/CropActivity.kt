@@ -7,7 +7,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -89,7 +88,7 @@ class CropActivity : ComponentActivity() {
             setContent {
                 SongshushoupaiAutoTheme { CropScreen(editIndex = idx, onFinish = { finish() }) }
             }
-        } catch (e: Throwable) { Log.e("CropActivity", "onCreate error", e); finish() }
+        } catch (_: Throwable) { finish() }
     }
 }
 
@@ -244,7 +243,7 @@ fun CropScreen(editIndex: Int, onFinish: () -> Unit) {
                                         if (editIndex >= 0) ImageDataManager.replaceImage(ctx, editIndex, saved)
                                         else ImageDataManager.addImageToList(ctx, saved)
                                     }
-                                } catch (e: Throwable) { Log.e("CropActivity", "Crop failed", e) }
+                                } catch (_: Throwable) {}
                                 finally { onFinish() }
                             }
                         } else onFinish()

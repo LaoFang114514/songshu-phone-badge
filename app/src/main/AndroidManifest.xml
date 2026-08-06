@@ -38,6 +38,11 @@
             android:theme="@style/Theme.Songshushoupai.App" />
 
         <activity
+            android:name=".core.VideoCropActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Songshushoupai.App" />
+
+        <activity
             android:name=".start.egg.ColorSudokuActivity"
             android:exported="false"
             android:theme="@style/Theme.Songshushoupai.App" />

@@ -25,7 +25,8 @@ import java.io.File
 enum class BackupOperation { EXPORT, IMPORT, WEBDAV_UPLOAD, WEBDAV_DOWNLOAD }
 
 private fun calculateStorageUsed(context: Context): Long =
-    dirSize(File(context.filesDir, "images")) + dirSize(File(context.filesDir, "covers")) + dirSize(File(context.filesDir, "qrcodes"))
+    dirSize(File(context.filesDir, "images")) + dirSize(File(context.filesDir, "covers")) +
+        dirSize(File(context.filesDir, "qrcodes")) + dirSize(File(context.filesDir, "videos"))
 
 private fun dirSize(dir: File): Long =
     if (!dir.exists()) 0L else dir.listFiles()?.sumOf { if (it.isFile) it.length() else dirSize(it) } ?: 0L

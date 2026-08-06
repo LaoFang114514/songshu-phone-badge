@@ -114,16 +114,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.graphics.Color
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.BackHandler
-import androidx.activity.result.contract.ActivityResultContracts
-import android.net.Uri
-import android.media.MediaMetadataRetriever
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.ui.tooling.preview.Preview
 import com.laofang.songshushoupai.songshu.start.StartActivity
-import java.io.File
-import java.io.FileOutputStream
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.core.view.WindowCompat
 import androidx.core.net.toUri
@@ -136,7 +130,6 @@ import com.laofang.songshushoupai.songshu.core.SettingsManager
 import com.laofang.songshushoupai.songshu.core.UpdateChecker
 import com.laofang.songshushoupai.songshu.core.UpdateInfo
 import com.laofang.songshushoupai.songshu.core.decodeBitmapSampled
-
 
 private val DlgShape = RoundedCornerShape(12.dp)
 
@@ -259,32 +252,6 @@ fun SongshushoupaiApp(
         }
     }
 
-    val videoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri ?: return@rememberLauncherForActivityResult
-        scope.launch {
-            withContext(Dispatchers.IO) {
-                try {
-                    val input = ctx.contentResolver.openInputStream(uri) ?: return@withContext
-                    val file = File(File(ctx.filesDir, "videos").also { it.mkdirs() }, "vid_${System.currentTimeMillis()}.mp4")
-                    FileOutputStream(file).use { out -> input.copyTo(out) }
-                    input.close()
-                    try {
-                        val r = MediaMetadataRetriever()
-                        r.setDataSource(file.absolutePath)
-                        r.getFrameAtTime(0)?.let { frame ->
-                            val cf = File(File(ctx.filesDir, "covers").also { it.mkdirs() }, "cover_${System.currentTimeMillis()}.jpg")
-                            FileOutputStream(cf).use { out -> frame.compress(Bitmap.CompressFormat.JPEG, 80, out) }
-                            ImageDataManager.addVideoToList(ctx, file.absolutePath, cf.absolutePath)
-                            frame.recycle()
-                        } ?: ImageDataManager.addVideoToList(ctx, file.absolutePath, "")
-                        r.release()
-                    } catch (_: Throwable) { ImageDataManager.addVideoToList(ctx, file.absolutePath, "") }
-                } catch (_: Throwable) {}
-            }
-            refresh()
-        }
-    }
-
     val obs = remember { LifecycleEventObserver { _, e -> if (e == Lifecycle.Event.ON_RESUME) refresh() } }
     DisposableEffect(owner) { owner.lifecycle.addObserver(obs); onDispose { owner.lifecycle.removeObserver(obs) } }
 
@@ -340,7 +307,7 @@ fun SongshushoupaiApp(
         Box(Modifier.fillMaxSize().padding(pad)) {
             HomePage(imageList.value, selIdx, listState,
                 onAddClick = { ctx.startActivity(Intent(ctx, CropActivity::class.java).putExtra("index", -1)) },
-                onAddVideoClick = { videoPicker.launch("video/*") },
+                onAddVideoClick = { ctx.startActivity(Intent(ctx, com.laofang.songshushoupai.songshu.core.VideoCropActivity::class.java).putExtra("index", -1)) },
                 onSelect = { selIdx = it; ImageDataManager.setSelectedIndex(ctx, it) },
                 onDelete = { i -> ImageDataManager.deleteImage(ctx, i); refresh() },
                 onMoveUp = { i -> if (i > 0) { ImageDataManager.moveItem(ctx, i, i - 1); refresh() } },

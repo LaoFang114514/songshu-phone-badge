@@ -26,8 +26,8 @@ android {
         applicationId = "com.laofang.songshushoupai.songshu"
         minSdk = 21
         targetSdk = 37
-        versionCode = 22
-        versionName = "1.1.0"
+        versionCode = 23
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -64,6 +64,7 @@ android {
 
     lint {
         disable += "GradleDependency"
+        disable += "LockedOrientationActivity"
     }
 }
 
@@ -83,6 +84,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.transformer)
+    implementation(libs.androidx.media3.effect)
     implementation(libs.material)
     implementation(libs.zxing.core)
     testImplementation(libs.junit)

@@ -40,6 +40,9 @@
     <string name="reselect">Reselect</string>
     <string name="confirm_crop">Confirm Crop</string>
     <string name="processing">Processing…</string>
+    <string name="video_crop_title">Crop Video</string>
+    <string name="no_video_selected">No video selected</string>
+    <string name="select_video">Select Video</string>
 
     <!-- AppSettings -->
     <string name="badge_default_name">Badge %d</string>
@@ -165,7 +168,7 @@
     <string name="lib_kotlin">Kotlin</string>
     <string name="lib_kotlin_desc">Kotlin programming language and stdlib</string>
     <string name="lib_zxing">ZXing</string>
-    <string name="lib_zxing_desc">QR code generation library</string>
+    <string name="lib_zxing_desc">QR code generation library, used under Apache License 2.0</string>
     <string name="license_apache2">Used under Apache License 2.0</string>
     <string name="cannot_access_page">Cannot open page</string>
     <string name="jump_failed">Navigation failed: %s</string>
