@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -332,38 +333,49 @@ fun LicenseSettingsPage() {
     val ctx = LocalContext.current
     val cs = MaterialTheme.colorScheme
     val libs = listOf(
-        Triple(R.string.lib_compose, R.string.lib_compose_desc, "https://github.com/JetBrains/compose-multiplatform"),
-        Triple(R.string.lib_media3, R.string.lib_media3_desc, "https://github.com/androidx/media3"),
-        Triple(R.string.lib_material, R.string.lib_material_desc, "https://github.com/material-components/material-components-android"),
-        Triple(R.string.lib_kotlin, R.string.lib_kotlin_desc, "https://github.com/JetBrains/kotlin"),
-        Triple(R.string.lib_zxing, R.string.lib_zxing_desc, "https://github.com/zxing/zxing")
+        LibInfo(R.string.lib_compose, R.string.lib_compose_desc, R.string.lib_compose_author, "https://github.com/JetBrains/compose-multiplatform"),
+        LibInfo(R.string.lib_media3, R.string.lib_media3_desc, R.string.lib_media3_author, "https://github.com/androidx/media3"),
+        LibInfo(R.string.lib_material, R.string.lib_material_desc, R.string.lib_material_author, "https://github.com/material-components/material-components-android"),
+        LibInfo(R.string.lib_kotlin, R.string.lib_kotlin_desc, R.string.lib_kotlin_author, "https://github.com/JetBrains/kotlin"),
+        LibInfo(R.string.lib_zxing, R.string.lib_zxing_desc, R.string.lib_zxing_author, "https://github.com/zxing/zxing")
     )
     SettingsPageScaffold {
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            libs.forEach { (nameRes, descRes, url) ->
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            libs.forEach { lib ->
                 Card(
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable {
-                        try { ctx.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
+                    modifier = Modifier.fillMaxWidth().border(cardBorder(), CardShape).clip(CardShape).clickable {
+                        try { ctx.startActivity(Intent(Intent.ACTION_VIEW, lib.url.toUri())) }
                         catch (_: Exception) {}
                     },
-                    shape = RoundedCornerShape(12.dp),
+                    shape = CardShape,
                     colors = CardDefaults.cardColors(containerColor = cs.surface)
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(Modifier.weight(1f)) {
-                            Text(stringResource(nameRes),
+                            Text(stringResource(lib.name),
                                 style = MaterialTheme.typography.bodyLarge, color = cs.primary)
-                            Spacer(Modifier.height(2.dp))
-                            Text(stringResource(descRes),
+                            Spacer(Modifier.height(3.dp))
+                            Text(stringResource(lib.desc),
                                 style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
+                            Spacer(Modifier.height(6.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(stringResource(R.string.author_by, stringResource(lib.author)),
+                                    style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant)
+                                Spacer(Modifier.width(8.dp))
+                                Surface(shape = RoundedCornerShape(6.dp), color = cs.primary.copy(alpha = 0.1f)) {
+                                    Text(stringResource(R.string.lib_apache2),
+                                        Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelSmall, color = cs.primary)
+                                }
+                            }
                         }
+                        Spacer(Modifier.width(8.dp))
                         Text("›", style = MaterialTheme.typography.titleLarge, color = cs.onSurfaceVariant)
                     }
                 }
-                Spacer(Modifier.height(8.dp))
             }
         }
     }
@@ -656,3 +668,5 @@ private fun backupErrorMsg(code: String?): String {
         else -> code
     }
 }
+
+private data class LibInfo(val name: Int, val desc: Int, val author: Int, val url: String)

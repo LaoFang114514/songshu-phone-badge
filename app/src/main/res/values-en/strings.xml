@@ -169,6 +169,13 @@
     <string name="lib_kotlin_desc">Kotlin programming language and stdlib</string>
     <string name="lib_zxing">ZXing</string>
     <string name="lib_zxing_desc">QR code generation library, used under Apache License 2.0</string>
+    <string name="lib_apache2">Apache License 2.0</string>
+    <string name="lib_compose_author">JetBrains</string>
+    <string name="lib_media3_author">Android Open Source Project</string>
+    <string name="lib_material_author">Google</string>
+    <string name="lib_kotlin_author">JetBrains</string>
+    <string name="lib_zxing_author">ZXing Project</string>
+    <string name="author_by">Author: %s</string>
     <string name="license_apache2">Used under Apache License 2.0</string>
     <string name="cannot_access_page">Cannot open page</string>
     <string name="jump_failed">Navigation failed: %s</string>

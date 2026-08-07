@@ -172,6 +172,13 @@
     <string name="lib_kotlin_desc">Kotlin 编程语言及标准库</string>
     <string name="lib_zxing">ZXing</string>
     <string name="lib_zxing_desc">二维码生成库，基于 Apache License 2.0 授权使用</string>
+    <string name="lib_apache2">Apache License 2.0</string>
+    <string name="lib_compose_author">JetBrains</string>
+    <string name="lib_media3_author">Android Open Source Project</string>
+    <string name="lib_material_author">Google</string>
+    <string name="lib_kotlin_author">JetBrains</string>
+    <string name="lib_zxing_author">ZXing Project</string>
+    <string name="author_by">作者：%s</string>
     <string name="license_apache2">基于 Apache License 2.0 授权使用</string>
     <string name="cannot_access_page">无法访问页面</string>
     <string name="jump_failed">跳转失败: %s</string>
