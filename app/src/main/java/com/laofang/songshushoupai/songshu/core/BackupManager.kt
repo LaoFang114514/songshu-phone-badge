@@ -1,11 +1,7 @@
 package com.laofang.songshushoupai.songshu.core
 
-import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
-import android.os.Build
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -14,7 +10,6 @@ import org.json.JSONObject
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.net.CookieHandler
 import java.net.CookieManager
@@ -304,7 +299,6 @@ object BackupManager {
     }
 
     private fun downloadRestore(ctx: Context, cfg: WebDavConfig): String? {
-        val tmp = File(ctx.cacheDir, "download_${System.currentTimeMillis()}.zip")
         return try {
             var url = fileUrl(cfg)
             var conn = httpConn(url)
@@ -333,46 +327,14 @@ object BackupManager {
                         else -> "$ERR_SERVER_RESPONSE:$code"
                     }
                 }
-                tmp.outputStream().use { out -> conn.inputStream.use { it.copyTo(out) } }
+
+                val (configJson, imageMap, coverMap, qrMap) = conn.inputStream.use { readZipEntries(it) }
+                if (configJson == null) return ERR_NO_CONFIG_IN_ZIP
+
+                restoreFromEntries(ctx, configJson, imageMap, coverMap, qrMap, "restore")
+                null
             } finally { conn.disconnect() }
-
-            if (tmp.length() == 0L) return ERR_DOWNLOADED_EMPTY
-            saveToDownloads(ctx, tmp)
-
-            val (configJson, imageMap, coverMap, qrMap) = readZipEntries(FileInputStream(tmp))
-            if (configJson == null) return ERR_NO_CONFIG_IN_ZIP
-
-            restoreFromEntries(ctx, configJson, imageMap, coverMap, qrMap, "restore")
-            null
         } catch (_: Exception) { ERR_UNKNOWN_ERROR }
-        finally { tmp.delete() }
-    }
-
-    private fun saveToDownloads(ctx: Context, src: File) {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val ext = src.extension; val base = src.nameWithoutExtension
-                val cv = ContentValues().apply {
-                    put(MediaStore.Downloads.DISPLAY_NAME, "${base}_${System.currentTimeMillis()}.$ext")
-                    put(MediaStore.Downloads.MIME_TYPE, "application/zip")
-                    put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-                    put(MediaStore.Downloads.IS_PENDING, 1)
-                }
-                val uri = ctx.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv)
-                if (uri != null) {
-                    ctx.contentResolver.openOutputStream(uri)?.use { out -> src.inputStream().use { it.copyTo(out) } }
-                    cv.clear(); cv.put(MediaStore.Downloads.IS_PENDING, 0)
-                    ctx.contentResolver.update(uri, cv, null, null)
-                }
-            } else {
-                val dl = ctx.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return
-                if (dl.exists() || dl.mkdirs()) {
-                    val dest = File(dl, src.name)
-                    src.inputStream().use { ins -> dest.outputStream().use { out -> ins.copyTo(out) } }
-                }
-            }
-        } catch (_: Exception) {}
-
     }
 }
 
