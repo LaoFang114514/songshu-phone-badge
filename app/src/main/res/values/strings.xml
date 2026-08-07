@@ -152,7 +152,7 @@
     <string name="backup">备份</string>
     <string name="restore">恢复</string>
     <string name="save_config">保存配置</string>
-    <string name="config_webdav_first">请先配置 WebDAV 服务器地址</string>
+    <string name="config_webdav_first">请先配置 WebDAV 服务器</string>
     <string name="data_size">要备份的数据大小</string>
 
     <!-- AboutSettingsCard -->
