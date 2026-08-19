@@ -3,6 +3,8 @@
 
     <!-- home.kt -->
     <string name="press_again_exit">Press again to exit</string>
+    <string name="custom_badge_settings">Badge Customization</string>
+    <string name="custom_badge_coming_soon">Let me figure it out</string>
     <string name="basic_settings">Basic Settings</string>
     <string name="qrcode_settings">QR Code Settings</string>
     <string name="theme_settings">Theme Settings</string>
@@ -168,7 +170,7 @@
     <string name="lib_kotlin">Kotlin</string>
     <string name="lib_kotlin_desc">Kotlin programming language and stdlib</string>
     <string name="lib_zxing">ZXing</string>
-    <string name="lib_zxing_desc">QR code generation library, used under Apache License 2.0</string>
+    <string name="lib_zxing_desc">QR code generation library</string>
     <string name="lib_apache2">Apache License 2.0</string>
     <string name="lib_compose_author">JetBrains</string>
     <string name="lib_media3_author">Android Open Source Project</string>

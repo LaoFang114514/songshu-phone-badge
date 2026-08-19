@@ -262,7 +262,7 @@ fun SongshushoupaiApp(
             val title = if (dest == 2 && settingsSub != null) when (settingsSub) {
                 "basic" -> stringResource(R.string.basic_settings); "qrcode" -> stringResource(R.string.qrcode_settings); "theme" -> stringResource(R.string.theme_settings)
                 "backup" -> stringResource(R.string.backup_settings); "about" -> stringResource(R.string.about_settings); "tutorial" -> stringResource(R.string.tutorial_settings)
-                "license" -> stringResource(R.string.open_source_license); else -> stringResource(R.string.app_name)
+                "license" -> stringResource(R.string.open_source_license); "customBadge" -> stringResource(R.string.custom_badge_settings); else -> stringResource(R.string.app_name)
             } else stringResource(R.string.app_name)
             TopAppBar(title = { Text(title) })
         },
@@ -338,6 +338,7 @@ fun SongshushoupaiApp(
                 ) { sub ->
                     when (sub) {
                         null -> SettingsPage(
+                            onNavigateToCustomBadge = { settingsSub = "customBadge" },
                             onNavigateToBasicSettings = { settingsSub = "basic" },
                             onNavigateToQrCodeSettings = { settingsSub = "qrcode" },
                             onNavigateToThemeSettings = { settingsSub = "theme" },
@@ -345,6 +346,7 @@ fun SongshushoupaiApp(
                             onNavigateToAboutSettings = { settingsSub = "about" },
                             onNavigateToTutorial = { settingsSub = "tutorial" },
                             onUpdateClick = { updatePopupInfo = it })
+                        "customBadge" -> CustomBadgeSettingsPage()
                         "basic" -> BasicSettingsPage()
                         "qrcode" -> QrCodeSettingsPage()
                         "theme" -> ThemeSettingsPage(onThemeChanged, onDarkModeChanged)

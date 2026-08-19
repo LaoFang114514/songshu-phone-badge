@@ -152,6 +152,7 @@ private fun openUrl(context: Context, url: String) {
 
 @Composable
 fun SettingsPage(
+    onNavigateToCustomBadge: () -> Unit = {},
     onNavigateToBasicSettings: () -> Unit = {},
     onNavigateToQrCodeSettings: () -> Unit = {},
     onNavigateToThemeSettings: () -> Unit = {},
@@ -255,6 +256,7 @@ fun SettingsPage(
         }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+        NavRow(stringResource(R.string.custom_badge_settings)) { onNavigateToCustomBadge() }
         NavRow(stringResource(R.string.basic_settings)) { onNavigateToBasicSettings() }
         NavRow(stringResource(R.string.qrcode_settings)) { onNavigateToQrCodeSettings() }
         NavRow(stringResource(R.string.theme_settings)) { onNavigateToThemeSettings() }
@@ -342,6 +344,28 @@ private fun <T> SettingsPageHost(
         scope.launch { withContext(Dispatchers.IO) { save(ctx, state) } }
     }
     SettingsPageScaffold { content(state, ::update) }
+}
+
+@Composable
+fun CustomBadgeSettingsPage() {
+    SettingsPageScaffold {
+        Card(
+            modifier = Modifier.fillMaxWidth().border(cardBorder(), CardShape).clip(CardShape),
+            shape = CardShape,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp, horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    stringResource(R.string.custom_badge_coming_soon),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
 }
 
 @Composable

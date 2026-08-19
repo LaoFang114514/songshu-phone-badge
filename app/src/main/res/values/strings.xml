@@ -3,6 +3,8 @@
 
     <!-- home.kt -->
     <string name="press_again_exit">再按一次退出应用</string>
+    <string name="custom_badge_settings">兽牌定制</string>
+    <string name="custom_badge_coming_soon">等我想想怎么搞</string>
     <string name="basic_settings">基本设置</string>
     <string name="qrcode_settings">二维码设置</string>
     <string name="theme_settings">主题设置</string>
