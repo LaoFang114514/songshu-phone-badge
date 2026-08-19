@@ -59,9 +59,6 @@
     <string name="please_purchase">请购买正版</string>
     <string name="purchase_channel_1">购买渠道一</string>
     <string name="purchase_channel_2">购买渠道二</string>
-    <string name="temp_notice" translatable="false">这是一条临时通知</string>
-    <string name="notice_content" translatable="false">大家好，我是呆龙，塔塔的cp，塔塔在得闲兽聚突发中风，目前的情况很危险，很多朋友在帮我们我非常感激各位，我知道他的性格不是很讨喜，可能很多人讨厌他，但是他的家庭并不是很富裕已经无力扶起高昂的医疗费用。\n我记得第一次跟他参加展会，第一次一起在武汉聚会，我没法漠视他这样离开。\n我作为他的对象如果放弃的话他会失去生命，如果病情继续恶化我会无力负担高额的治疗费用，但是我不愿意放弃他的生命，恳请各位提供力所能及的帮助，不胜感激。\n量力而行，恳请各位转发谢谢。</string>
-    <string name="learn_more" translatable="false">前往了解详情</string>
     <string name="checking_update">检查中...</string>
     <string name="ifdian">爱发电</string>
     <string name="new_version_title">发现新版本 %s</string>

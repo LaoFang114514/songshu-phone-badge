@@ -20,7 +20,6 @@ import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,11 +32,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -58,9 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -258,56 +250,6 @@ fun SettingsPage(
                 ) {
                     Text(stringResource(R.string.new_version_title, info.version), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                     Text(" ▶", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
-
-        var emergencyExpanded by remember {
-            mutableStateOf(ctx.getSharedPreferences("ui_state", Context.MODE_PRIVATE).getBoolean("emergency_expanded", true))
-        }
-        Card(
-            modifier = Modifier.fillMaxWidth().border(cardBorder(), CardShape).clip(CardShape),
-            shape = CardShape,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth().clickable {
-                        emergencyExpanded = !emergencyExpanded
-                        ctx.getSharedPreferences("ui_state", Context.MODE_PRIVATE).edit { putBoolean("emergency_expanded", emergencyExpanded) }
-                    }.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(stringResource(R.string.temp_notice), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                    Text(if (emergencyExpanded) "▲" else "▼", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                AnimatedVisibility(
-                    visible = emergencyExpanded,
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically()
-                ) {
-                    Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
-                        Image(
-                            painterResource(R.drawable.image_1784470341594_62),
-                            "这是一条临时通知",
-                            modifier = Modifier.fillMaxWidth(),
-                            contentScale = ContentScale.FillWidth
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        Text(
-                            stringResource(R.string.notice_content),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        Button(
-                            onClick = { openUrl(ctx, "https://h5.qzone.qq.com/ugc/share/?sharetag=9653E56224DEB4DF2573CB788FF50CB2&subtype=&ciphertext=&sid=&blog_photo=&g=84&res_uin=2908807760&cellid=50e260ad98d85c6ac7a40a00&subid=&bp1=&bp2=&bp7=&appid=311#wechat_qqauth&wechat_redirect") },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = BtnShape
-                        ) { Text(stringResource(R.string.learn_more)) }
-
-                    }
                 }
             }
         }
