@@ -1,5 +1,7 @@
 <div style="text-align: center">
 
+<img src="app/src/main/res/drawable/qidong.png" alt="松鼠兽牌" width="1313" />
+
 #  松鼠兽牌
 
 [![官方网站](https://img.shields.io/badge/官网-访问-blue.svg)](https://songshushoupai.mysxl.cn/)
@@ -11,7 +13,7 @@
 </div>
 
 >前排提醒：仅适合备用机顶替使用，如果正经用的话建议购买别人的兽牌或电子兽牌
-
+>
 >此软件使用的图片素材(包括图标和插图)没有采用AI生成，且永远不会用AI生成
 
 一款简单易用的手机端兽牌制作工具，帮你把闲置旧手机变成专属兽牌展示牌，适合需要兽牌但经费不足的兽圈小伙伴。

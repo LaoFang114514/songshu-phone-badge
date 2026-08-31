@@ -1,5 +1,7 @@
 <div style="text-align: center">
 
+<img src="app/src/main/res/drawable/qidong.png" alt="Songshu Phone Badge" width="1313" />
+
 # Songshu Phone Badge
 
 [![Official Website](https://img.shields.io/badge/Website-Visit-blue.svg)](https://songshushoupai.mysxl.cn/)
@@ -11,7 +13,7 @@
 </div>
 
 > Friendly reminder: This app is only suitable for using a spare phone as a temporary badge. For regular use, it's recommended to purchase a dedicated fursuit badge or electronic badge.
-
+>
 > The image assets used in this software (including icons and illustrations) are not AI-generated, and never will be.
 
 A simple and easy-to-use phone badge creation tool that turns your idle old phone into a personalized fursuit badge display, perfect for furries who need a badge but are on a budget.
