@@ -1,6 +1,6 @@
 <div style="text-align: center">
 
-<img src="app/src/main/res/drawable/qidong.png" alt="Songshu Phone Badge" width="1313" />
+<img src="app/src/main/res/drawable/qidong.png" alt="Songshu Phone Badge" width="100" />
 
 # Songshu Phone Badge
 

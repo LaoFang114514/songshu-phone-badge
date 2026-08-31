@@ -1,6 +1,6 @@
 <div style="text-align: center">
 
-<img src="app/src/main/res/drawable/qidong.png" alt="松鼠兽牌" width="1313" />
+<img src="app/src/main/res/drawable/qidong.png" alt="松鼠兽牌" width="100" />
 
 #  松鼠兽牌
 
