@@ -1,11 +1,17 @@
+<div style="text-align: center">
+
 #  松鼠兽牌
 
 [![官方网站](https://img.shields.io/badge/官网-访问-blue.svg)](https://songshushoupai.mysxl.cn/)
 [![GitHub](https://img.shields.io/badge/GitHub-仓库-181717?logo=github)](https://github.com/LaoFang114514/songshu-phone-badge) [![GitCode](https://img.shields.io/badge/GitCode-仓库-C71D23?logo=git)](https://gitcode.com/LaoFang233/songshu-phone-badge)
 [![爱发电](https://img.shields.io/badge/赞助-爱发电-orange.svg)](https://www.ifdian.net/a/laofang) [![Ko-fi](https://img.shields.io/badge/赞助-Ko--fi-red.svg)](https://ko-fi.com/laofang) [![协议](https://img.shields.io/badge/协议-GPL--3.0-green.svg)](https://www.gnu.org/licenses/gpl-3.0.html) [![QQ群](https://img.shields.io/badge/QQ交流群-252110688-blue)](https://qm.qq.com/q/RbJoe54fEA) [![Discord](https://img.shields.io/badge/Discord-加入-5865F2?logo=discord)](https://discord.gg/vBNtab9yU)
+
 [English](README.en.md)
 
+</div>
+
 >前排提醒：仅适合备用机顶替使用，如果正经用的话建议购买别人的兽牌或电子兽牌
+
 >此软件使用的图片素材(包括图标和插图)没有采用AI生成，且永远不会用AI生成
 
 一款简单易用的手机端兽牌制作工具，帮你把闲置旧手机变成专属兽牌展示牌，适合需要兽牌但经费不足的兽圈小伙伴。

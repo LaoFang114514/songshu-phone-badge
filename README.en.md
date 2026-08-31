@@ -1,11 +1,17 @@
+<div style="text-align: center">
+
 # Songshu Phone Badge
 
 [![Official Website](https://img.shields.io/badge/Website-Visit-blue.svg)](https://songshushoupai.mysxl.cn/)
 [![GitHub](https://img.shields.io/badge/GitHub-Repo-181717?logo=github)](https://github.com/LaoFang114514/songshu-phone-badge) [![GitCode](https://img.shields.io/badge/GitCode-Repo-C71D23?logo=git)](https://gitcode.com/LaoFang233/songshu-phone-badge)
 [![ifdian](https://img.shields.io/badge/Sponsor-ifdian-orange.svg)](https://www.ifdian.net/a/laofang) [![Ko-fi](https://img.shields.io/badge/Sponsor-Ko--fi-red.svg)](https://ko-fi.com/laofang) [![License](https://img.shields.io/badge/License-GPL--3.0-green.svg)](https://www.gnu.org/licenses/gpl-3.0.html) [![QQ Group](https://img.shields.io/badge/QQ%20Group-252110688-blue)](https://qm.qq.com/q/RbJoe54fEA) [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord)](https://discord.gg/vBNtab9yU)
+
 [中文](README.md)
 
+</div>
+
 > Friendly reminder: This app is only suitable for using a spare phone as a temporary badge. For regular use, it's recommended to purchase a dedicated fursuit badge or electronic badge.
+
 > The image assets used in this software (including icons and illustrations) are not AI-generated, and never will be.
 
 A simple and easy-to-use phone badge creation tool that turns your idle old phone into a personalized fursuit badge display, perfect for furries who need a badge but are on a budget.
