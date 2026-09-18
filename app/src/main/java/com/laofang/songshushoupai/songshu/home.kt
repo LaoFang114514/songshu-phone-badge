@@ -141,7 +141,6 @@ import com.laofang.songshushoupai.songshu.core.decodeBitmapSampled
 private val DlgShape = RoundedCornerShape(12.dp)
 
 // 调试开关：为 true 时在高版本（Android 12+）也强制预览低版本的方形 logo 开屏效果。
-// TODO 正式环境请改回 false
 private const val PREVIEW_LOW_VERSION_SPLASH = false
 
 class MainActivity : ComponentActivity() {
