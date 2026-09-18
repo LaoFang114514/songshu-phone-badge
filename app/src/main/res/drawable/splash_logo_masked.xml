@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ 开屏图标：系统只展示图标中央约 2/3 的圆形安全区，满幅方形 logo 会被裁掉四周。
+     这里用 240dp 透明画布 + 居中缩放到 108dp 的 qidong，使整块方形 logo 完整落在圆形遮罩内。 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="240dp"
+        android:height="240dp"
+        android:gravity="center">
+        <color android:color="@android:color/transparent" />
+    </item>
+    <item
+        android:width="108dp"
+        android:height="108dp"
+        android:drawable="@drawable/qidong"
+        android:gravity="center" />
+</layer-list>

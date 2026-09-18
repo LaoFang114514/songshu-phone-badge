@@ -2,4 +2,5 @@
 <resources>
     <color name="system_bar_light">#FFF5F5F5</color>
     <color name="system_bar_dark">#FF1A1A1A</color>
+    <color name="splash_background">#FFF5F5F5</color>
 </resources>

@@ -14,6 +14,15 @@
         <item name="android:windowDisablePreview">true</item>
     </style>
 
+    <!-- 开屏主题（低版本 < Android 12）：系统/兼容库的开屏图标会被强制裁成圆形，无法显示方形 logo，
+         因此低版本改用普通主题 + 背景色作为起始窗口，方形 logo 由 Compose 覆盖层自行绘制（见 MainActivity）。
+         Android 12+ 由 values-v31 的同名主题走系统原生开屏。 -->
+    <style name="Theme.App.Starting" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/splash_background</item>
+        <item name="android:statusBarColor">@color/splash_background</item>
+        <item name="android:navigationBarColor">@color/splash_background</item>
+    </style>
+
     <style name="VideoPlayerView">
         <item name="surface_type">texture_view</item>
     </style>

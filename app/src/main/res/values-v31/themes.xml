@@ -15,4 +15,11 @@
         <item name="postSplashScreenTheme">@style/Theme.Songshushoupai.App</item>
         <item name="android:windowBackground">@android:color/transparent</item>
     </style>
+
+    <!-- Android 12+：使用系统原生开屏；图标为居中缩小的 qidong（splash_logo_masked），避免被圆形遮罩裁掉四周 -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo_masked</item>
+        <item name="postSplashScreenTheme">@style/Theme.Songshushoupai.App</item>
+    </style>
 </resources>

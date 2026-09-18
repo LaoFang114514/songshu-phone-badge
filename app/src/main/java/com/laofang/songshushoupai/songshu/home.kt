@@ -26,6 +26,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.EaseInOut
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -96,6 +99,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -106,12 +110,15 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityOptionsCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.laofang.songshushoupai.songshu.ui.theme.SongshushoupaiTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.milliseconds
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.graphics.Color
 import androidx.activity.compose.BackHandler
@@ -133,6 +140,10 @@ import com.laofang.songshushoupai.songshu.core.decodeBitmapSampled
 
 private val DlgShape = RoundedCornerShape(12.dp)
 
+// 调试开关：为 true 时在高版本（Android 12+）也强制预览低版本的方形 logo 开屏效果。
+// TODO 正式环境请改回 false
+private const val PREVIEW_LOW_VERSION_SPLASH = false
+
 class MainActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleHelper.applyLocale(newBase))
@@ -140,6 +151,11 @@ class MainActivity : ComponentActivity() {
 
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Android 12+ 交由系统原生开屏（图标会被裁成圆形）；
+        // 低版本无法通过开屏 API 显示方形 logo，改为在 Compose 中自行绘制方形开屏
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            installSplashScreen()
+        }
         super.onCreate(savedInstanceState)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         enableEdgeToEdge()
@@ -179,19 +195,59 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
-                SongshushoupaiApp(
-                    onThemeChanged = {
-                        themeIdx = it
-                        val s = SettingsManager.loadSettings(ctx)
-                        SettingsManager.saveSettings(ctx, s.copy(themeColorIndex = it))
-                    },
-                    onDarkModeChanged = {
-                        darkMode = it
-                        val s = SettingsManager.loadSettings(ctx)
-                        SettingsManager.saveSettings(ctx, s.copy(darkMode = it))
-                    }
-                )
+                val showLowVersionSplash = remember { PREVIEW_LOW_VERSION_SPLASH || android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S }
+                Box(Modifier.fillMaxSize()) {
+                    SongshushoupaiApp(
+                        onThemeChanged = {
+                            themeIdx = it
+                            val s = SettingsManager.loadSettings(ctx)
+                            SettingsManager.saveSettings(ctx, s.copy(themeColorIndex = it))
+                        },
+                        onDarkModeChanged = {
+                            darkMode = it
+                            val s = SettingsManager.loadSettings(ctx)
+                            SettingsManager.saveSettings(ctx, s.copy(darkMode = it))
+                        }
+                    )
+                    if (showLowVersionSplash) LowVersionSplashOverlay()
+                }
             }
+        }
+    }
+}
+
+// 低版本（< Android 12）开屏：直接绘制方形 logo，避开系统开屏图标的圆形遮罩限制。
+// 动画：logo 淡入+缩放 → 停留 → 整层淡出交叉过渡到主页，避免切换突兀
+@Composable
+private fun LowVersionSplashOverlay() {
+    var visible by remember { mutableStateOf(true) }
+    val overlayAlpha = remember { Animatable(1f) }
+    val logoAlpha = remember { Animatable(0f) }
+    val scale = remember { Animatable(0.85f) }
+    LaunchedEffect(Unit) {
+        launch { logoAlpha.animateTo(1f, tween(300, easing = EaseOut)) }
+        scale.animateTo(1f, tween(500, easing = EaseOut))
+        delay(450.milliseconds)
+        overlayAlpha.animateTo(0f, tween(500, easing = EaseInOut))
+        visible = false
+    }
+    if (visible) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(10f)
+                .background(colorScheme.background)
+                .alpha(overlayAlpha.value),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(R.drawable.qidong),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(160.dp)
+                    .alpha(logoAlpha.value)
+                    .graphicsLayer { scaleX = scale.value; scaleY = scale.value }
+            )
         }
     }
 }
