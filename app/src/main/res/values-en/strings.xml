@@ -5,6 +5,10 @@
     <string name="press_again_exit">Press again to exit</string>
     <string name="custom_badge_settings">Badge Customization</string>
     <string name="custom_badge_coming_soon">Let me figure it out</string>
+    <string name="custom_badge_status">Coming Soon</string>
+    <string name="custom_badge_desc">Badge customization is in the works. Soon you\'ll be able to design your very own custom badge right here.</string>
+    <string name="quqimeng_badge_market">Quqimeng Manuscript Market</string>
+    <string name="quqimeng_service_note">Service provided by Quqimeng</string>
     <string name="basic_settings">Basic Settings</string>
     <string name="qrcode_settings">QR Code Settings</string>
     <string name="theme_settings">Theme Settings</string>
@@ -242,16 +246,31 @@
     <string name="tut_anti_burnin_desc">When enabled, the image shifts slightly every 5 minutes during fullscreen to prevent OLED screen burn-in.</string>
 
     <string name="tut_qr_code_title">Custom QR Code</string>
-    <string name="tut_qr_code_desc">In Settings → QR Code Settings:\n• Enable \"Swipe to Show QR Code\"\n• Optionally enable \"Swipe to Switch QR Code\" to swipe left/right between QR codes during display\n• Tap the menu on the card to \"Generate from Link\" or \"Import Image\"\n• Generate from Link: Enter a URL and ZXing creates the QR code\n• Import Image: Pick a QR code image from your gallery\n• You can rename the QR code card\n• Uses the default QR image if none is set</string>
+    <string name="tut_qr_code_desc">In Settings → QR Code Settings:
+• Enable \"Swipe to Show QR Code\"
+• Optionally enable \"Swipe to Switch QR Code\" to swipe left/right between QR codes during display
+• Tap the menu on the card to \"Generate from Link\" or \"Import Image\"
+• Generate from Link: Enter a URL and ZXing creates the QR code
+• Import Image: Pick a QR code image from your gallery
+• You can rename the QR code card
+• Uses the default QR image if none is set</string>
 
     <string name="tut_theme_title">Theme and Appearance</string>
     <string name="tut_theme_desc">In Settings → Theme Settings you can:\n• Switch between Dark / Light mode\n• Pick a theme color: Red, Orange, Yellow, Green, Teal, Blue, Purple, Pink\n• Android 12+ supports Monet, matching your wallpaper</string>
 
     <string name="tut_backup_title">Backup and Restore</string>
-    <string name="tut_backup_desc">In Settings → Backup, two methods are supported:\n• Local Backup — Export settings and all images as a ZIP file, or restore from one\n• WebDAV Backup — Configure a server to upload or download backups\n\nGreat for switching devices or preventing data loss.</string>
+    <string name="tut_backup_desc">In Settings → Backup, two methods are supported:
+• Local Backup — Export settings and all images as a ZIP file, or restore from one
+• WebDAV Backup — Configure a server to upload or download backups
+
+Great for switching devices or preventing data loss.</string>
 
     <string name="tut_language_title">Language Support</string>
-    <string name="tut_language_desc">In Settings → Basic Settings → Language, you can switch between:\n• Chinese\n• English\n\nThe interface refreshes automatically after switching.</string>
+    <string name="tut_language_desc">In Settings → Basic Settings → Language, you can switch between:
+• Chinese
+• English
+
+The interface refreshes automatically after switching.</string>
 
     <!-- SharedOverlays -->
     <string name="battery_level">Battery: %d%%</string>

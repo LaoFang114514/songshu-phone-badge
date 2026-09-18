@@ -5,6 +5,10 @@
     <string name="press_again_exit">再按一次退出应用</string>
     <string name="custom_badge_settings">兽牌定制</string>
     <string name="custom_badge_coming_soon">等我想想怎么搞</string>
+    <string name="custom_badge_status">敬请期待</string>
+    <string name="custom_badge_desc">兽牌定制功能正在筹备中，未来你可以在这里自由设计专属自己的兽牌外观。</string>
+    <string name="quqimeng_badge_market">趣绮梦稿件集市</string>
+    <string name="quqimeng_service_note">此服务由 趣绮梦 提供</string>
     <string name="basic_settings">基本设置</string>
     <string name="qrcode_settings">二维码设置</string>
     <string name="theme_settings">主题设置</string>
@@ -242,16 +246,31 @@
     <string name="tut_anti_burnin_desc">开启后，全屏展示时画面会每隔 5 分钟轻微上下移动，防止 OLED 屏幕因长时间显示静态画面而产生残影（烧屏）现象。</string>
 
     <string name="tut_qr_code_title">自定义二维码</string>
-    <string name="tut_qr_code_desc">在「设置 → 二维码设置」中：\n• 开启「上划展示二维码」功能\n• 可选开启「左右滑动切换二维码」，展示时左右滑动切换不同二维码\n• 点击卡片右上角菜单，选择「从链接生成」或「导入图片」\n• 从链接生成：输入网址，自动用 ZXing 生成二维码\n• 导入图片：从相册选择自定义二维码图片\n• 可以重命名二维码卡片\n• 未设置时使用默认二维码图片</string>
+    <string name="tut_qr_code_desc">在「设置 → 二维码设置」中：
+• 开启「上划展示二维码」功能
+• 可选开启「左右滑动切换二维码」，展示时左右滑动切换不同二维码
+• 点击卡片右上角菜单，选择「从链接生成」或「导入图片」
+• 从链接生成：输入网址，自动用 ZXing 生成二维码
+• 导入图片：从相册选择自定义二维码图片
+• 可以重命名二维码卡片
+• 未设置时使用默认二维码图片</string>
 
     <string name="tut_theme_title">主题与外观</string>
     <string name="tut_theme_desc">在「设置 → 主题设置」中可以：\n• 切换深色 / 浅色模式\n• 选择主题颜色：红、橙、黄、绿、青、蓝、紫、粉\n• Android 12+ 支持莫奈取色，自动跟随壁纸配色</string>
 
     <string name="tut_backup_title">数据备份与恢复</string>
-    <string name="tut_backup_desc">在「设置 → 数据备份」中支持两种方式：\n• 本地备份 — 将配置和所有图片打包为 ZIP 文件导出，也可从 ZIP 文件恢复\n• WebDAV 备份 — 配置服务器地址后，可将备份上传到云端或从云端恢复\n\n适合换机迁移或防止数据丢失。</string>
+    <string name="tut_backup_desc">在「设置 → 数据备份」中支持两种方式：
+• 本地备份 — 将配置和所有图片打包为 ZIP 文件导出，也可从 ZIP 文件恢复
+• WebDAV 备份 — 配置服务器地址后，可将备份上传到云端或从云端恢复
+
+适合换机迁移或防止数据丢失。</string>
 
     <string name="tut_language_title">多语言支持</string>
-    <string name="tut_language_desc">在「设置 → 基本设置 → 语言」中可以切换：\n• 中文\n• English\n\n切换后界面会自动刷新。</string>
+    <string name="tut_language_desc">在「设置 → 基本设置 → 语言」中可以切换：
+• 中文
+• English
+
+切换后界面会自动刷新。</string>
 
     <!-- SharedOverlays -->
     <string name="battery_level">电量：%d%%</string>

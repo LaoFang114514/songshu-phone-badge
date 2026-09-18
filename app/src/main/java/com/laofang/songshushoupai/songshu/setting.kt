@@ -62,6 +62,7 @@ import com.laofang.songshushoupai.songshu.settings.BackupOperation
 import com.laofang.songshushoupai.songshu.settings.BasicSettingsCard
 import com.laofang.songshushoupai.songshu.settings.QrCodeSettingsCard
 import com.laofang.songshushoupai.songshu.settings.ThemeSettingsCard
+import com.laofang.songshushoupai.songshu.settings.CustomBadgeSettingsCard
 import com.laofang.songshushoupai.songshu.settings.BackupSettingsCard
 import com.laofang.songshushoupai.songshu.settings.AboutSettingsCard
 import com.laofang.songshushoupai.songshu.settings.TutorialSettingsCard
@@ -348,24 +349,7 @@ private fun <T> SettingsPageHost(
 
 @Composable
 fun CustomBadgeSettingsPage() {
-    SettingsPageScaffold {
-        Card(
-            modifier = Modifier.fillMaxWidth().border(cardBorder(), CardShape).clip(CardShape),
-            shape = CardShape,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp, horizontal = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    stringResource(R.string.custom_badge_coming_soon),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
+    SettingsPageScaffold { CustomBadgeSettingsCard() }
 }
 
 @Composable
