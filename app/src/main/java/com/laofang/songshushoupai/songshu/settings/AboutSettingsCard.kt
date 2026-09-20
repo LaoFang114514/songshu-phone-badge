@@ -21,13 +21,16 @@ import androidx.core.net.toUri
 import com.laofang.songshushoupai.songshu.BuildConfig
 import com.laofang.songshushoupai.songshu.R
 import com.laofang.songshushoupai.songshu.start.egg.ColorSudokuActivity
+import com.laofang.songshushoupai.songshu.start.egg.HeijiaoshouActivity
 
 private val BtnShape = RoundedCornerShape(12.dp)
+private val VersionShape = RoundedCornerShape(6.dp)
 
 @Composable
 fun AboutSettingsCard(onOpenLicense: () -> Unit = {}) {
     val ctx = LocalContext.current
     var clicks by remember { mutableIntStateOf(0) }
+    var verClicks by remember { mutableIntStateOf(0) }
     val cs = MaterialTheme.colorScheme
 
     Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -56,7 +59,18 @@ fun AboutSettingsCard(onOpenLicense: () -> Unit = {}) {
         Spacer(Modifier.height(16.dp))
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(6.dp))
-        Surface(shape = RoundedCornerShape(6.dp), color = cs.primary.copy(alpha = 0.12f)) {
+        Surface(shape = VersionShape, color = cs.primary.copy(alpha = 0.12f), modifier = Modifier.clip(VersionShape).clickable {
+            verClicks++
+            if (verClicks >= 8) {
+                verClicks = 0
+                try {
+                    (ctx as? Activity)?.startActivity(Intent(ctx, HeijiaoshouActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                        ?: Toast.makeText(ctx, ctx.getString(R.string.cannot_access_page), Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(ctx, ctx.getString(R.string.jump_failed, e.message), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }) {
             Text("V${BuildConfig.VERSION_NAME}", Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
                 style = MaterialTheme.typography.labelMedium, color = cs.primary)
         }
@@ -70,10 +84,9 @@ fun AboutSettingsCard(onOpenLicense: () -> Unit = {}) {
             LinkBtn("GitHub", "https://github.com/LaoFang114514/songshu-phone-badge")
             LinkBtn("GitCode", "https://gitcode.com/LaoFang233/songshu-phone-badge")
             LinkBtn(stringResource(R.string.official_site), "https://songshushoupai.mysxl.cn/")
-        }
-        Spacer(Modifier.height(16.dp))
-        OutlinedButton(onClick = onOpenLicense, Modifier.fillMaxWidth(), shape = BtnShape) {
-            Text(stringResource(R.string.open_source_license))
+            OutlinedButton(onClick = onOpenLicense, Modifier.fillMaxWidth(), shape = BtnShape) {
+                Text(stringResource(R.string.open_source_license))
+            }
         }
     }
 }

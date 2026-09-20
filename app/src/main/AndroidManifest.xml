@@ -48,6 +48,11 @@
             android:theme="@style/Theme.Songshushoupai.App" />
 
         <activity
+            android:name=".start.egg.HeijiaoshouActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Songshushoupai.App" />
+
+        <activity
             android:name=".start.VideoPlayerActivity"
             android:exported="false"
             android:theme="@style/Theme.Songshushoupai.App" />

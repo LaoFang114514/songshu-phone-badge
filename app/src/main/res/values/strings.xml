@@ -53,6 +53,7 @@
     <!-- AppSettings -->
     <string name="badge_default_name">兽牌 %d</string>
     <string name="default_badge">默认兽牌</string>
+    <string name="heijiaoshou_badge_name">黑胶兽</string>
 
     <!-- setting.kt -->
     <string name="tip">提示</string>

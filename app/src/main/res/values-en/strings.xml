@@ -53,6 +53,7 @@
     <!-- AppSettings -->
     <string name="badge_default_name">Badge %d</string>
     <string name="default_badge">Default Badge</string>
+    <string name="heijiaoshou_badge_name">Dark Latex Creatures</string>
 
     <!-- setting.kt -->
     <string name="tip">Notice</string>
