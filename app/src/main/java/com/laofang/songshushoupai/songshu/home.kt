@@ -140,9 +140,6 @@ import com.laofang.songshushoupai.songshu.core.decodeBitmapSampled
 
 private val DlgShape = RoundedCornerShape(12.dp)
 
-// 调试开关：为 true 时在高版本（Android 12+）也强制预览低版本的方形 logo 开屏效果。
-private const val PREVIEW_LOW_VERSION_SPLASH = false
-
 class MainActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleHelper.applyLocale(newBase))
@@ -194,9 +191,18 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
-                val showLowVersionSplash = remember { PREVIEW_LOW_VERSION_SPLASH || android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S }
+                // 仅低版本（< Android 12）显示自绘开屏动画；高版本交由系统原生开屏
+                val showLowVersionSplash = android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S
+                // 开屏开始淡出时同步触发主页淡入，与开屏层淡出交叉过渡
+                var homeRevealed by remember { mutableStateOf(!showLowVersionSplash) }
+                val animatedHomeAlpha by animateFloatAsState(
+                    targetValue = if (homeRevealed) 1f else 0f,
+                    animationSpec = tween(500, easing = EaseInOut),
+                    label = "splashHomeFade"
+                )
                 Box(Modifier.fillMaxSize()) {
                     SongshushoupaiApp(
+                        homeAlpha = animatedHomeAlpha,
                         onThemeChanged = {
                             themeIdx = it
                             val s = SettingsManager.loadSettings(ctx)
@@ -208,7 +214,9 @@ class MainActivity : ComponentActivity() {
                             SettingsManager.saveSettings(ctx, s.copy(darkMode = it))
                         }
                     )
-                    if (showLowVersionSplash) LowVersionSplashOverlay()
+                    if (showLowVersionSplash) LowVersionSplashOverlay(
+                        onSplashExitStart = { homeRevealed = true }
+                    )
                 }
             }
         }
@@ -216,9 +224,9 @@ class MainActivity : ComponentActivity() {
 }
 
 // 低版本（< Android 12）开屏：直接绘制方形 logo，避开系统开屏图标的圆形遮罩限制。
-// 动画：logo 淡入+缩放 → 停留 → 整层淡出交叉过渡到主页，避免切换突兀
+// 动画：logo 淡入+缩放 → 停留 → 整层淡出；淡出开始时回调 onSplashExitStart，让主页同步淡入交叉过渡
 @Composable
-private fun LowVersionSplashOverlay() {
+private fun LowVersionSplashOverlay(onSplashExitStart: () -> Unit) {
     var visible by remember { mutableStateOf(true) }
     val overlayAlpha = remember { Animatable(1f) }
     val logoAlpha = remember { Animatable(0f) }
@@ -227,6 +235,7 @@ private fun LowVersionSplashOverlay() {
         launch { logoAlpha.animateTo(1f, tween(300, easing = EaseOut)) }
         scale.animateTo(1f, tween(500, easing = EaseOut))
         delay(450.milliseconds)
+        onSplashExitStart()
         overlayAlpha.animateTo(0f, tween(500, easing = EaseInOut))
         visible = false
     }
@@ -256,6 +265,7 @@ private fun LowVersionSplashOverlay() {
 @PreviewScreenSizes
 @Composable
 fun SongshushoupaiApp(
+    homeAlpha: Float = 1f,
     onThemeChanged: (Int) -> Unit = {},
     onDarkModeChanged: (Int) -> Unit = {}
 ) {
@@ -348,11 +358,13 @@ fun SongshushoupaiApp(
             }
         }
     ) { pad ->
-        val homeAlpha by animateFloatAsState(
+        val tabHomeAlpha by animateFloatAsState(
             targetValue = if (dest == 0) 1f else 0f,
             animationSpec = tween(200),
             label = "homeAlpha"
         )
+        // 开屏结束后的主页整体淡入与页签切换透明度叠加
+        val pageAlpha = homeAlpha * tabHomeAlpha
         val settingsAlpha by animateFloatAsState(
             targetValue = if (dest == 2) 1f else 0f,
             animationSpec = tween(200),
@@ -368,7 +380,7 @@ fun SongshushoupaiApp(
                 onMoveUp = { i -> if (i > 0) { ImageDataManager.moveItem(ctx, i, i - 1); refresh() } },
                 onMoveDown = { i -> if (i < imageList.value.size - 1) { ImageDataManager.moveItem(ctx, i, i + 1); refresh() } },
                 onRename = { i, n -> ImageDataManager.renameItem(ctx, i, n); imageList.value = ImageDataManager.getImageList(ctx) },
-                modifier = Modifier.fillMaxSize().alpha(homeAlpha).zIndex(if (dest == 0) 1f else 0f)
+                modifier = Modifier.fillMaxSize().alpha(pageAlpha).zIndex(if (dest == 0) 1f else 0f)
             )
             Box(
                 modifier = Modifier.fillMaxSize()
