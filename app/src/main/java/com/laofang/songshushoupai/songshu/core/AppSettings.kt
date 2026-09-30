@@ -95,6 +95,14 @@ object SettingsManager {
             putBoolean("qr_swipe_switch", s.qrSwipeSwitch)
         }
     }
+
+    /** 新手引导是否已完成（首次启动时展示引导向导） */
+    fun isOnboardingDone(context: Context): Boolean =
+        prefs(context).getBoolean("onboarding_done", false)
+
+    fun setOnboardingDone(context: Context, done: Boolean) {
+        prefs(context).edit { putBoolean("onboarding_done", done) }
+    }
 }
 
 object ImageDataManager {

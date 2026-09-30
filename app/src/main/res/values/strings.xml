@@ -280,4 +280,21 @@
     <string name="badge_flipped">已翻转兽牌</string>
     <string name="qr_loading">二维码加载中...</string>
     <string name="qr_code">二维码</string>
+
+    <!-- Onboarding 新手引导 -->
+    <string name="onboarding_welcome_zh">欢迎</string>
+    <string name="onboarding_welcome_en">Welcome</string>
+    <string name="onboarding_welcome_subtitle">把旧手机变成你的专属兽牌</string>
+    <string name="onboarding_get_started">开始探索</string>
+    <string name="onboarding_skip">跳过</string>
+    <string name="onboarding_next">下一步</string>
+    <string name="onboarding_back">上一步</string>
+    <string name="onboarding_return">返回</string>
+    <string name="onboarding_step_label">第 %1$d / %2$d 步</string>
+    <string name="onboarding_tutorial_hint">先花一分钟了解核心玩法，随时可以在设置里重看完整教程。</string>
+    <string name="onboarding_basic_hint">按你的使用习惯打开常用开关，之后也能随时修改。</string>
+    <string name="onboarding_suboptions_title">设置</string>
+    <string name="onboarding_suboptions_hint">现在配置二维码、主题外观和数据备份，点进去慢慢调，返回即可回到这里。</string>
+    <string name="onboarding_ready_title">一切准备就绪！</string>
+    <string name="onboarding_ready_desc">点击下方按钮，开启你的兽牌之旅。</string>
 </resources>

@@ -280,4 +280,21 @@ The interface refreshes automatically after switching.</string>
     <string name="badge_flipped">Badge Flipped</string>
     <string name="qr_loading">Loading QR code…</string>
     <string name="qr_code">QR Code</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_zh">欢迎</string>
+    <string name="onboarding_welcome_en">Welcome</string>
+    <string name="onboarding_welcome_subtitle">Turn your old phone into a fursuit badge</string>
+    <string name="onboarding_get_started">Get Started</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_return">Return</string>
+    <string name="onboarding_step_label">Step %1$d of %2$d</string>
+    <string name="onboarding_tutorial_hint">Take a minute to learn the basics. The full tutorial is always available in Settings.</string>
+    <string name="onboarding_basic_hint">Toggle the options that fit how you use it. You can change these anytime.</string>
+    <string name="onboarding_suboptions_title">Settings</string>
+    <string name="onboarding_suboptions_hint">Set up QR code, theme and backup now. Tap in to adjust, then go back to return here.</string>
+    <string name="onboarding_ready_title">You\'re all set!</string>
+    <string name="onboarding_ready_desc">Tap the button below to begin your badge journey.</string>
 </resources>

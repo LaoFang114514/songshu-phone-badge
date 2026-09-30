@@ -28,15 +28,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Badge
+import androidx.compose.material.icons.outlined.ColorLens
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.QrCode2
+import androidx.compose.material.icons.outlined.SettingsBackupRestore
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -52,6 +61,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -67,6 +77,7 @@ import com.laofang.songshushoupai.songshu.settings.BackupSettingsCard
 import com.laofang.songshushoupai.songshu.settings.AboutSettingsCard
 import com.laofang.songshushoupai.songshu.settings.TutorialSettingsCard
 import android.content.Context
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -95,7 +106,7 @@ private fun isAprilFools(): Boolean {
 private fun cardBorder() = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
 
 @Composable
-private fun SettingsPageScaffold(content: @Composable () -> Unit) {
+internal fun SettingsPageScaffold(content: @Composable () -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(11.dp)
@@ -103,7 +114,7 @@ private fun SettingsPageScaffold(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun NavRow(label: String, onClick: () -> Unit) {
+internal fun NavRow(icon: ImageVector, label: String, onClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().border(cardBorder(), CardShape).clip(CardShape).clickable(onClick = onClick),
         shape = CardShape,
@@ -113,6 +124,13 @@ private fun NavRow(label: String, onClick: () -> Unit) {
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(22.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.width(14.dp))
             Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
             Text(" ▶", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -167,16 +185,19 @@ fun SettingsPage(
     var updateInfo by remember { mutableStateOf(UpdateChecker.getCachedResult(ctx)) }
     var checkingUpdate by remember { mutableStateOf(false) }
 
-    fun doCheckUpdate(forceRefresh: Boolean) {
-        if (checkingUpdate) return
-        checkingUpdate = true
-        scope.launch {
-            if (forceRefresh) {
-                ctx.getSharedPreferences("rss_cache", Context.MODE_PRIVATE).edit { putString("cache_data", "") }
+    val doCheckUpdate: (Boolean) -> Unit = { forceRefresh ->
+        if (!checkingUpdate) {
+            checkingUpdate = true
+            scope.launch {
+                try {
+                    if (forceRefresh) {
+                        ctx.getSharedPreferences("rss_cache", Context.MODE_PRIVATE).edit { putString("cache_data", "") }
+                    }
+                    UpdateChecker.checkForUpdate(ctx, BuildConfig.VERSION_NAME).getOrNull()?.let { updateInfo = it }
+                } finally {
+                    checkingUpdate = false
+                }
             }
-            val result = UpdateChecker.checkForUpdate(ctx, BuildConfig.VERSION_NAME)
-            result.getOrNull()?.let { updateInfo = it }
-            checkingUpdate = false
         }
     }
 
@@ -185,8 +206,8 @@ fun SettingsPage(
         doCheckUpdate(false)
     }
 
-    val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    DisposableEffect(owner) {
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
         val obs = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 val prefs = ctx.getSharedPreferences("update_state", Context.MODE_PRIVATE)
@@ -198,21 +219,18 @@ fun SettingsPage(
                 prefs.edit { putString("last_version", curVer) }
             }
         }
-        owner.lifecycle.addObserver(obs)
-        onDispose { owner.lifecycle.removeObserver(obs) }
+        lifecycleOwner.lifecycle.addObserver(obs)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
+    SettingsPageScaffold {
         Card(
             modifier = Modifier.fillMaxWidth().border(cardBorder(), CardShape).clip(CardShape),
             shape = CardShape,
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                val aprilFools = isAprilFools()
+                val aprilFools = remember { isAprilFools() }
                 // 付费纯愚人节玩笑，请勿当真
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(if (aprilFools) stringResource(R.string.trial_expiring) else stringResource(R.string.support_developer), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
@@ -257,13 +275,13 @@ fun SettingsPage(
         }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-        NavRow(stringResource(R.string.custom_badge_settings)) { onNavigateToCustomBadge() }
-        NavRow(stringResource(R.string.basic_settings)) { onNavigateToBasicSettings() }
-        NavRow(stringResource(R.string.qrcode_settings)) { onNavigateToQrCodeSettings() }
-        NavRow(stringResource(R.string.theme_settings)) { onNavigateToThemeSettings() }
-        NavRow(stringResource(R.string.backup_settings)) { onNavigateToBackupSettings() }
-        NavRow(stringResource(R.string.tutorial_settings)) { onNavigateToTutorial() }
-        NavRow(stringResource(R.string.about_settings)) { onNavigateToAboutSettings() }
+        NavRow(Icons.Outlined.Badge, stringResource(R.string.custom_badge_settings)) { onNavigateToCustomBadge() }
+        NavRow(Icons.Outlined.Tune, stringResource(R.string.basic_settings)) { onNavigateToBasicSettings() }
+        NavRow(Icons.Outlined.QrCode2, stringResource(R.string.qrcode_settings)) { onNavigateToQrCodeSettings() }
+        NavRow(Icons.Outlined.ColorLens, stringResource(R.string.theme_settings)) { onNavigateToThemeSettings() }
+        NavRow(Icons.Outlined.SettingsBackupRestore, stringResource(R.string.backup_settings)) { onNavigateToBackupSettings() }
+        NavRow(Icons.AutoMirrored.Outlined.HelpOutline, stringResource(R.string.tutorial_settings)) { onNavigateToTutorial() }
+        NavRow(Icons.Outlined.Info, stringResource(R.string.about_settings)) { onNavigateToAboutSettings() }
 
     }
 }
@@ -380,17 +398,19 @@ fun BasicSettingsPage() = SettingsPageHost(
 fun QrCodeSettingsPage() {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
-    var showQrCode by remember { mutableStateOf(SettingsManager.loadSettings(ctx).showQrCode) }
-    var qrSwipeSwitch by remember { mutableStateOf(SettingsManager.loadSettings(ctx).qrSwipeSwitch) }
+    val initial = SettingsManager.loadSettings(ctx)
+    var showQrCode by remember { mutableStateOf(initial.showQrCode) }
+    var qrSwipeSwitch by remember { mutableStateOf(initial.qrSwipeSwitch) }
     val qrList = remember { mutableStateOf(QrCodeDataManager.getQrList(ctx)) }
     var selIdx by remember { mutableIntStateOf(QrCodeDataManager.getSelectedIndex(ctx)) }
 
     fun refresh() {
         scope.launch {
-            withContext(Dispatchers.IO) {
-                qrList.value = QrCodeDataManager.getQrList(ctx)
-                selIdx = QrCodeDataManager.getSelectedIndex(ctx)
+            val (list, index) = withContext(Dispatchers.IO) {
+                QrCodeDataManager.getQrList(ctx) to QrCodeDataManager.getSelectedIndex(ctx)
             }
+            qrList.value = list
+            selIdx = index
         }
     }
 
@@ -415,13 +435,11 @@ fun QrCodeSettingsPage() {
             onAdd = { item ->
                 scope.launch(Dispatchers.IO) {
                     val currentList = QrCodeDataManager.getQrList(ctx)
-                    val nextNum = currentList.size + 1
-                    val namedItem = if (item.name.isEmpty()) item.copy(name = ctx.getString(R.string.qr_default_name, nextNum)) else item
-                    QrCodeDataManager.addItem(ctx, namedItem)
-                    val newIdx = QrCodeDataManager.getQrList(ctx).size - 1
-                    QrCodeDataManager.setSelectedIndex(ctx, newIdx)
-                    qrList.value = QrCodeDataManager.getQrList(ctx)
-                    selIdx = QrCodeDataManager.getSelectedIndex(ctx)
+                    val namedItem = if (item.name.isEmpty()) item.copy(name = ctx.getString(R.string.qr_default_name, currentList.size + 1)) else item
+                    val newList = currentList + namedItem
+                    QrCodeDataManager.restoreList(ctx, newList, newList.size - 1)
+                    qrList.value = newList
+                    selIdx = newList.size - 1
                 }
             },
             onDelete = { QrCodeDataManager.deleteItem(ctx, it); refresh() },
