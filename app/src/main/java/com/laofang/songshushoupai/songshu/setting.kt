@@ -40,6 +40,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.WorkspacePremium
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -75,6 +76,7 @@ import com.laofang.songshushoupai.songshu.settings.ThemeSettingsCard
 import com.laofang.songshushoupai.songshu.settings.CustomBadgeSettingsCard
 import com.laofang.songshushoupai.songshu.settings.BackupSettingsCard
 import com.laofang.songshushoupai.songshu.settings.AboutSettingsCard
+import com.laofang.songshushoupai.songshu.settings.ProSettingsCard
 import com.laofang.songshushoupai.songshu.settings.TutorialSettingsCard
 import android.content.Context
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
@@ -178,6 +180,7 @@ fun SettingsPage(
     onNavigateToBackupSettings: () -> Unit = {},
     onNavigateToAboutSettings: () -> Unit = {},
     onNavigateToTutorial: () -> Unit = {},
+    onNavigateToProSettings: () -> Unit = {},
     onUpdateClick: (UpdateInfo) -> Unit = {}
 ) {
     val ctx = LocalContext.current
@@ -281,6 +284,7 @@ fun SettingsPage(
         NavRow(Icons.Outlined.ColorLens, stringResource(R.string.theme_settings)) { onNavigateToThemeSettings() }
         NavRow(Icons.Outlined.SettingsBackupRestore, stringResource(R.string.backup_settings)) { onNavigateToBackupSettings() }
         NavRow(Icons.AutoMirrored.Outlined.HelpOutline, stringResource(R.string.tutorial_settings)) { onNavigateToTutorial() }
+        NavRow(Icons.Outlined.WorkspacePremium, stringResource(R.string.pro_settings)) { onNavigateToProSettings() }
         NavRow(Icons.Outlined.Info, stringResource(R.string.about_settings)) { onNavigateToAboutSettings() }
 
     }
@@ -347,6 +351,11 @@ fun LicenseSettingsPage() {
 @Composable
 fun TutorialSettingsPage() {
     SettingsPageScaffold { TutorialSettingsCard() }
+}
+
+@Composable
+fun ProSettingsPage() {
+    SettingsPageScaffold { ProSettingsCard() }
 }
 
 @Composable

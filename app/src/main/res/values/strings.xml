@@ -15,6 +15,7 @@
     <string name="backup_settings">数据备份</string>
     <string name="about_settings">关于软件</string>
     <string name="tutorial_settings">使用教程</string>
+    <string name="pro_settings">松鼠兽牌PRO</string>
     <string name="new_version_found">发现新版本 V %s</string>
     <string name="check_update">查看更新</string>
     <string name="maybe_later">稍后再说</string>
@@ -186,6 +187,10 @@
     <string name="license_apache2">基于 Apache License 2.0 授权使用</string>
     <string name="cannot_access_page">无法访问页面</string>
     <string name="jump_failed">跳转失败: %s</string>
+
+    <!-- ProSettingsCard -->
+    <string name="pro_app_name">松鼠兽牌 PRO</string>
+    <string name="pro_desc">松鼠兽牌 PRO 是一款让旧手机变身 furry 兽牌的软件。与普通版不同，PRO 版通过 HTML 页面呈现兽牌内容，自由度更高，可以实现更丰富的展示效果；不过制作门槛也相应提高，需要掌握 HTML、CSS 和 JavaScript 才能编辑兽牌内容。目前 PRO 版正在开发中，敬请期待！</string>
 
     <!-- TutorialSettingsCard -->
     <string name="step1_title">1. 添加兽牌</string>

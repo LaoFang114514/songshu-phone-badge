@@ -434,6 +434,7 @@ fun SongshushoupaiApp(
                             onNavigateToBackupSettings = { settingsSub = "backup" },
                             onNavigateToAboutSettings = { settingsSub = "about" },
                             onNavigateToTutorial = { settingsSub = "tutorial" },
+                            onNavigateToProSettings = { settingsSub = "pro" },
                             onUpdateClick = { updatePopupInfo = it })
                         "customBadge" -> CustomBadgeSettingsPage()
                         "basic" -> BasicSettingsPage()
@@ -445,6 +446,7 @@ fun SongshushoupaiApp(
                             settingsSub = "license"
                         })
                         "tutorial" -> TutorialSettingsPage()
+                        "pro" -> ProSettingsPage()
                         "license" -> LicenseSettingsPage()
                     }
                 }

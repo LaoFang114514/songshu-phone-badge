@@ -2,12 +2,12 @@
     <string name="app_name">Songshu phone badge</string>
 
     <!-- home.kt -->
-    <string name="press_again_exit">Press again to exit</string>
+    <string name="press_again_exit">Press again to leave the den</string>
     <string name="custom_badge_settings">Badge Customization</string>
-    <string name="custom_badge_coming_soon">Let me figure it out</string>
+    <string name="custom_badge_coming_soon">Still dreaming this up</string>
     <string name="custom_badge_status">Coming Soon</string>
-    <string name="custom_badge_desc">Badge customization is in the works. Soon you\'ll be able to design your very own custom badge right here.</string>
-    <string name="quqimeng_badge_market">Quqimeng Manuscript Market</string>
+    <string name="custom_badge_desc">Badge customization is in the works. Soon you\'ll be able to craft a badge as unique as your fursona, right here.</string>
+    <string name="quqimeng_badge_market">Quqimeng Commission Market</string>
     <string name="quqimeng_service_note">Service provided by Quqimeng</string>
     <string name="basic_settings">Basic Settings</string>
     <string name="qrcode_settings">QR Code Settings</string>
@@ -15,11 +15,12 @@
     <string name="backup_settings">Backup</string>
     <string name="about_settings">About</string>
     <string name="tutorial_settings">Tutorial</string>
-    <string name="new_version_found">New version %s found</string>
+    <string name="pro_settings">Songshu Badge PRO</string>
+    <string name="new_version_found">New version %s is out!</string>
     <string name="check_update">View Update</string>
     <string name="maybe_later">Maybe Later</string>
     <string name="confirm_delete">Confirm Delete</string>
-    <string name="confirm_delete_msg">Are you sure you want to delete \"%s\"?</string>
+    <string name="confirm_delete_msg">Say goodbye to \"%s\"? This badge will be gone for good.</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
     <string name="rename">Rename</string>
@@ -32,7 +33,7 @@
     <string name="move_up">Move Up</string>
     <string name="move_down">Move Down</string>
     <string name="add_badge">Add Badge</string>
-    <string name="pick_display_mode">Select Display Mode</string>
+    <string name="pick_display_mode">How should your badge appear?</string>
     <string name="nav_home">Home</string>
     <string name="nav_start">Start</string>
     <string name="nav_settings">Settings</string>
@@ -45,7 +46,7 @@
     <string name="new_badge">New Badge</string>
     <string name="reselect">Reselect</string>
     <string name="confirm_crop">Confirm Crop</string>
-    <string name="processing">Processing…</string>
+    <string name="processing">Grooming your badge…</string>
     <string name="video_crop_title">Crop Video</string>
     <string name="no_video_selected">No video selected</string>
     <string name="select_video">Select Video</string>
@@ -60,22 +61,22 @@
     <string name="ok">OK</string>
     <string name="confirm_action">Confirm Action</string>
     <string name="confirm_override_data">This will overwrite current data. Continue?</string>
-    <string name="support_developer">Support the Developer</string>
+    <string name="support_developer">Feed the Developer</string>
     <string name="trial_expiring">Trial expiring soon</string>
-    <string name="sponsor_via">Sponsor via the following channels</string>
+    <string name="sponsor_via">Toss a treat via the channels below</string>
     <string name="please_purchase">Please purchase the full version</string>
     <string name="purchase_channel_1">Channel 1</string>
     <string name="purchase_channel_2">Channel 2</string>
     <string name="checking_update">Checking…</string>
     <string name="ifdian">iFadian</string>
     <string name="new_version_title">New version %s</string>
-    <string name="export_success">Export successful</string>
+    <string name="export_success">Stash exported successfully</string>
     <string name="export_failed">Export failed: %s</string>
-    <string name="import_success">Import successful</string>
+    <string name="import_success">Stash imported successfully</string>
     <string name="import_failed">Import failed</string>
     <string name="config_server_first">Please configure server address first</string>
-    <string name="backup_success">Backup to server successful</string>
-    <string name="restore_success">Restore from server successful</string>
+    <string name="backup_success">Stash safely backed up to the server</string>
+    <string name="restore_success">Stash restored from the server</string>
     <string name="fill_server_address">Please enter server address first</string>
     <string name="connection_success">Connected successfully</string>
     <string name="webdav_config_saved">WebDAV config saved</string>
@@ -101,9 +102,9 @@
     <string name="lang_chinese">中文</string>
     <string name="lang_english">English</string>
     <string name="reverse_display">Reverse Display</string>
-    <string name="reverse_display_desc">Flip the badge 180° on launch</string>
+    <string name="reverse_display_desc">Flip the badge 180° on launch — handy for head-mounted phones</string>
     <string name="keep_screen_on">Keep Screen On</string>
-    <string name="keep_screen_on_desc">Prevent screen from turning off during playback</string>
+    <string name="keep_screen_on_desc">Keep your badge glowing without the screen dozing off</string>
     <string name="show_battery">Show Battery</string>
     <string name="show_battery_desc">Display battery percentage at top during fullscreen</string>
     <string name="lock_orientation">Lock Orientation</string>
@@ -111,7 +112,7 @@
     <string name="anti_burn_in">Anti Burn-in</string>
     <string name="anti_burn_in_desc">Shift display slightly every 5 minutes to prevent OLED burn-in</string>
     <string name="mute_video">Mute Video</string>
-    <string name="mute_video_desc">Play video without sound by default</string>
+    <string name="mute_video_desc">Play videos muted by default — silent floof mode</string>
 
     <!-- ThemeSettingsCard -->
     <string name="dark_mode">Dark Mode</string>
@@ -131,7 +132,7 @@
 
     <!-- QrCodeSettingsCard -->
     <string name="swipe_show_qr">Swipe to Show QR Code</string>
-    <string name="swipe_show_qr_desc">Swipe up during fullscreen to display QR code</string>
+    <string name="swipe_show_qr_desc">Swipe up in fullscreen to share your QR code with new friends</string>
     <string name="qr_swipe_switch">Swipe to Switch QR Code</string>
     <string name="qr_swipe_switch_desc">Swipe left/right to switch between QR codes when displayed</string>
     <string name="import_qr">Import Image</string>
@@ -144,11 +145,11 @@
 
     <!-- BackupSettingsCard -->
     <string name="local_backup">Local Backup</string>
-    <string name="local_backup_desc">Export settings and all images as a ZIP file, or restore from one.</string>
+    <string name="local_backup_desc">Pack your settings and badges into a ZIP stash, or restore from one.</string>
     <string name="export_config">Export</string>
     <string name="import_config">Import</string>
     <string name="webdav_backup">WebDAV Backup</string>
-    <string name="webdav_backup_desc">Configure a WebDAV server to upload or restore backups.</string>
+    <string name="webdav_backup_desc">Keep a stash on a WebDAV server — upload backups or pull them back anytime.</string>
     <string name="server_address">Server Address</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
@@ -160,7 +161,7 @@
     <string name="data_size">Backup data size</string>
 
     <!-- AboutSettingsCard -->
-    <string name="app_desc">A simple tool to turn your old phone into a fursuit badge. Create and display your own badge images — perfect for furry fans on a budget.</string>
+    <string name="app_desc">A simple tool that turns your old phone into a fursuit badge. Show off your fursona with your own badge images — perfect for furs on a budget.</string>
     <string name="qq_group">QQ Group</string>
     <string name="discord">Discord</string>
     <string name="official_site">Website</string>
@@ -187,18 +188,22 @@
     <string name="cannot_access_page">Cannot open page</string>
     <string name="jump_failed">Navigation failed: %s</string>
 
+    <!-- ProSettingsCard -->
+    <string name="pro_app_name">Songshu Badge PRO</string>
+    <string name="pro_desc">Songshu Badge PRO turns your old phone into a fursona badge. Unlike the standard version, PRO renders your badge as a full HTML page, giving you far more freedom to make your floof truly stand out at cons. The trade-off is a steeper learning curve — crafting your badge takes some HTML, CSS and JavaScript know-how. PRO is still being groomed in the den. Stay pawsitive and stay tuned!</string>
+
     <!-- TutorialSettingsCard -->
-    <string name="tutorial_welcome_title">Welcome to SPB</string>
-    <string name="tutorial_welcome_desc">This is a quick guide to help you get started.</string>
+    <string name="tutorial_welcome_title">Welcome to Songshu phone badge</string>
+    <string name="tutorial_welcome_desc">A quick guide to get your badge shining.</string>
 
     <string name="step1_title">1. Add a Badge</string>
-    <string name="step1_desc">Tap \"Add Badge\" at the bottom of the home page, then choose an image to crop or a video as your badge content.</string>
+    <string name="step1_desc">Tap \"Add Badge\" at the bottom of the home page, then pick an image to crop or a video to show off your fursona.</string>
     <string name="step2_title">2. Select a Badge</string>
     <string name="step2_desc">Tap a badge in the list to select it. The active badge shows a themed border and \"Currently in use\" label.</string>
     <string name="step3_title">3. Start Display</string>
-    <string name="step3_desc">Tap the \"Start\" button in the bottom navigation bar to enter fullscreen mode and show your badge.</string>
+    <string name="step3_desc">Tap \"Start\" in the bottom navigation bar to let your badge shine in fullscreen.</string>
     <string name="step4_title">4. QR Code Settings</string>
-    <string name="step4_desc">In Settings → QR Code Settings, upload a QR code image. It will appear when you swipe during fullscreen.</string>
+    <string name="step4_desc">In Settings → QR Code Settings, upload a QR code so new friends can find you. It appears when you swipe during fullscreen.</string>
     <string name="step5_title">5. More Settings</string>
     <string name="step5_desc">In \"Basic Settings\" you can toggle reverse display, keep screen on, anti burn-in, and more.</string>
 
@@ -208,10 +213,10 @@
     <string name="tutorial_section_advanced">Advanced</string>
 
     <string name="tut_add_image_title">Add an Image Badge</string>
-    <string name="tut_add_image_desc">Tap \"Add Badge\" at the bottom of the home page, then select \"Image\" in the dialog. Crop and adjust the image area to your liking, then confirm to create the badge.</string>
+    <string name="tut_add_image_desc">Tap \"Add Badge\" at the bottom of the home page, then select \"Image\" in the dialog. Drag and zoom to frame your fursona just right, then confirm to create the badge.</string>
 
     <string name="tut_add_video_title">Add a Video Badge</string>
-    <string name="tut_add_video_desc">Tap \"Add Badge\" and select \"Video\", then pick a video from your gallery. The first frame is automatically saved as the cover. Videos loop continuously in fullscreen.</string>
+    <string name="tut_add_video_desc">Tap \"Add Badge\" and select \"Video\", then pick a video from your gallery. The first frame is automatically saved as the cover. Videos loop endlessly in fullscreen, keeping your badge alive.</string>
 
     <string name="tut_manage_title">Manage Your Badge List</string>
     <string name="tut_manage_desc">Tap the menu button on any badge card to:\n• Rename — Change the badge name\n• Move Up / Down — Reorder badges\n• Delete — Remove a badge</string>
@@ -235,13 +240,13 @@
     <string name="tut_qr_swipe_desc">When the QR code is displayed, swipe left or right to switch between multiple QR codes (requires \"Swipe to Switch QR Code\" enabled in Settings → QR Code Settings). Supports circular switching — swiping right on the last QR code wraps back to the first.</string>
 
     <string name="tut_battery_title">Battery Display</string>
-    <string name="tut_battery_desc">In fullscreen, the battery percentage is shown at the top (requires \"Show Battery\" enabled in settings).</string>
+    <string name="tut_battery_desc">In fullscreen, the battery percentage is shown at the top (requires \"Show Battery\" enabled in settings), so your badge won\'t die mid-con.</string>
 
     <string name="tut_reverse_title">Reverse Display</string>
     <string name="tut_reverse_desc">Enable \"Reverse Display\" in Settings → Basic Settings to auto-rotate the badge 180° on launch. Ideal when the phone is mounted upside down in a fursuit head.</string>
 
     <string name="tut_screen_on_title">Keep Screen On</string>
-    <string name="tut_screen_on_desc">When enabled, the screen stays on during fullscreen playback. Perfect for long-duration badge display.</string>
+    <string name="tut_screen_on_desc">When enabled, the screen stays on during fullscreen playback. Perfect for all-day badge display at cons.</string>
 
     <string name="tut_anti_burnin_title">Anti Burn-in</string>
     <string name="tut_anti_burnin_desc">When enabled, the image shifts slightly every 5 minutes during fullscreen to prevent OLED screen burn-in.</string>
@@ -264,7 +269,7 @@
 • Local Backup — Export settings and all images as a ZIP file, or restore from one
 • WebDAV Backup — Configure a server to upload or download backups
 
-Great for switching devices or preventing data loss.</string>
+Great for switching devices or keeping your stash safe.</string>
 
     <string name="tut_language_title">Language Support</string>
     <string name="tut_language_desc">In Settings → Basic Settings → Language, you can switch between:
@@ -284,17 +289,17 @@ The interface refreshes automatically after switching.</string>
     <!-- Onboarding -->
     <string name="onboarding_welcome_zh">欢迎</string>
     <string name="onboarding_welcome_en">Welcome</string>
-    <string name="onboarding_welcome_subtitle">Turn your old phone into a fursuit badge</string>
-    <string name="onboarding_get_started">Get Started</string>
+    <string name="onboarding_welcome_subtitle">Turn your old phone into your fursona\'s very own badge</string>
+    <string name="onboarding_get_started">Start Exploring</string>
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_return">Return</string>
     <string name="onboarding_step_label">Step %1$d of %2$d</string>
-    <string name="onboarding_tutorial_hint">Take a minute to learn the basics. The full tutorial is always available in Settings.</string>
+    <string name="onboarding_tutorial_hint">Take a minute to learn the basics — the full tutorial is always waiting in Settings.</string>
     <string name="onboarding_basic_hint">Toggle the options that fit how you use it. You can change these anytime.</string>
     <string name="onboarding_suboptions_title">Settings</string>
     <string name="onboarding_suboptions_hint">Set up QR code, theme and backup now. Tap in to adjust, then go back to return here.</string>
-    <string name="onboarding_ready_title">You\'re all set!</string>
-    <string name="onboarding_ready_desc">Tap the button below to begin your badge journey.</string>
+    <string name="onboarding_ready_title">You\'re all set, floof!</string>
+    <string name="onboarding_ready_desc">Tap the button below and let your fursona shine.</string>
 </resources>
